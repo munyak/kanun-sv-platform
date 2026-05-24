@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
+import { useAuth } from '../auth/AuthContext'
 
 function fmtDate(s) {
   if (!s) return '—'
@@ -27,13 +28,14 @@ function statusBadge(status) {
 }
 
 export default function Cases() {
+  const { activeOrgId } = useAuth()
   const [loading, setLoading] = useState(true)
   const [cases, setCases] = useState([])
   const [filter, setFilter] = useState('all')
 
   useEffect(() => {
-    load()
-  }, [])
+    if (activeOrgId) load()
+  }, [activeOrgId])
 
   async function load() {
     setLoading(true)
@@ -53,6 +55,7 @@ export default function Cases() {
           noncustodial:noncustodial_party_id(first_name, last_name),
           monitor:assigned_monitor_id(first_name, last_name)
         `)
+        .eq('org_id', activeOrgId)
         .order('created_at', { ascending: false })
       if (error) throw error
       setCases(data || [])

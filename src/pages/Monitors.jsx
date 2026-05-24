@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import { useAuth } from '../auth/AuthContext'
 
 const QUALIFICATIONS = [
   { value: 'age_21_plus', label: '21 years of age or older' },
@@ -40,6 +41,7 @@ const initialForm = {
 }
 
 export default function Monitors() {
+  const { activeOrgId } = useAuth()
   const [loading, setLoading] = useState(true)
   const [monitors, setMonitors] = useState([])
   const [showForm, setShowForm] = useState(false)
@@ -48,8 +50,8 @@ export default function Monitors() {
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
-    load()
-  }, [])
+    if (activeOrgId) load()
+  }, [activeOrgId])
 
   function showToast(message, kind = 'success') {
     setToast({ message, kind })
@@ -62,6 +64,7 @@ export default function Monitors() {
       const { data, error } = await supabase
         .from('sv_monitors')
         .select('*')
+        .eq('org_id', activeOrgId)
         .order('last_name', { ascending: true })
       if (error) throw error
       setMonitors(data || [])
@@ -90,6 +93,7 @@ export default function Monitors() {
     try {
       const payload = {
         ...form,
+        org_id: activeOrgId,
         hire_date: form.hire_date || null,
         livescan_date: form.livescan_date || null,
         trustline_date: form.trustline_date || null,

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import { useAuth } from '../auth/AuthContext'
 
 function fmtDateTime(s) {
   if (!s) return '—'
@@ -28,13 +29,14 @@ function statusBadge(status) {
 }
 
 export default function Visits() {
+  const { activeOrgId } = useAuth()
   const [loading, setLoading] = useState(true)
   const [visits, setVisits] = useState([])
   const [filter, setFilter] = useState('upcoming')
 
   useEffect(() => {
-    load()
-  }, [filter])
+    if (activeOrgId) load()
+  }, [filter, activeOrgId])
 
   async function load() {
     setLoading(true)
@@ -51,6 +53,7 @@ export default function Visits() {
           case:case_id(case_number),
           monitor:monitor_id(first_name, last_name)
         `)
+        .eq('org_id', activeOrgId)
 
       const now = new Date().toISOString()
       if (filter === 'upcoming') q = q.gte('scheduled_at', now).order('scheduled_at', { ascending: true })

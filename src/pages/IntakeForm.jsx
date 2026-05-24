@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
+import { useAuth } from '../auth/AuthContext'
 
 const LA_COURTS = [
   'Stanley Mosk Courthouse (Central)',
@@ -101,6 +102,7 @@ const initialAcks = {
 
 export default function IntakeForm() {
   const navigate = useNavigate()
+  const { activeOrgId } = useAuth()
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState(null)
@@ -155,26 +157,27 @@ export default function IntakeForm() {
     try {
       const { data: custData, error: custErr } = await supabase
         .from('sv_parties')
-        .insert([{ ...custodial, party_role: 'custodial' }])
+        .insert([{ ...custodial, party_role: 'custodial', org_id: activeOrgId }])
         .select()
         .single()
       if (custErr) throw custErr
 
       const { data: noncustData, error: noncustErr } = await supabase
         .from('sv_parties')
-        .insert([{ ...noncustodial, party_role: 'noncustodial' }])
+        .insert([{ ...noncustodial, party_role: 'noncustodial', org_id: activeOrgId }])
         .select()
         .single()
       if (noncustErr) throw noncustErr
 
       const { data: childData, error: childErr } = await supabase
         .from('sv_children')
-        .insert([child])
+        .insert([{ ...child, org_id: activeOrgId }])
         .select()
         .single()
       if (childErr) throw childErr
 
       const casePayload = {
+        org_id: activeOrgId,
         case_number: caseData.case_number || null,
         court_name: caseData.court_name,
         referral_source: caseData.referral_source,
@@ -201,7 +204,7 @@ export default function IntakeForm() {
 
       const { error: linkErr } = await supabase
         .from('sv_case_children')
-        .insert([{ case_id: caseRow.id, child_id: childData.id }])
+        .insert([{ case_id: caseRow.id, child_id: childData.id, org_id: activeOrgId }])
       if (linkErr) throw linkErr
 
       showToast('Intake submitted successfully')
