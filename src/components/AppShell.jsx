@@ -7,7 +7,7 @@ const NAV_BY_ROLE = {
     { to: '/', label: 'Dashboard', exact: true },
     { to: '/cases', label: 'Cases' },
     { to: '/intake', label: 'New Intake' },
-    { to: '/visits', label: 'Visits' },
+    { to: '/visits', label: 'Schedule' },
     { to: '/monitors', label: 'Monitors' },
     { to: '/team', label: 'Team' },
     { to: '/settings', label: 'Settings' },
@@ -16,7 +16,7 @@ const NAV_BY_ROLE = {
     { to: '/', label: 'Dashboard', exact: true },
     { to: '/cases', label: 'Cases' },
     { to: '/intake', label: 'New Intake' },
-    { to: '/visits', label: 'Visits' },
+    { to: '/visits', label: 'Schedule' },
     { to: '/monitors', label: 'Monitors' },
     { to: '/team', label: 'Team' },
     { to: '/settings', label: 'Settings' },
@@ -25,7 +25,7 @@ const NAV_BY_ROLE = {
     { to: '/', label: 'Dashboard', exact: true },
     { to: '/cases', label: 'Cases' },
     { to: '/intake', label: 'New Intake' },
-    { to: '/visits', label: 'Visits' },
+    { to: '/visits', label: 'Schedule' },
     { to: '/monitors', label: 'Monitors' },
     { to: '/team', label: 'Team' },
   ],
@@ -142,7 +142,7 @@ export default function AppShell() {
             >
               CA Standard 5.20 →
             </a>
-            <div className="footer-meta">v0.2.0 · Phase 1</div>
+            <div className="footer-meta">v0.3.0 · Phase 1</div>
           </div>
         </aside>
 

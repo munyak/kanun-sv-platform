@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
@@ -21,7 +21,7 @@ const SERVICE_OPTIONS = [
 const LA_COURTS = [
   'Stanley Mosk Courthouse (Central)',
   'Antonio Villaraigosa Family Justice Center',
-  'Edmund D. Edelman Children\'s Court',
+  "Edmund D. Edelman Children's Court",
   'Lancaster Courthouse',
   'Long Beach Courthouse',
   'Pasadena Courthouse',
@@ -55,11 +55,17 @@ export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [data, setData] = useState(emptyData)
   const [orgId, setOrgId] = useState(null)
+  // ref mirrors state so that async handlers don't read a stale closure value
+  const orgIdRef = useRef(null)
+  function syncOrgId(v) {
+    orgIdRef.current = v
+    setOrgId(v)
+  }
+
   const [err, setErr] = useState(null)
   const [busy, setBusy] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
-  // hydrate progress on mount
   useEffect(() => {
     let cancelled = false
     async function init() {
@@ -74,9 +80,14 @@ export default function Onboarding() {
         setProgress(row)
         setStep(Math.min(Math.max(row.current_step || 1, 1), STEPS.length))
         if (row.step_data) setData((d) => ({ ...d, ...row.step_data }))
-        if (row.org_id) setOrgId(row.org_id)
-      } else if (hasOrg && activeOrgId) {
-        // already part of an org via invite — skip wizard
+        if (row.org_id) syncOrgId(row.org_id)
+      }
+      // If the row is stale (org_id missing) but the user already has an active
+      // org via memberships, adopt it so subsequent steps post correctly.
+      if (!orgIdRef.current && hasOrg && activeOrgId) {
+        syncOrgId(activeOrgId)
+      }
+      if (hasOrg && activeOrgId && row?.completed) {
         nav('/', { replace: true })
         return
       }
@@ -94,7 +105,7 @@ export default function Onboarding() {
     if (!user) return
     const payload = {
       user_id: user.id,
-      org_id: orgId,
+      org_id: orgIdRef.current,
       current_step: nextStep,
       completed_steps: completedSteps ?? progress?.completed_steps ?? [],
       step_data: data,
@@ -117,10 +128,9 @@ export default function Onboarding() {
       const s = STEPS[step - 1]
       const completed = Array.from(new Set([...(progress?.completed_steps || []), step]))
 
-      // Step 1: create org if not yet created
       if (s.key === 'org') {
         if (!data.org.name.trim()) throw new Error('Organization name is required.')
-        if (!orgId) {
+        if (!orgIdRef.current) {
           const insert = {
             name: data.org.name.trim(),
             address_street: data.org.address_street || null,
@@ -136,16 +146,14 @@ export default function Onboarding() {
           }
           const { data: org, error } = await supabase.from('sv_organizations').insert(insert).select().single()
           if (error) throw error
-          // claim ownership
+          syncOrgId(org.id)
+          setActiveOrg(org.id)
           const { error: rErr } = await supabase.from('sv_user_roles').insert({
             user_id: user.id, org_id: org.id, role: 'agency_owner',
           })
           if (rErr && !String(rErr.message || '').includes('duplicate')) throw rErr
-          setOrgId(org.id)
-          setActiveOrg(org.id)
           await refresh()
         } else {
-          // update on subsequent visits to step 1
           await supabase.from('sv_organizations').update({
             name: data.org.name.trim(),
             address_street: data.org.address_street || null,
@@ -158,40 +166,69 @@ export default function Onboarding() {
             email: data.org.email || null,
             website: data.org.website || null,
             updated_at: new Date().toISOString(),
-          }).eq('id', orgId)
+          }).eq('id', orgIdRef.current)
         }
       }
 
+      const oid = orgIdRef.current
+
       if (s.key === 'services') {
         if (data.services.length === 0) throw new Error('Pick at least one service.')
-        await supabase.from('sv_organizations').update({ services: data.services }).eq('id', orgId)
+        if (oid) await supabase.from('sv_organizations').update({ services: data.services }).eq('id', oid)
       }
 
-      if (s.key === 'pricing') {
-        await supabase.from('sv_organizations').update({ pricing: data.pricing }).eq('id', orgId)
+      if (s.key === 'pricing' && oid) {
+        await supabase.from('sv_organizations').update({ pricing: data.pricing }).eq('id', oid)
       }
 
-      if (s.key === 'courts') {
-        await supabase.from('sv_organizations').update({ court_affiliations: data.courts }).eq('id', orgId)
+      if (s.key === 'courts' && oid) {
+        await supabase.from('sv_organizations').update({ court_affiliations: data.courts }).eq('id', oid)
       }
 
       if (s.key === 'invite' && data.invite.email.trim()) {
+        if (!oid) throw new Error('Organization not created yet — go back to step 1.')
         const email = data.invite.email.trim().toLowerCase()
         const { error: invErr } = await supabase.from('sv_invitations').insert({
-          org_id: orgId, email, role: data.invite.role, invited_by: user.id,
+          org_id: oid, email, role: data.invite.role, invited_by: user.id,
         })
         if (invErr && !String(invErr.message || '').includes('duplicate')) throw invErr
       }
 
       if (s.key === 'case' && data.firstCase.case_number.trim()) {
-        // best-effort: try a minimal sv_cases row. If schema requires more, we just skip silently.
+        if (!oid) throw new Error('Organization not created yet — go back to step 1.')
         const cc = data.firstCase
+        // Create the two parties (best-effort — they can be edited later in Cases)
+        const partyInserts = []
+        if (cc.custodial_first || cc.custodial_last) {
+          partyInserts.push({
+            first_name: cc.custodial_first || 'Custodial',
+            last_name: cc.custodial_last || 'Parent',
+            org_id: oid,
+          })
+        }
+        if (cc.noncustodial_first || cc.noncustodial_last) {
+          partyInserts.push({
+            first_name: cc.noncustodial_first || 'Noncustodial',
+            last_name: cc.noncustodial_last || 'Parent',
+            org_id: oid,
+          })
+        }
+        let custId = null, noncustId = null
+        if (partyInserts.length > 0) {
+          const { data: parties, error: pErr } = await supabase
+            .from('sv_parties').insert(partyInserts).select()
+          if (pErr) console.warn('party insert skipped:', pErr.message)
+          if (parties?.[0]) custId = parties[0].id
+          if (parties?.[1]) noncustId = parties[1].id
+        }
         const caseInsert = {
-          org_id: orgId,
+          org_id: oid,
           case_number: cc.case_number,
-          court_name: cc.court_name || null,
-          status: 'pending',
+          court_name: cc.court_name || 'TBD',
+          status: 'intake',
           risk_level: 'medium',
+          custodial_party_id: custId,
+          noncustodial_party_id: noncustId,
         }
         const { error: caseErr } = await supabase.from('sv_cases').insert(caseInsert)
         if (caseErr) console.warn('first-case insert skipped:', caseErr.message)
@@ -239,7 +276,7 @@ export default function Onboarding() {
           <div className="card-header">
             <div>
               <div className="card-title">Welcome to KaNun</div>
-              <div className="page-subtitle">Let’s get your agency set up.</div>
+              <div className="page-subtitle">Let's get your agency set up.</div>
             </div>
             <div className="page-subtitle">Step {step} of {STEPS.length}</div>
           </div>
@@ -417,7 +454,7 @@ function StepInvite({ data, update }) {
   return (
     <div>
       <h2 className="wizard-step-title">Invite your first monitor</h2>
-      <p className="wizard-step-desc">They’ll get access when they sign up with this email. (Optional — you can skip.)</p>
+      <p className="wizard-step-desc">They'll get access when they sign up with this email. (Optional — you can skip.)</p>
       <div className="form-grid">
         <div className="form-group">
           <label className="form-label">Email</label>
