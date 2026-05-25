@@ -171,7 +171,7 @@ export default function Monitors() {
           <div className="page-subtitle">Qualifications tracked per California Standard 5.20(e)</div>
         </div>
         <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-          + Add Monitor
+          Add monitor
         </button>
       </div>
 

@@ -82,8 +82,8 @@ export default function Cases() {
           <div className="page-subtitle">{cases.length} total · {filtered.length} shown</div>
         </div>
         <div className="btn-group">
-          <Link to="/intake" className="btn btn-secondary">Full intake →</Link>
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ New case</button>
+          <Link to="/intake" className="btn btn-secondary">Full intake</Link>
+          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>New case</button>
         </div>
       </div>
 
@@ -98,21 +98,23 @@ export default function Cases() {
       <div className="card">
         <div className="card-header">
           <div className="card-title">All Cases</div>
-          <div className="btn-group" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <div className="btn-group" style={{ gap: 12, flexWrap: 'wrap' }}>
             <input
               className="form-input"
-              style={{ width: 220 }}
-              placeholder="Search…"
+              style={{ width: 240, height: 36 }}
+              placeholder="Search cases…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
-            {['all','intake','active','suspended','completed','archived'].map((f) => (
-              <button key={f}
-                className={`btn btn-sm ${filter === f ? 'btn-moss' : 'btn-secondary'}`}
-                onClick={() => setFilter(f)}>
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </button>
-            ))}
+            <div className="segmented">
+              {['all','intake','active','suspended','completed','archived'].map((f) => (
+                <button key={f}
+                  className={`segmented-item ${filter === f ? 'active' : ''}`}
+                  onClick={() => setFilter(f)}>
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <div className="card-body-flush">
@@ -143,7 +145,7 @@ export default function Cases() {
                 {filtered.map((c) => (
                   <tr key={c.id}>
                     <td className="cell-mono cell-strong">
-                      <Link to={`/cases/${c.id}`} style={{ color: 'var(--forest)' }}>{c.case_number || '—'}</Link>
+                      <Link to={`/cases/${c.id}`} className="cell-link">{c.case_number || '—'}</Link>
                     </td>
                     <td className="cell-muted">{c.court_name || '—'}</td>
                     <td>{c.custodial ? `${c.custodial.first_name} ${c.custodial.last_name}` : '—'}</td>

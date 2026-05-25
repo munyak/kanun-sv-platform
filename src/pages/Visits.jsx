@@ -116,13 +116,17 @@ export default function Visits() {
           </div>
         </div>
         <div className="btn-group">
-          <div className="btn-group" style={{ background: 'var(--gray-100)', padding: 4, borderRadius: 'var(--radius)' }}>
-            <button className={`btn btn-sm ${view === 'week' ? 'btn-moss' : 'btn-secondary'}`}
-              onClick={() => setView('week')} style={{ border: 'none' }}>Week</button>
-            <button className={`btn btn-sm ${view === 'list' ? 'btn-moss' : 'btn-secondary'}`}
-              onClick={() => setView('list')} style={{ border: 'none' }}>List</button>
+          <div className="segmented">
+            <button
+              className={`segmented-item ${view === 'week' ? 'active' : ''}`}
+              onClick={() => setView('week')}
+            >Week</button>
+            <button
+              className={`segmented-item ${view === 'list' ? 'active' : ''}`}
+              onClick={() => setView('list')}
+            >List</button>
           </div>
-          <button className="btn btn-primary" onClick={() => { setEditVisit(null); setShowForm(true) }}>+ Schedule visit</button>
+          <button className="btn btn-primary" onClick={() => { setEditVisit(null); setShowForm(true) }}>Schedule visit</button>
         </div>
       </div>
 

@@ -185,7 +185,7 @@ function OwnerDashboard({ org }) {
         </div>
         <div className="btn-group">
           <Link to="/visits" className="btn btn-secondary">View calendar</Link>
-          <Link to="/intake" className="btn btn-primary">+ New intake</Link>
+          <Link to="/intake" className="btn btn-primary">New intake</Link>
         </div>
       </div>
 
@@ -284,7 +284,7 @@ function OwnerDashboard({ org }) {
                   {recentCases.map((c) => (
                     <tr key={c.id}>
                       <td className="cell-mono cell-strong">
-                        <Link to={`/cases/${c.id}`} style={{ color: 'var(--forest)' }}>{c.case_number || '—'}</Link>
+                        <Link to={`/cases/${c.id}`} className="cell-link">{c.case_number || '—'}</Link>
                       </td>
                       <td>{c.custodial ? `${c.custodial.first_name} ${c.custodial.last_name}` : '—'}</td>
                       <td>{c.noncustodial ? `${c.noncustodial.first_name} ${c.noncustodial.last_name}` : '—'}</td>

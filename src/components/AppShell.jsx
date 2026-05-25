@@ -3,9 +3,9 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth, roleLabel } from '../auth/AuthContext'
 
 /* ----- Lucide-style icons (inline SVG, stroke-current) ----- */
-const Icon = ({ d, children, size = 18 }) => (
+const Icon = ({ d, children, size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-       stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
        aria-hidden="true">
     {d && <path d={d} />}
     {children}
