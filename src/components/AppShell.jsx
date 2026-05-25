@@ -156,6 +156,7 @@ export default function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const items = NAV_BY_ROLE[role] || NAV_BY_ROLE.agency_owner
+  const isMonitor = role === 'monitor'
 
   async function handleSignOut() {
     await signOut()
@@ -163,7 +164,7 @@ export default function AppShell() {
   }
 
   return (
-    <div className="shell">
+    <div className={`shell ${isMonitor ? 'shell-monitor' : ''}`}>
       <header className="topbar">
         <div className="topbar-left">
           <button className="hamburger" aria-label="Menu" onClick={() => setSidebarOpen((s) => !s)}>
@@ -172,16 +173,22 @@ export default function AppShell() {
           <div className="topbar-brand">
             <div className="brand-mark">KW</div>
             <div className="topbar-org">
-              <div className="topbar-org-name">{org?.name || 'KaNun Wellness'}</div>
-              <div className="topbar-org-sub">Supervised Visitation</div>
+              <div className="topbar-org-name">
+                {isMonitor ? 'Monitor portal' : (org?.name || 'KaNun Wellness')}
+              </div>
+              <div className="topbar-org-sub">
+                {isMonitor ? (org?.name || 'KaNun Wellness') : 'Supervised Visitation'}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="topbar-search">
-          <span className="topbar-search-icon">{I.search}</span>
-          <input type="search" placeholder="Search cases, monitors, visits…" aria-label="Search" />
-        </div>
+        {!isMonitor && (
+          <div className="topbar-search">
+            <span className="topbar-search-icon">{I.search}</span>
+            <input type="search" placeholder="Search cases, monitors, visits…" aria-label="Search" />
+          </div>
+        )}
 
         <div className="topbar-right">
           {memberships.length > 1 && (

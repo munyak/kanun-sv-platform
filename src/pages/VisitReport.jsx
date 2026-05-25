@@ -261,6 +261,11 @@ export default function VisitReport() {
         },
         updated_at: new Date().toISOString(),
       }
+      // Track owner edits to non-draft reports
+      if (report && isOwner && !monitorCanEdit) {
+        payload.owner_edited_at = new Date().toISOString()
+        payload.owner_edited_by = user?.id
+      }
       let res
       if (report) {
         res = await supabase.from('sv_reports').update(payload).eq('id', report.id).select().single()
@@ -272,6 +277,37 @@ export default function VisitReport() {
       if (!silent) showToast('Draft saved')
       return res.data
     } catch (e) { showToast(e.message, 'error'); return null }
+    finally { setBusy(false) }
+  }
+
+  async function archiveReport() {
+    if (!report) return
+    setBusy(true)
+    try {
+      const { error } = await supabase.from('sv_reports').update({
+        archived_at: new Date().toISOString(),
+        archived_by: user?.id,
+      }).eq('id', report.id)
+      if (error) throw error
+      showToast('Report archived')
+      nav('/reports')
+    } catch (e) { showToast(e.message, 'error') }
+    finally { setBusy(false) }
+  }
+
+  async function deleteReport() {
+    if (!report) return
+    if (!window.confirm('Delete this report? This cannot be undone.')) return
+    setBusy(true)
+    try {
+      const { error } = await supabase.from('sv_reports').update({
+        deleted_at: new Date().toISOString(),
+        deleted_by: user?.id,
+      }).eq('id', report.id)
+      if (error) throw error
+      showToast('Report deleted')
+      nav('/reports')
+    } catch (e) { showToast(e.message, 'error') }
     finally { setBusy(false) }
   }
 
@@ -351,8 +387,10 @@ export default function VisitReport() {
   )
 
   const status = report?.status || 'draft'
-  const isEditable = status === 'draft' || status === 'changes_requested'
+  const monitorCanEdit = status === 'draft' || status === 'changes_requested'
+  const isEditable = monitorCanEdit || isOwner
   const canReview = isOwner && (status === 'pending_review' || status === 'changes_requested')
+  const canOwnerManage = isOwner && report && (status === 'approved' || status === 'rejected')
   const obsCategoryMap = sections?.observations_by_category || {}
   const usedCategories = OBSERVATION_CATEGORIES.filter((c) => obsCategoryMap[c.key] !== undefined)
   const unusedCategories = OBSERVATION_CATEGORIES.filter((c) => obsCategoryMap[c.key] === undefined)
@@ -409,7 +447,7 @@ export default function VisitReport() {
           <button className={`segmented-item ${mode === 'preview' ? 'active' : ''}`} onClick={() => setMode('preview')}>Preview</button>
         </div>
         <div className="btn-group">
-          {mode === 'edit' && isEditable && (
+          {mode === 'edit' && monitorCanEdit && (
             <>
               <button className="btn btn-sm btn-secondary" onClick={regenerate} disabled={busy}>
                 Re-pull from visit
@@ -430,8 +468,29 @@ export default function VisitReport() {
               {showReviewerPanel ? 'Hide review panel' : 'Review report'}
             </button>
           )}
+          {canOwnerManage && (
+            <>
+              {mode === 'edit' && (
+                <button className="btn btn-sm btn-secondary" onClick={() => saveDraft()} disabled={busy}>
+                  {busy ? 'Saving…' : 'Save edits'}
+                </button>
+              )}
+              <button className="btn btn-sm btn-secondary" onClick={archiveReport} disabled={busy}>
+                Archive
+              </button>
+              <button className="btn btn-sm btn-danger" onClick={deleteReport} disabled={busy}>
+                Delete
+              </button>
+            </>
+          )}
         </div>
       </div>
+
+      {report?.owner_edited_at && status === 'approved' && (
+        <div className="rb-banner info">
+          <strong>Owner edits:</strong> This approved report was edited by an owner on {fmtDateTime(report.owner_edited_at)}.
+        </div>
+      )}
 
       {canReview && showReviewerPanel && (
         <div className="rb-reviewer">
@@ -598,13 +657,20 @@ export default function VisitReport() {
             />
           </Section>
 
-          {isEditable && (
+          {monitorCanEdit && (
             <div className="rb-footer-actions">
               <button className="btn btn-secondary" onClick={() => saveDraft()} disabled={busy}>
                 {busy ? 'Saving…' : 'Save draft'}
               </button>
               <button className="btn btn-primary" onClick={submitForReview} disabled={busy}>
                 Submit for review →
+              </button>
+            </div>
+          )}
+          {!monitorCanEdit && isOwner && (
+            <div className="rb-footer-actions">
+              <button className="btn btn-primary" onClick={() => saveDraft()} disabled={busy}>
+                {busy ? 'Saving…' : 'Save owner edits'}
               </button>
             </div>
           )}
