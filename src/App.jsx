@@ -19,6 +19,7 @@ import VisitReport from './pages/VisitReport'
 import Monitors from './pages/Monitors'
 import MonitorDetail from './pages/MonitorDetail'
 import MonitorProfile from './pages/MonitorProfile'
+import Reports from './pages/Reports'
 import Team from './pages/Team'
 import Settings from './pages/Settings'
 
@@ -70,6 +71,10 @@ export default function App() {
           <Route
             path="/monitors/:id"
             element={<RequireRole allow={OWNER_ROLES} redirect><MonitorDetail /></RequireRole>}
+          />
+          <Route
+            path="/reports"
+            element={<RequireRole allow={OWNER_ROLES} redirect><Reports /></RequireRole>}
           />
           <Route
             path="/team"

@@ -103,6 +103,7 @@ const NAV_BY_ROLE = {
     { to: '/intake', label: 'New Intake', icon: I.plus },
     { to: '/visits', label: 'Schedule', icon: I.calendar },
     { to: '/monitors', label: 'Monitors', icon: I.monitors },
+    { to: '/reports', label: 'Reports', icon: I.shield },
     { to: '/team', label: 'Team', icon: I.team },
     { to: '/settings', label: 'Settings', icon: I.settings },
   ],
@@ -112,6 +113,7 @@ const NAV_BY_ROLE = {
     { to: '/intake', label: 'New Intake', icon: I.plus },
     { to: '/visits', label: 'Schedule', icon: I.calendar },
     { to: '/monitors', label: 'Monitors', icon: I.monitors },
+    { to: '/reports', label: 'Reports', icon: I.shield },
     { to: '/team', label: 'Team', icon: I.team },
     { to: '/settings', label: 'Settings', icon: I.settings },
   ],
@@ -121,6 +123,7 @@ const NAV_BY_ROLE = {
     { to: '/intake', label: 'New Intake', icon: I.plus },
     { to: '/visits', label: 'Schedule', icon: I.calendar },
     { to: '/monitors', label: 'Monitors', icon: I.monitors },
+    { to: '/reports', label: 'Reports', icon: I.shield },
     { to: '/team', label: 'Team', icon: I.team },
   ],
   monitor: [
