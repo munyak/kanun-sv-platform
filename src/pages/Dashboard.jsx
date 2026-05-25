@@ -3,6 +3,29 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 
+/* ----- Lucide-style icon helpers ----- */
+const Svg = ({ size = 18, children }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+       aria-hidden="true">
+    {children}
+  </svg>
+)
+
+const ICON = {
+  folder: <Svg><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" /></Svg>,
+  calendar: <Svg><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></Svg>,
+  monitors: <Svg><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0113 0" /><circle cx="17" cy="9" r="2.5" /><path d="M22 18a4.5 4.5 0 00-6-4.25" /></Svg>,
+  mail: <Svg><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></Svg>,
+  compass: <Svg><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5 5-2z" /></Svg>,
+  note: <Svg><path d="M5 4h11l3 3v13a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z" /><path d="M9 10h6M9 14h6" /></Svg>,
+  cert: <Svg><circle cx="12" cy="10" r="5" /><path d="M9 14l-1 6 4-2 4 2-1-6" /></Svg>,
+  shield: <Svg><path d="M12 3l8 3v6a9 9 0 01-8 9 9 9 0 01-8-9V6l8-3z" /></Svg>,
+  arrowRight: <Svg size={16}><path d="M5 12h14M13 6l6 6-6 6" /></Svg>,
+  inbox: <Svg size={28}><path d="M3 12l4-8h10l4 8M3 12v6a2 2 0 002 2h14a2 2 0 002-2v-6M3 12h5a3 3 0 016 0h5" /></Svg>,
+  coffee: <Svg size={28}><path d="M4 8h12v6a4 4 0 01-4 4H8a4 4 0 01-4-4V8z" /><path d="M16 10h2a2 2 0 010 4h-2M5 3v2M9 3v2M13 3v2" /></Svg>,
+}
+
 function fmtDate(s) {
   if (!s) return '—'
   return new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -106,7 +129,7 @@ function OwnerDashboard({ org }) {
       ;(unassignedCases.data || []).forEach((c) => {
         todos.push({
           id: 'unass-' + c.id,
-          icon: '🧭',
+          icon: ICON.compass,
           title: `Assign a monitor to case ${c.case_number || c.id.slice(0,6)}`,
           link: `/cases/${c.id}`,
         })
@@ -114,7 +137,7 @@ function OwnerDashboard({ org }) {
       ;(intakeCases.data || []).forEach((c) => {
         todos.push({
           id: 'intake-' + c.id,
-          icon: '📝',
+          icon: ICON.note,
           title: `Move case ${c.case_number || c.id.slice(0,6)} out of intake`,
           link: `/cases/${c.id}`,
         })
@@ -127,7 +150,7 @@ function OwnerDashboard({ org }) {
           if (d <= in60) {
             todos.push({
               id: 'kcm-' + m.id,
-              icon: '🎓',
+              icon: ICON.cert,
               title: `${m.first_name} ${m.last_name}'s KCM cert expires ${fmtDate(m.kcm_expiry_date)}`,
               link: `/monitors/${m.id}`,
             })
@@ -138,7 +161,7 @@ function OwnerDashboard({ org }) {
           if (d <= in60) {
             todos.push({
               id: 'tl-' + m.id,
-              icon: '🛡️',
+              icon: ICON.shield,
               title: `${m.first_name} ${m.last_name}'s TrustLine expires ${fmtDate(m.trustline_expiry)}`,
               link: `/monitors/${m.id}`,
             })
@@ -168,22 +191,34 @@ function OwnerDashboard({ org }) {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-label">Active cases</div>
+          <div className="stat-card-head">
+            <div className="stat-card-icon">{ICON.folder}</div>
+            <div className="stat-label">Active cases</div>
+          </div>
           <div className="stat-value">{stats.activeCases}</div>
           <div className="stat-sub">{stats.cases} total</div>
         </div>
         <div className="stat-card moss">
-          <div className="stat-label">This week's visits</div>
+          <div className="stat-card-head">
+            <div className="stat-card-icon">{ICON.calendar}</div>
+            <div className="stat-label">This week's visits</div>
+          </div>
           <div className="stat-value">{stats.weekVisits}</div>
           <div className="stat-sub">{stats.todayVisits} scheduled today</div>
         </div>
         <div className="stat-card blue">
-          <div className="stat-label">Active monitors</div>
+          <div className="stat-card-head">
+            <div className="stat-card-icon">{ICON.monitors}</div>
+            <div className="stat-label">Active monitors</div>
+          </div>
           <div className="stat-value">{stats.monitors}</div>
           <div className="stat-sub">Per Standard 5.20(e)</div>
         </div>
         <div className="stat-card yellow">
-          <div className="stat-label">Open invitations</div>
+          <div className="stat-card-head">
+            <div className="stat-card-icon">{ICON.mail}</div>
+            <div className="stat-label">Open invitations</div>
+          </div>
           <div className="stat-value">{stats.openInvites}</div>
           <div className="stat-sub">Pending acceptance</div>
         </div>
@@ -200,7 +235,7 @@ function OwnerDashboard({ org }) {
               <Link key={t.id} to={t.link} className="todo-item">
                 <span className="todo-icon">{t.icon}</span>
                 <span className="todo-title">{t.title}</span>
-                <span className="todo-arrow">→</span>
+                <span className="todo-arrow">{ICON.arrowRight}</span>
               </Link>
             ))}
           </div>
@@ -331,7 +366,7 @@ function MonitorDashboard({ user }) {
         <div className="card-header"><div className="card-title">Today's visits</div></div>
         <div className="card-body-flush">
           {loading ? <div className="loading">Loading…</div>
-            : today.length === 0 ? <div className="empty-state"><div className="empty-state-title">Nothing scheduled today</div><div className="empty-state-desc">Enjoy the breather.</div></div>
+            : today.length === 0 ? <div className="empty-state"><div className="empty-state-icon">{ICON.coffee}</div><div className="empty-state-title">Nothing scheduled today</div><div className="empty-state-desc">Enjoy the breather.</div></div>
             : (
               <table className="data-table">
                 <thead><tr><th>When</th><th>Case</th><th>Location</th><th>Status</th></tr></thead>
@@ -354,7 +389,7 @@ function MonitorDashboard({ user }) {
         <div className="card-header"><div className="card-title">Upcoming</div></div>
         <div className="card-body-flush">
           {loading ? <div className="loading">Loading…</div>
-            : upcoming.length === 0 ? <div className="empty-state"><div className="empty-state-title">No upcoming visits</div></div>
+            : upcoming.length === 0 ? <div className="empty-state"><div className="empty-state-icon">{ICON.inbox}</div><div className="empty-state-title">No upcoming visits</div></div>
             : (
               <table className="data-table">
                 <thead><tr><th>When</th><th>Case</th><th>Location</th><th>Status</th></tr></thead>

@@ -2,46 +2,140 @@ import React, { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth, roleLabel } from '../auth/AuthContext'
 
+/* ----- Lucide-style icons (inline SVG, stroke-current) ----- */
+const Icon = ({ d, children, size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+       aria-hidden="true">
+    {d && <path d={d} />}
+    {children}
+  </svg>
+)
+
+const I = {
+  dashboard: (
+    <Icon>
+      <rect x="3" y="3" width="7" height="9" rx="1.5" />
+      <rect x="14" y="3" width="7" height="5" rx="1.5" />
+      <rect x="14" y="12" width="7" height="9" rx="1.5" />
+      <rect x="3" y="16" width="7" height="5" rx="1.5" />
+    </Icon>
+  ),
+  folder: (
+    <Icon>
+      <path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+    </Icon>
+  ),
+  plus: (
+    <Icon>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v8M8 12h8" />
+    </Icon>
+  ),
+  calendar: (
+    <Icon>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 10h18" />
+    </Icon>
+  ),
+  monitors: (
+    <Icon>
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20a6.5 6.5 0 0113 0" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M22 18a4.5 4.5 0 00-6-4.25" />
+    </Icon>
+  ),
+  team: (
+    <Icon>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20a7 7 0 0114 0" />
+    </Icon>
+  ),
+  settings: (
+    <Icon>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 01-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.8.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z" />
+    </Icon>
+  ),
+  shield: (
+    <Icon>
+      <path d="M12 3l8 3v6a9 9 0 01-8 9 9 9 0 01-8-9V6l8-3z" />
+    </Icon>
+  ),
+  briefcase: (
+    <Icon>
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" />
+      <path d="M3 13h18" />
+    </Icon>
+  ),
+  scale: (
+    <Icon>
+      <path d="M12 3v18M5 21h14M5 8l-3 8h6l-3-8zm14 0l-3 8h6l-3-8z" />
+    </Icon>
+  ),
+  sun: (
+    <Icon>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </Icon>
+  ),
+  search: (
+    <Icon size={16}>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.3-4.3" />
+    </Icon>
+  ),
+  bell: (
+    <Icon>
+      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 01-3.46 0" />
+    </Icon>
+  ),
+}
+
+/* ----- Role-aware navigation with icons ----- */
 const NAV_BY_ROLE = {
   platform_admin: [
-    { to: '/', label: 'Dashboard', exact: true },
-    { to: '/cases', label: 'Cases' },
-    { to: '/intake', label: 'New Intake' },
-    { to: '/visits', label: 'Schedule' },
-    { to: '/monitors', label: 'Monitors' },
-    { to: '/team', label: 'Team' },
-    { to: '/settings', label: 'Settings' },
+    { to: '/', label: 'Dashboard', icon: I.dashboard, exact: true },
+    { to: '/cases', label: 'Cases', icon: I.folder },
+    { to: '/intake', label: 'New Intake', icon: I.plus },
+    { to: '/visits', label: 'Schedule', icon: I.calendar },
+    { to: '/monitors', label: 'Monitors', icon: I.monitors },
+    { to: '/team', label: 'Team', icon: I.team },
+    { to: '/settings', label: 'Settings', icon: I.settings },
   ],
   agency_owner: [
-    { to: '/', label: 'Dashboard', exact: true },
-    { to: '/cases', label: 'Cases' },
-    { to: '/intake', label: 'New Intake' },
-    { to: '/visits', label: 'Schedule' },
-    { to: '/monitors', label: 'Monitors' },
-    { to: '/team', label: 'Team' },
-    { to: '/settings', label: 'Settings' },
+    { to: '/', label: 'Dashboard', icon: I.dashboard, exact: true },
+    { to: '/cases', label: 'Cases', icon: I.folder },
+    { to: '/intake', label: 'New Intake', icon: I.plus },
+    { to: '/visits', label: 'Schedule', icon: I.calendar },
+    { to: '/monitors', label: 'Monitors', icon: I.monitors },
+    { to: '/team', label: 'Team', icon: I.team },
+    { to: '/settings', label: 'Settings', icon: I.settings },
   ],
   agency_manager: [
-    { to: '/', label: 'Dashboard', exact: true },
-    { to: '/cases', label: 'Cases' },
-    { to: '/intake', label: 'New Intake' },
-    { to: '/visits', label: 'Schedule' },
-    { to: '/monitors', label: 'Monitors' },
-    { to: '/team', label: 'Team' },
+    { to: '/', label: 'Dashboard', icon: I.dashboard, exact: true },
+    { to: '/cases', label: 'Cases', icon: I.folder },
+    { to: '/intake', label: 'New Intake', icon: I.plus },
+    { to: '/visits', label: 'Schedule', icon: I.calendar },
+    { to: '/monitors', label: 'Monitors', icon: I.monitors },
+    { to: '/team', label: 'Team', icon: I.team },
   ],
   monitor: [
-    { to: '/', label: 'My Day', exact: true },
-    { to: '/visits', label: 'My Visits' },
-    { to: '/cases', label: 'My Cases' },
+    { to: '/', label: 'My Day', icon: I.sun, exact: true },
+    { to: '/visits', label: 'My Visits', icon: I.calendar },
+    { to: '/cases', label: 'My Cases', icon: I.folder },
   ],
-  parent: [{ to: '/', label: 'My Visits', exact: true }],
+  parent: [{ to: '/', label: 'My Visits', icon: I.calendar, exact: true }],
   attorney: [
-    { to: '/', label: 'Overview', exact: true },
-    { to: '/cases', label: 'Cases' },
+    { to: '/', label: 'Overview', icon: I.dashboard, exact: true },
+    { to: '/cases', label: 'Cases', icon: I.briefcase },
   ],
   court_liaison: [
-    { to: '/', label: 'Compliance', exact: true },
-    { to: '/cases', label: 'Cases' },
+    { to: '/', label: 'Compliance', icon: I.shield, exact: true },
+    { to: '/cases', label: 'Cases', icon: I.scale },
   ],
 }
 
@@ -80,6 +174,11 @@ export default function AppShell() {
           </div>
         </div>
 
+        <div className="topbar-search">
+          <span className="topbar-search-icon">{I.search}</span>
+          <input type="search" placeholder="Search cases, monitors, visits…" aria-label="Search" />
+        </div>
+
         <div className="topbar-right">
           {memberships.length > 1 && (
             <select
@@ -95,11 +194,7 @@ export default function AppShell() {
           )}
           {role && <span className="role-badge">{roleLabel(role)}</span>}
           <button className="notif-bell" aria-label="Notifications" title="Notifications (coming soon)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                 strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 01-3.46 0" />
-            </svg>
+            {I.bell}
           </button>
           <div className="user-menu">
             <button className="user-trigger" onClick={() => setMenuOpen((s) => !s)} aria-haspopup="menu">
@@ -130,7 +225,8 @@ export default function AppShell() {
                 className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}
                 onClick={() => setSidebarOpen(false)}
               >
-                {it.label}
+                <span className="nav-icon">{it.icon}</span>
+                <span>{it.label}</span>
               </NavLink>
             ))}
           </nav>
@@ -140,7 +236,7 @@ export default function AppShell() {
               target="_blank" rel="noopener noreferrer"
               className="footer-link"
             >
-              CA Standard 5.20 →
+              CA Standard 5.20 ↗
             </a>
             <div className="footer-meta">v0.3.0 · Phase 1</div>
           </div>
