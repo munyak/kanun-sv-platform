@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import VisitForm from '../components/VisitForm'
@@ -52,6 +52,7 @@ function dateKey(d) {
 
 export default function Visits() {
   const { activeOrgId } = useAuth()
+  const nav = useNavigate()
   const [view, setView] = useState('week') // week | list
   const [loading, setLoading] = useState(true)
   const [visits, setVisits] = useState([])
@@ -152,7 +153,7 @@ export default function Visits() {
                       <button
                         key={v.id}
                         className={`calendar-visit calendar-visit-${(v.status || 'scheduled').split('_')[0]}`}
-                        onClick={() => { setEditVisit(v); setShowForm(true) }}
+                        onClick={() => nav(`/visits/${v.id}`)}
                       >
                         <div className="calendar-visit-time">{fmtTime(v.scheduled_start_time)}</div>
                         <div className="calendar-visit-case">{v.case?.case_number || 'Case'}</div>
@@ -201,7 +202,10 @@ export default function Visits() {
                         <td>{v.monitor ? `${v.monitor.first_name} ${v.monitor.last_name}` : <span className="cell-muted">Unassigned</span>}</td>
                         <td>{v.location || <span className="cell-muted">—</span>}</td>
                         <td>{statusBadge(v.status)}</td>
-                        <td><button className="btn btn-sm btn-secondary" onClick={() => { setEditVisit(v); setShowForm(true) }}>Edit</button></td>
+                        <td className="btn-group">
+                          <Link to={`/visits/${v.id}`} className="btn btn-sm btn-secondary">Open</Link>
+                          <button className="btn btn-sm btn-ghost" onClick={() => { setEditVisit(v); setShowForm(true) }}>Edit</button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import Drawer from './Drawer'
 
 const STATUS_OPTIONS = [
-  'scheduled', 'confirmed', 'in_progress', 'completed',
+  'scheduled', 'confirmed', 'checked_in', 'in_progress', 'completed',
+  'report_pending', 'report_submitted',
   'canceled_custodial', 'canceled_noncustodial', 'canceled_provider',
   'no_show_custodial', 'no_show_noncustodial', 'interrupted', 'terminated',
 ]
@@ -35,7 +37,6 @@ export default function VisitForm({ orgId, visit, onClose, onSaved }) {
     })()
   }, [orgId])
 
-  // When a case is picked, prefill location/monitor from the case
   useEffect(() => {
     if (!form.case_id || isEdit) return
     const c = cases.find((x) => x.id === form.case_id)
@@ -90,77 +91,78 @@ export default function VisitForm({ orgId, visit, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-head">
-          <div className="card-title">{isEdit ? 'Edit visit' : 'Schedule visit'}</div>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        <div className="modal-body">
-          <div className="form-grid">
-            <div className="form-group full">
-              <label className="form-label">Case <span className="required">*</span></label>
-              <select className="form-select" value={form.case_id}
-                onChange={(e) => setForm({ ...form, case_id: e.target.value })}>
-                <option value="">Select a case…</option>
-                {cases.map((c) => (
-                  <option key={c.id} value={c.id}>{c.case_number} {c.status ? `(${c.status})` : ''}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group full">
-              <label className="form-label">Monitor <span className="required">*</span></label>
-              <select className="form-select" value={form.monitor_id}
-                onChange={(e) => setForm({ ...form, monitor_id: e.target.value })}>
-                <option value="">Select a monitor…</option>
-                {monitors.map((m) => (
-                  <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Date</label>
-              <input type="date" className="form-input" value={form.scheduled_date}
-                onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <select className="form-select" value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Start time</label>
-              <input type="time" className="form-input" value={form.scheduled_start_time}
-                onChange={(e) => setForm({ ...form, scheduled_start_time: e.target.value })} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">End time</label>
-              <input type="time" className="form-input" value={form.scheduled_end_time}
-                onChange={(e) => setForm({ ...form, scheduled_end_time: e.target.value })} />
-            </div>
-            <div className="form-group full">
-              <label className="form-label">Location <span className="required">*</span></label>
-              <input className="form-input" value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                placeholder="e.g. Cypress Park Library — Family Room" />
-            </div>
-          </div>
-          {err && <div className="auth-error" style={{ marginTop: 12 }}>{err}</div>}
-        </div>
-        <div className="modal-foot">
-          {isEdit && <button className="btn btn-secondary" style={{ color: 'var(--red-700)' }} onClick={remove} disabled={busy}>Delete</button>}
-          <div className="btn-group" style={{ marginLeft: 'auto' }}>
-            <button className="btn btn-secondary" onClick={onClose} disabled={busy}>Cancel</button>
-            <button className="btn btn-primary" onClick={save} disabled={busy}>
-              {busy ? 'Saving…' : isEdit ? 'Save changes' : 'Schedule'}
+    <Drawer
+      open
+      onClose={onClose}
+      title={isEdit ? 'Edit visit' : 'Schedule visit'}
+      subtitle={isEdit ? visit?.case?.case_number : 'Set the date, monitor, and location'}
+      footer={
+        <>
+          {isEdit && (
+            <button className="btn btn-danger" onClick={remove} disabled={busy} style={{ marginRight: 'auto' }}>
+              Delete
             </button>
-          </div>
+          )}
+          <button className="btn btn-secondary" onClick={onClose} disabled={busy}>Cancel</button>
+          <button className="btn btn-primary" onClick={save} disabled={busy}>
+            {busy ? 'Saving…' : isEdit ? 'Save changes' : 'Schedule'}
+          </button>
+        </>
+      }
+    >
+      <div className="form-grid">
+        <div className="form-group full">
+          <label className="form-label">Case <span className="required">*</span></label>
+          <select className="form-select" value={form.case_id}
+            onChange={(e) => setForm({ ...form, case_id: e.target.value })}>
+            <option value="">Select a case…</option>
+            {cases.map((c) => (
+              <option key={c.id} value={c.id}>{c.case_number} {c.status ? `(${c.status})` : ''}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group full">
+          <label className="form-label">Monitor <span className="required">*</span></label>
+          <select className="form-select" value={form.monitor_id}
+            onChange={(e) => setForm({ ...form, monitor_id: e.target.value })}>
+            <option value="">Select a monitor…</option>
+            {monitors.map((m) => (
+              <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Date</label>
+          <input type="date" className="form-input" value={form.scheduled_date}
+            onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Status</label>
+          <select className="form-select" value={form.status}
+            onChange={(e) => setForm({ ...form, status: e.target.value })}>
+            {STATUS_OPTIONS.map((s) => (
+              <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Start time</label>
+          <input type="time" className="form-input" value={form.scheduled_start_time}
+            onChange={(e) => setForm({ ...form, scheduled_start_time: e.target.value })} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">End time</label>
+          <input type="time" className="form-input" value={form.scheduled_end_time}
+            onChange={(e) => setForm({ ...form, scheduled_end_time: e.target.value })} />
+        </div>
+        <div className="form-group full">
+          <label className="form-label">Location <span className="required">*</span></label>
+          <input className="form-input" value={form.location}
+            onChange={(e) => setForm({ ...form, location: e.target.value })}
+            placeholder="e.g. Cypress Park Library — Family Room" />
         </div>
       </div>
-    </div>
+      {err && <div className="auth-error" style={{ marginTop: 12 }}>{err}</div>}
+    </Drawer>
   )
 }

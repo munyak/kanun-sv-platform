@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import Drawer from '../components/Drawer'
 
 // Maps to the real sv_monitors schema — booleans + status enum.
 const QUALS = [
@@ -169,18 +170,27 @@ export default function Monitors() {
           <h1 className="page-title">Monitors</h1>
           <div className="page-subtitle">Qualifications tracked per California Standard 5.20(e)</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? 'Cancel' : '+ Add Monitor'}
+        <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+          + Add Monitor
         </button>
       </div>
 
-      {showForm && (
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">New Monitor</div>
-          </div>
-          <div className="card-body">
-            <div className="form-section">
+      <Drawer
+        open={showForm}
+        onClose={() => { setForm(initialForm); setShowForm(false) }}
+        title="New monitor"
+        subtitle="Standard 5.20 qualifications & clearances"
+        width={620}
+        footer={
+          <>
+            <button className="btn btn-secondary" onClick={() => { setForm(initialForm); setShowForm(false) }} disabled={submitting}>Cancel</button>
+            <button className="btn btn-primary" onClick={submit} disabled={submitting}>
+              {submitting ? 'Saving…' : 'Save monitor'}
+            </button>
+          </>
+        }
+      >
+        <div className="form-section">
               <h3 className="form-section-title">Contact</h3>
               <div className="form-grid">
                 <div className="form-group">
@@ -336,16 +346,7 @@ export default function Monitors() {
                 </label>
               </div>
             </div>
-
-            <div className="btn-group right">
-              <button className="btn btn-secondary" onClick={() => { setForm(initialForm); setShowForm(false) }} disabled={submitting}>Cancel</button>
-              <button className="btn btn-primary" onClick={submit} disabled={submitting}>
-                {submitting ? 'Saving…' : 'Save Monitor'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Drawer>
 
       <div className="card">
         <div className="card-header">

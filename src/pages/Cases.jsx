@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import CaseForm from '../components/CaseForm'
 
 function fmtDate(s) {
   if (!s) return '—'
@@ -30,10 +31,12 @@ function statusBadge(status) {
 
 export default function Cases() {
   const { activeOrgId } = useAuth()
+  const nav = useNavigate()
   const [loading, setLoading] = useState(true)
   const [cases, setCases] = useState([])
   const [filter, setFilter] = useState('all')
   const [query, setQuery] = useState('')
+  const [showCreate, setShowCreate] = useState(false)
 
   useEffect(() => { if (activeOrgId) load() }, [activeOrgId])
 
@@ -78,8 +81,19 @@ export default function Cases() {
           <h1 className="page-title">Cases</h1>
           <div className="page-subtitle">{cases.length} total · {filtered.length} shown</div>
         </div>
-        <Link to="/intake" className="btn btn-primary">+ New Intake</Link>
+        <div className="btn-group">
+          <Link to="/intake" className="btn btn-secondary">Full intake →</Link>
+          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ New case</button>
+        </div>
       </div>
+
+      {showCreate && (
+        <CaseForm
+          orgId={activeOrgId}
+          onClose={() => setShowCreate(false)}
+          onSaved={(c) => { setShowCreate(false); nav(`/cases/${c.id}`) }}
+        />
+      )}
 
       <div className="card">
         <div className="card-header">
