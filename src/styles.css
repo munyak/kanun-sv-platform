@@ -2241,6 +2241,138 @@ h1, h2, h3, h4, h5, h6 {
   .data-table th, .data-table td { padding: 0 14px; }
 }
 
+/* ============================================================
+   Monitor experience
+   ============================================================ */
+
+.monitor-focus {
+  border: 1px solid var(--accent-soft);
+  background: linear-gradient(180deg, var(--accent-faint) 0%, var(--bg-card) 60%);
+}
+
+.monitor-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 24px;
+  margin-bottom: 16px;
+}
+.monitor-focus-grid .full { grid-column: 1 / -1; }
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.monitor-visit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.monitor-visit-item {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--divider);
+}
+.monitor-visit-item:last-child { border-bottom: 0; }
+
+.monitor-visit-time {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.monitor-visit-date {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+.monitor-visit-clock {
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.monitor-visit-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.monitor-visit-case {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 15px;
+}
+.monitor-visit-case:hover { text-decoration: underline; }
+.monitor-visit-sub {
+  color: var(--text-secondary);
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.monitor-visit-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.monitor-visit-action { flex-shrink: 0; }
+
+/* Mobile-first refinements */
+@media (max-width: 640px) {
+  .monitor-focus-grid { grid-template-columns: 1fr; gap: 12px; }
+  .monitor-visit-item {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  .monitor-visit-time {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .monitor-visit-action .btn { width: 100%; justify-content: center; }
+}
+
+/* Availability editor */
+.availability-grid {
+  display: grid;
+  grid-template-columns: 110px 1fr 1fr auto;
+  gap: 8px 12px;
+  align-items: center;
+}
+.availability-grid .availability-day { font-weight: 500; color: var(--text-primary); }
+
+@media (max-width: 640px) {
+  .availability-grid {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 6px;
+  }
+  .availability-grid .availability-day {
+    grid-column: 1 / -1;
+    font-weight: 600;
+    margin-top: 12px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .availability-grid .availability-remove {
+    grid-column: 1 / -1;
+    text-align: right;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

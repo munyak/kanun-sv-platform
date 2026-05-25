@@ -1,7 +1,7 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
-import { RequireAuth, RequireOrg } from './auth/ProtectedRoute'
+import { RequireAuth, RequireOrg, RequireRole, OWNER_ROLES } from './auth/ProtectedRoute'
 import AppShell from './components/AppShell'
 
 import Login from './pages/Login'
@@ -18,11 +18,14 @@ import VisitDetail from './pages/VisitDetail'
 import VisitReport from './pages/VisitReport'
 import Monitors from './pages/Monitors'
 import MonitorDetail from './pages/MonitorDetail'
+import MonitorProfile from './pages/MonitorProfile'
 import Team from './pages/Team'
 import Settings from './pages/Settings'
 
 import ParentPortal from './pages/ParentPortal'
 import AttorneyPortal from './pages/AttorneyPortal'
+
+const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
 
 export default function App() {
   return (
@@ -42,17 +45,46 @@ export default function App() {
         />
 
         <Route element={<RequireAuth><RequireOrg><AppShell /></RequireOrg></RequireAuth>}>
+          {/* Shared — dashboard renders role-specific content inside */}
           <Route path="/" element={<Dashboard />} />
+
+          {/* Cases & visits: shared list/detail, filtered server-side per role */}
           <Route path="/cases" element={<Cases />} />
           <Route path="/cases/:id" element={<CaseDetail />} />
-          <Route path="/intake" element={<IntakeForm />} />
           <Route path="/visits" element={<Visits />} />
           <Route path="/visits/:id" element={<VisitDetail />} />
-          <Route path="/visits/:id/report" element={<VisitReport />} />
-          <Route path="/monitors" element={<Monitors />} />
-          <Route path="/monitors/:id" element={<MonitorDetail />} />
-          <Route path="/team" element={<Team />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route
+            path="/visits/:id/report"
+            element={<RequireRole allow={OWNER_OR_MONITOR} redirect><VisitReport /></RequireRole>}
+          />
+
+          {/* Owner-only */}
+          <Route
+            path="/intake"
+            element={<RequireRole allow={OWNER_ROLES} redirect><IntakeForm /></RequireRole>}
+          />
+          <Route
+            path="/monitors"
+            element={<RequireRole allow={OWNER_ROLES} redirect><Monitors /></RequireRole>}
+          />
+          <Route
+            path="/monitors/:id"
+            element={<RequireRole allow={OWNER_ROLES} redirect><MonitorDetail /></RequireRole>}
+          />
+          <Route
+            path="/team"
+            element={<RequireRole allow={OWNER_ROLES} redirect><Team /></RequireRole>}
+          />
+          <Route
+            path="/settings"
+            element={<RequireRole allow={OWNER_ROLES} redirect><Settings /></RequireRole>}
+          />
+
+          {/* Monitor-only */}
+          <Route
+            path="/my-profile"
+            element={<RequireRole allow={['monitor']} redirect><MonitorProfile /></RequireRole>}
+          />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

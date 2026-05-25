@@ -68,13 +68,19 @@ const initialForm = {
 }
 
 export default function Monitors() {
-  const { activeOrgId } = useAuth()
+  const { activeOrgId, user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [monitors, setMonitors] = useState([])
+  const [pendingInvites, setPendingInvites] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(initialForm)
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState(null)
+
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviteForm, setInviteForm] = useState({ first_name: '', last_name: '', email: '', phone: '' })
+  const [inviting, setInviting] = useState(false)
+  const [inviteLink, setInviteLink] = useState(null)
 
   useEffect(() => { if (activeOrgId) load() }, [activeOrgId])
 
@@ -86,19 +92,84 @@ export default function Monitors() {
   async function load() {
     setLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('sv_monitors')
-        .select('*')
-        .eq('org_id', activeOrgId)
-        .order('last_name', { ascending: true })
-      if (error) throw error
-      setMonitors(data || [])
+      const [mRes, invRes] = await Promise.all([
+        supabase.from('sv_monitors').select('*').eq('org_id', activeOrgId).order('last_name', { ascending: true }),
+        supabase.from('sv_invitations')
+          .select('id, email, role, expires_at, accepted_at, created_at')
+          .eq('org_id', activeOrgId)
+          .eq('role', 'monitor')
+          .is('accepted_at', null)
+          .order('created_at', { ascending: false }),
+      ])
+      if (mRes.error) throw mRes.error
+      setMonitors(mRes.data || [])
+      setPendingInvites(invRes.data || [])
     } catch (err) {
       console.error('Monitors load error:', err)
       showToast(err.message || 'Could not load monitors', 'error')
     } finally {
       setLoading(false)
     }
+  }
+
+  async function sendInvite() {
+    const email = (inviteForm.email || '').trim().toLowerCase()
+    if (!inviteForm.first_name.trim() || !inviteForm.last_name.trim()) {
+      showToast('First and last name required', 'error'); return
+    }
+    if (!email) { showToast('Email required', 'error'); return }
+    setInviting(true)
+    setInviteLink(null)
+    try {
+      // 1) Placeholder monitor record so the new hire appears in the list
+      //    even before they accept. status=pending_verification, active=false.
+      const { data: existing } = await supabase
+        .from('sv_monitors').select('id, user_id, email')
+        .eq('org_id', activeOrgId).ilike('email', email).maybeSingle()
+      if (!existing) {
+        const { error: mErr } = await supabase.from('sv_monitors').insert({
+          org_id: activeOrgId,
+          first_name: inviteForm.first_name.trim(),
+          last_name: inviteForm.last_name.trim(),
+          email,
+          phone: inviteForm.phone || null,
+          status: 'pending_verification',
+          active: false,
+        })
+        if (mErr) throw mErr
+      }
+
+      // 2) Invitation row — the auth.users trigger will assign role +
+      //    link sv_monitors.user_id when the invitee signs up.
+      const { error: invErr } = await supabase.from('sv_invitations').insert({
+        org_id: activeOrgId,
+        email,
+        role: 'monitor',
+        invited_by: user?.id || null,
+      })
+      if (invErr && !String(invErr.message || '').includes('duplicate')) throw invErr
+
+      // 3) Show a signup link the owner can share if email delivery isn't
+      //    set up yet. We can't send a real magic link from the browser
+      //    without the service role key.
+      const link = `${window.location.origin}/signup?email=${encodeURIComponent(email)}`
+      setInviteLink(link)
+      showToast('Invitation created')
+      setInviteForm({ first_name: '', last_name: '', email: '', phone: '' })
+      load()
+    } catch (err) {
+      console.error('Invite monitor error:', err)
+      showToast(err.message || 'Failed to invite monitor', 'error')
+    } finally {
+      setInviting(false)
+    }
+  }
+
+  async function revokeInvite(id) {
+    if (!confirm('Revoke this invitation?')) return
+    const { error } = await supabase.from('sv_invitations').delete().eq('id', id)
+    if (error) showToast(error.message, 'error')
+    else { showToast('Invitation revoked'); load() }
   }
 
   async function submit() {
@@ -170,10 +241,81 @@ export default function Monitors() {
           <h1 className="page-title">Monitors</h1>
           <div className="page-subtitle">Qualifications tracked per California Standard 5.20(e)</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-          Add monitor
-        </button>
+        <div className="btn-group">
+          <button className="btn btn-secondary" onClick={() => { setInviteLink(null); setShowInvite(true) }}>
+            Invite monitor
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowForm(true)}>
+            Add monitor
+          </button>
+        </div>
       </div>
+
+      <Drawer
+        open={showInvite}
+        onClose={() => { setInviteLink(null); setShowInvite(false) }}
+        title="Invite a monitor"
+        subtitle="Send a signup link so they can join your agency"
+        width={520}
+        footer={
+          <>
+            <button className="btn btn-secondary" onClick={() => { setInviteLink(null); setShowInvite(false) }} disabled={inviting}>Close</button>
+            {!inviteLink && (
+              <button className="btn btn-primary" onClick={sendInvite} disabled={inviting}>
+                {inviting ? 'Inviting…' : 'Create invitation'}
+              </button>
+            )}
+          </>
+        }
+      >
+        <div className="form-section">
+          <p className="form-help" style={{ marginBottom: 16 }}>
+            We'll create a placeholder monitor record and an invitation tied to this email.
+            When they sign up, they're automatically linked to your agency as a monitor.
+          </p>
+          <div className="form-grid">
+            <div className="form-group">
+              <label className="form-label">First Name <span className="required">*</span></label>
+              <input className="form-input" value={inviteForm.first_name}
+                onChange={(e) => setInviteForm({ ...inviteForm, first_name: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Last Name <span className="required">*</span></label>
+              <input className="form-input" value={inviteForm.last_name}
+                onChange={(e) => setInviteForm({ ...inviteForm, last_name: e.target.value })} />
+            </div>
+            <div className="form-group full">
+              <label className="form-label">Email <span className="required">*</span></label>
+              <input type="email" className="form-input" value={inviteForm.email}
+                onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                placeholder="monitor@example.com" />
+            </div>
+            <div className="form-group full">
+              <label className="form-label">Phone</label>
+              <input type="tel" className="form-input" value={inviteForm.phone}
+                onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })} />
+            </div>
+          </div>
+        </div>
+
+        {inviteLink && (
+          <div className="form-section">
+            <h3 className="form-section-title">Signup link ready</h3>
+            <p className="form-help">Send this link to your new monitor. When they create an account with the same email, they'll join your agency automatically.</p>
+            <div className="card" style={{ marginTop: 12, background: 'var(--accent-faint)', border: '1px solid var(--accent-soft)' }}>
+              <div className="card-body" style={{ wordBreak: 'break-all' }}>
+                <div className="cell-mono" style={{ fontSize: 13 }}>{inviteLink}</div>
+              </div>
+            </div>
+            <div className="btn-group" style={{ marginTop: 12 }}>
+              <button className="btn btn-secondary"
+                onClick={() => { navigator.clipboard.writeText(inviteLink); showToast('Link copied') }}>
+                Copy link
+              </button>
+            </div>
+          </div>
+        )}
+      </Drawer>
 
       <Drawer
         open={showForm}
@@ -347,6 +489,44 @@ export default function Monitors() {
               </div>
             </div>
       </Drawer>
+
+      {pendingInvites.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title">Pending invitations</div>
+            <div className="cell-muted">{pendingInvites.length}</div>
+          </div>
+          <div className="card-body-flush">
+            <table className="data-table">
+              <thead><tr><th>Email</th><th>Invited</th><th>Expires</th><th /></tr></thead>
+              <tbody>
+                {pendingInvites.map((i) => (
+                  <tr key={i.id}>
+                    <td className="cell-strong">{i.email}</td>
+                    <td className="cell-muted">{fmtDate(i.created_at)}</td>
+                    <td className="cell-muted">{fmtDate(i.expires_at)}</td>
+                    <td>
+                      <div className="btn-group">
+                        <button className="btn btn-sm btn-secondary"
+                          onClick={() => {
+                            const url = `${window.location.origin}/signup?email=${encodeURIComponent(i.email)}`
+                            navigator.clipboard.writeText(url)
+                            showToast('Signup link copied')
+                          }}>
+                          Copy link
+                        </button>
+                        <button className="btn btn-sm btn-secondary" onClick={() => revokeInvite(i.id)}>
+                          Revoke
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-header">

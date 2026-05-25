@@ -51,8 +51,9 @@ function dateKey(d) {
 }
 
 export default function Visits() {
-  const { activeOrgId } = useAuth()
+  const { activeOrgId, role, user } = useAuth()
   const nav = useNavigate()
+  const isMonitor = role === 'monitor'
   const [view, setView] = useState('week') // week | list
   const [loading, setLoading] = useState(true)
   const [visits, setVisits] = useState([])
@@ -60,8 +61,20 @@ export default function Visits() {
   const [showForm, setShowForm] = useState(false)
   const [editVisit, setEditVisit] = useState(null)
   const [toast, setToast] = useState(null)
+  const [monitorId, setMonitorId] = useState(null)
 
-  useEffect(() => { if (activeOrgId) load() }, [activeOrgId, anchor])
+  useEffect(() => {
+    if (!isMonitor || !activeOrgId || !user) { setMonitorId(null); return }
+    supabase.from('sv_monitors').select('id')
+      .eq('org_id', activeOrgId).eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => setMonitorId(data?.id || null))
+  }, [activeOrgId, user?.id, isMonitor])
+
+  useEffect(() => {
+    if (!activeOrgId) return
+    if (isMonitor && monitorId === null) return
+    load()
+  }, [activeOrgId, anchor, view, isMonitor, monitorId])
 
   function showToast(message, kind = 'success') {
     setToast({ message, kind }); setTimeout(() => setToast(null), 3000)
@@ -72,7 +85,7 @@ export default function Visits() {
     try {
       const rangeStart = view === 'week' ? dateKey(anchor) : new Date().toISOString().slice(0, 10)
       const rangeEnd = view === 'week' ? dateKey(addDays(anchor, 7)) : dateKey(addDays(new Date(), 90))
-      const { data, error } = await supabase
+      let q = supabase
         .from('sv_visits')
         .select(`id, scheduled_date, scheduled_start_time, scheduled_end_time, status, location,
                  case:case_id(id, case_number),
@@ -82,6 +95,8 @@ export default function Visits() {
         .lte('scheduled_date', rangeEnd)
         .order('scheduled_date', { ascending: true })
         .order('scheduled_start_time', { ascending: true })
+      if (isMonitor && monitorId) q = q.eq('monitor_id', monitorId)
+      const { data, error } = await q
       if (error) throw error
       setVisits(data || [])
     } catch (err) {
@@ -108,7 +123,7 @@ export default function Visits() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Schedule</h1>
+          <h1 className="page-title">{isMonitor ? 'My visits' : 'Schedule'}</h1>
           <div className="page-subtitle">
             {view === 'week'
               ? `Week of ${fmtDateLong(dateKey(anchor))}`
@@ -126,7 +141,9 @@ export default function Visits() {
               onClick={() => setView('list')}
             >List</button>
           </div>
-          <button className="btn btn-primary" onClick={() => { setEditVisit(null); setShowForm(true) }}>Schedule visit</button>
+          {!isMonitor && (
+            <button className="btn btn-primary" onClick={() => { setEditVisit(null); setShowForm(true) }}>Schedule visit</button>
+          )}
         </div>
       </div>
 
@@ -182,7 +199,7 @@ export default function Visits() {
               : visits.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-state-title">No visits scheduled</div>
-                  <div className="empty-state-desc">Click "Schedule visit" to add one.</div>
+                  <div className="empty-state-desc">{isMonitor ? 'Your upcoming visits will appear here.' : 'Click "Schedule visit" to add one.'}</div>
                 </div>
               ) : (
                 <table className="data-table">
@@ -208,7 +225,9 @@ export default function Visits() {
                         <td>{statusBadge(v.status)}</td>
                         <td className="btn-group">
                           <Link to={`/visits/${v.id}`} className="btn btn-sm btn-secondary">Open</Link>
-                          <button className="btn btn-sm btn-ghost" onClick={() => { setEditVisit(v); setShowForm(true) }}>Edit</button>
+                          {!isMonitor && (
+                            <button className="btn btn-sm btn-ghost" onClick={() => { setEditVisit(v); setShowForm(true) }}>Edit</button>
+                          )}
                         </td>
                       </tr>
                     ))}

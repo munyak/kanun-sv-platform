@@ -45,13 +45,22 @@ async function tryGetPosition() {
 
 export default function VisitDetail() {
   const { id } = useParams()
-  const { activeOrgId } = useAuth()
+  const { activeOrgId, role, user } = useAuth()
+  const isMonitor = role === 'monitor'
   const nav = useNavigate()
   const [loading, setLoading] = useState(true)
   const [visit, setVisit] = useState(null)
   const [observations, setObservations] = useState([])
   const [toast, setToast] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [myMonitorId, setMyMonitorId] = useState(null)
+
+  useEffect(() => {
+    if (!isMonitor || !activeOrgId || !user) { setMyMonitorId(null); return }
+    supabase.from('sv_monitors').select('id')
+      .eq('org_id', activeOrgId).eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => setMyMonitorId(data?.id || null))
+  }, [isMonitor, activeOrgId, user?.id])
   const [draft, setDraft] = useState({
     child_behavior: '',
     parent_interaction: '',
@@ -154,6 +163,13 @@ export default function VisitDetail() {
     <div className="empty-state" style={{ marginTop: 64 }}>
       <div className="empty-state-title">Visit not found</div>
       <Link to="/visits" className="btn btn-secondary" style={{ marginTop: 16 }}>Back to schedule</Link>
+    </div>
+  )
+  if (isMonitor && myMonitorId && visit.monitor_id !== myMonitorId) return (
+    <div className="empty-state" style={{ marginTop: 64 }}>
+      <div className="empty-state-title">Not assigned to you</div>
+      <div className="empty-state-desc">You can only access visits where you are the assigned monitor.</div>
+      <Link to="/visits" className="btn btn-secondary" style={{ marginTop: 16 }}>Back to my visits</Link>
     </div>
   )
 

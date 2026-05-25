@@ -30,20 +30,33 @@ function statusBadge(status) {
 }
 
 export default function Cases() {
-  const { activeOrgId } = useAuth()
+  const { activeOrgId, role, user } = useAuth()
+  const isMonitor = role === 'monitor'
   const nav = useNavigate()
   const [loading, setLoading] = useState(true)
   const [cases, setCases] = useState([])
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(isMonitor ? 'active' : 'all')
   const [query, setQuery] = useState('')
   const [showCreate, setShowCreate] = useState(false)
+  const [monitorId, setMonitorId] = useState(null)
 
-  useEffect(() => { if (activeOrgId) load() }, [activeOrgId])
+  useEffect(() => {
+    if (!isMonitor || !activeOrgId || !user) { setMonitorId(null); return }
+    supabase.from('sv_monitors').select('id')
+      .eq('org_id', activeOrgId).eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => setMonitorId(data?.id || null))
+  }, [isMonitor, activeOrgId, user?.id])
+
+  useEffect(() => {
+    if (!activeOrgId) return
+    if (isMonitor && monitorId === null) return
+    load()
+  }, [activeOrgId, isMonitor, monitorId])
 
   async function load() {
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      let q = supabase
         .from('sv_cases')
         .select(`
           id, case_number, court_name, referral_source, supervision_type,
@@ -54,6 +67,8 @@ export default function Cases() {
         `)
         .eq('org_id', activeOrgId)
         .order('created_at', { ascending: false })
+      if (isMonitor && monitorId) q = q.eq('primary_monitor_id', monitorId)
+      const { data, error } = await q
       if (error) throw error
       setCases(data || [])
     } catch (err) {
@@ -78,13 +93,15 @@ export default function Cases() {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Cases</h1>
+          <h1 className="page-title">{isMonitor ? 'My cases' : 'Cases'}</h1>
           <div className="page-subtitle">{cases.length} total · {filtered.length} shown</div>
         </div>
-        <div className="btn-group">
-          <Link to="/intake" className="btn btn-secondary">Full intake</Link>
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>New case</button>
-        </div>
+        {!isMonitor && (
+          <div className="btn-group">
+            <Link to="/intake" className="btn btn-secondary">Full intake</Link>
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>New case</button>
+          </div>
+        )}
       </div>
 
       {showCreate && (
@@ -97,7 +114,7 @@ export default function Cases() {
 
       <div className="card">
         <div className="card-header">
-          <div className="card-title">All Cases</div>
+          <div className="card-title">{isMonitor ? 'Assigned to me' : 'All Cases'}</div>
           <div className="btn-group" style={{ gap: 12, flexWrap: 'wrap' }}>
             <input
               className="form-input"
@@ -123,7 +140,7 @@ export default function Cases() {
           ) : filtered.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-title">No cases match</div>
-              <div className="empty-state-desc">Try a different filter or start a new intake.</div>
+              <div className="empty-state-desc">{isMonitor ? 'When your agency assigns you as primary monitor, those cases appear here.' : 'Try a different filter or start a new intake.'}</div>
             </div>
           ) : (
             <table className="data-table">

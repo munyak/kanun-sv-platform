@@ -302,14 +302,46 @@ function OwnerDashboard({ org }) {
   )
 }
 
+function fmtTime(t) {
+  if (!t) return ''
+  const [h, m] = t.split(':')
+  const d = new Date(); d.setHours(Number(h), Number(m), 0, 0)
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+}
+
+function fmtRange(start, end) {
+  if (!start) return '—'
+  if (!end) return fmtTime(start)
+  return `${fmtTime(start)} – ${fmtTime(end)}`
+}
+
+function partyName(p) {
+  if (!p) return null
+  return `${p.first_name || ''} ${p.last_name || ''}`.trim()
+}
+
+function nextActionForVisit(v) {
+  switch (v.status) {
+    case 'scheduled':
+    case 'confirmed':       return { label: 'Check in',     to: `/visits/${v.id}`, kind: 'primary' }
+    case 'checked_in':      return { label: 'Begin visit',  to: `/visits/${v.id}`, kind: 'primary' }
+    case 'in_progress':     return { label: 'Check out',    to: `/visits/${v.id}`, kind: 'primary' }
+    case 'report_pending':  return { label: 'Start report', to: `/visits/${v.id}/report`, kind: 'primary' }
+    case 'report_submitted':return { label: 'View',         to: `/visits/${v.id}`, kind: 'secondary' }
+    case 'completed':       return { label: 'View',         to: `/visits/${v.id}`, kind: 'secondary' }
+    default:                return { label: 'View',         to: `/visits/${v.id}`, kind: 'secondary' }
+  }
+}
+
 function MonitorDashboard({ user }) {
   const { activeOrgId } = useAuth()
   const [loading, setLoading] = useState(true)
   const [today, setToday] = useState([])
   const [upcoming, setUpcoming] = useState([])
   const [monitorId, setMonitorId] = useState(null)
+  const [counts, setCounts] = useState({ activeCases: 0, weekVisits: 0, reportsDue: 0 })
 
-  useEffect(() => { if (activeOrgId) load() }, [activeOrgId])
+  useEffect(() => { if (activeOrgId && user) load() }, [activeOrgId, user?.id])
 
   async function load() {
     setLoading(true)
@@ -322,30 +354,53 @@ function MonitorDashboard({ user }) {
         .maybeSingle()
       const mid = m?.id || null
       setMonitorId(mid)
+      if (!mid) { setLoading(false); return }
 
       const today = new Date().toISOString().slice(0, 10)
+      const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7)
+      const weekEndStr = weekEnd.toISOString().slice(0, 10)
 
-      let qToday = supabase.from('sv_visits')
-        .select('id, scheduled_date, scheduled_start_time, scheduled_end_time, location, status, case:case_id(case_number)')
-        .eq('org_id', activeOrgId)
-        .eq('scheduled_date', today)
-        .order('scheduled_start_time', { ascending: true })
-      if (mid) qToday = qToday.eq('monitor_id', mid)
-      const { data: t } = await qToday
-      setToday(t || [])
+      const selectCols = `id, scheduled_date, scheduled_start_time, scheduled_end_time,
+                          location, status, checked_in_at, checked_out_at,
+                          case:case_id(id, case_number, special_conditions,
+                            custodial:custodial_party_id(first_name, last_name),
+                            noncustodial:noncustodial_party_id(first_name, last_name))`
 
-      let qUpcoming = supabase.from('sv_visits')
-        .select('id, scheduled_date, scheduled_start_time, scheduled_end_time, location, status, case:case_id(case_number)')
-        .eq('org_id', activeOrgId)
-        .gt('scheduled_date', today)
-        .order('scheduled_date', { ascending: true })
-        .order('scheduled_start_time', { ascending: true })
-        .limit(10)
-      if (mid) qUpcoming = qUpcoming.eq('monitor_id', mid)
-      const { data: u } = await qUpcoming
-      setUpcoming(u || [])
+      const [tRes, uRes, weekCount, reportsCount, caseCount] = await Promise.all([
+        supabase.from('sv_visits').select(selectCols)
+          .eq('org_id', activeOrgId).eq('monitor_id', mid)
+          .eq('scheduled_date', today)
+          .order('scheduled_start_time', { ascending: true }),
+        supabase.from('sv_visits').select(selectCols)
+          .eq('org_id', activeOrgId).eq('monitor_id', mid)
+          .gt('scheduled_date', today).lte('scheduled_date', weekEndStr)
+          .order('scheduled_date', { ascending: true })
+          .order('scheduled_start_time', { ascending: true })
+          .limit(20),
+        supabase.from('sv_visits').select('id', { count: 'exact', head: true })
+          .eq('org_id', activeOrgId).eq('monitor_id', mid)
+          .gte('scheduled_date', today).lte('scheduled_date', weekEndStr),
+        supabase.from('sv_visits').select('id', { count: 'exact', head: true })
+          .eq('org_id', activeOrgId).eq('monitor_id', mid)
+          .eq('status', 'report_pending'),
+        supabase.from('sv_cases').select('id', { count: 'exact', head: true })
+          .eq('org_id', activeOrgId).eq('primary_monitor_id', mid)
+          .neq('status', 'archived'),
+      ])
+
+      setToday(tRes.data || [])
+      setUpcoming(uRes.data || [])
+      setCounts({
+        activeCases: caseCount.count || 0,
+        weekVisits: weekCount.count || 0,
+        reportsDue: reportsCount.count || 0,
+      })
     } finally { setLoading(false) }
   }
+
+  const nowVisit = today.find((v) => v.status === 'in_progress' || v.status === 'checked_in')
+  const nextVisit = today.find((v) => v.status === 'scheduled' || v.status === 'confirmed')
+  const focusVisit = nowVisit || nextVisit || today[0] || null
 
   return (
     <div>
@@ -358,56 +413,150 @@ function MonitorDashboard({ user }) {
 
       {!monitorId && (
         <div className="confidential-banner">
-          Your monitor profile isn't linked to your account yet. Ask your agency owner to link your monitor record so your visits appear here.
+          Your monitor profile isn't linked to your account yet. Ask your agency owner to invite you again with this email so your visits appear here.
+        </div>
+      )}
+
+      {monitorId && (
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-card-head">
+              <div className="stat-card-icon">{ICON.folder}</div>
+              <div className="stat-label">My cases</div>
+            </div>
+            <div className="stat-value">{counts.activeCases}</div>
+            <div className="stat-sub">Active assignments</div>
+          </div>
+          <div className="stat-card moss">
+            <div className="stat-card-head">
+              <div className="stat-card-icon">{ICON.calendar}</div>
+              <div className="stat-label">This week</div>
+            </div>
+            <div className="stat-value">{counts.weekVisits}</div>
+            <div className="stat-sub">{today.length} today</div>
+          </div>
+          <div className="stat-card yellow">
+            <div className="stat-card-head">
+              <div className="stat-card-icon">{ICON.note}</div>
+              <div className="stat-label">Reports due</div>
+            </div>
+            <div className="stat-value">{counts.reportsDue}</div>
+            <div className="stat-sub">Waiting on you</div>
+          </div>
+        </div>
+      )}
+
+      {focusVisit && (
+        <div className="card monitor-focus">
+          <div className="card-header">
+            <div className="card-title">
+              {nowVisit ? 'In progress' : 'Up next'}
+            </div>
+            <div className="cell-muted">{fmtRange(focusVisit.scheduled_start_time, focusVisit.scheduled_end_time)}</div>
+          </div>
+          <div className="card-body">
+            <div className="monitor-focus-grid">
+              <div>
+                <div className="kv-label">Case</div>
+                <Link to={`/cases/${focusVisit.case?.id}`} className="cell-link cell-mono cell-strong">
+                  {focusVisit.case?.case_number || '—'}
+                </Link>
+              </div>
+              <div>
+                <div className="kv-label">Location</div>
+                <div className="cell-strong">{focusVisit.location || '—'}</div>
+              </div>
+              <div>
+                <div className="kv-label">Custodial</div>
+                <div>{partyName(focusVisit.case?.custodial) || <span className="cell-muted">—</span>}</div>
+              </div>
+              <div>
+                <div className="kv-label">Noncustodial</div>
+                <div>{partyName(focusVisit.case?.noncustodial) || <span className="cell-muted">—</span>}</div>
+              </div>
+              {focusVisit.case?.special_conditions && (
+                <div className="full">
+                  <div className="kv-label">Special conditions</div>
+                  <div>{focusVisit.case.special_conditions}</div>
+                </div>
+              )}
+            </div>
+            <div className="quick-actions">
+              <Link to={`/visits/${focusVisit.id}`} className={`btn ${nextActionForVisit(focusVisit).kind === 'primary' ? 'btn-primary' : 'btn-secondary'}`}>
+                {nextActionForVisit(focusVisit).label}
+              </Link>
+              {focusVisit.status === 'report_pending' && (
+                <Link to={`/visits/${focusVisit.id}/report`} className="btn btn-secondary">Start report</Link>
+              )}
+              <Link to={`/cases/${focusVisit.case?.id}`} className="btn btn-secondary">Case info</Link>
+            </div>
+          </div>
         </div>
       )}
 
       <div className="card">
-        <div className="card-header"><div className="card-title">Today's visits</div></div>
+        <div className="card-header"><div className="card-title">Today's visits</div>{today.length > 0 && <div className="cell-muted">{today.length}</div>}</div>
         <div className="card-body-flush">
           {loading ? <div className="loading">Loading…</div>
             : today.length === 0 ? <div className="empty-state"><div className="empty-state-icon">{ICON.coffee}</div><div className="empty-state-title">Nothing scheduled today</div><div className="empty-state-desc">Enjoy the breather.</div></div>
             : (
-              <table className="data-table">
-                <thead><tr><th>When</th><th>Case</th><th>Location</th><th>Status</th></tr></thead>
-                <tbody>
-                  {today.map((v) => (
-                    <tr key={v.id}>
-                      <td className="cell-strong">{fmtVisitTime(v.scheduled_date, v.scheduled_start_time)}</td>
-                      <td className="cell-mono">{v.case?.case_number || '—'}</td>
-                      <td>{v.location || <span className="cell-muted">—</span>}</td>
-                      <td>{statusBadge(v.status)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ul className="monitor-visit-list">
+                {today.map((v) => (
+                  <MonitorVisitRow key={v.id} v={v} />
+                ))}
+              </ul>
             )}
         </div>
       </div>
 
       <div className="card">
-        <div className="card-header"><div className="card-title">Upcoming</div></div>
+        <div className="card-header"><div className="card-title">This week</div>{upcoming.length > 0 && <div className="cell-muted">{upcoming.length}</div>}</div>
         <div className="card-body-flush">
           {loading ? <div className="loading">Loading…</div>
             : upcoming.length === 0 ? <div className="empty-state"><div className="empty-state-icon">{ICON.inbox}</div><div className="empty-state-title">No upcoming visits</div></div>
             : (
-              <table className="data-table">
-                <thead><tr><th>When</th><th>Case</th><th>Location</th><th>Status</th></tr></thead>
-                <tbody>
-                  {upcoming.map((v) => (
-                    <tr key={v.id}>
-                      <td className="cell-strong">{fmtVisitTime(v.scheduled_date, v.scheduled_start_time)}</td>
-                      <td className="cell-mono">{v.case?.case_number || '—'}</td>
-                      <td>{v.location || <span className="cell-muted">—</span>}</td>
-                      <td>{statusBadge(v.status)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ul className="monitor-visit-list">
+                {upcoming.map((v) => (
+                  <MonitorVisitRow key={v.id} v={v} showDate />
+                ))}
+              </ul>
             )}
         </div>
       </div>
     </div>
+  )
+}
+
+function MonitorVisitRow({ v, showDate }) {
+  const action = nextActionForVisit(v)
+  return (
+    <li className="monitor-visit-item">
+      <div className="monitor-visit-time">
+        {showDate && (
+          <div className="monitor-visit-date">
+            {new Date(v.scheduled_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </div>
+        )}
+        <div className="monitor-visit-clock">{fmtRange(v.scheduled_start_time, v.scheduled_end_time)}</div>
+      </div>
+      <div className="monitor-visit-main">
+        <Link to={`/visits/${v.id}`} className="monitor-visit-case">
+          {v.case?.case_number || 'Visit'}
+        </Link>
+        <div className="monitor-visit-sub">
+          {[partyName(v.case?.custodial), partyName(v.case?.noncustodial)].filter(Boolean).join(' · ') || ''}
+        </div>
+        <div className="monitor-visit-meta">
+          {v.location && <span>{v.location}</span>}
+          {statusBadge(v.status)}
+        </div>
+      </div>
+      <div className="monitor-visit-action">
+        <Link to={action.to} className={`btn btn-sm ${action.kind === 'primary' ? 'btn-primary' : 'btn-secondary'}`}>
+          {action.label}
+        </Link>
+      </div>
+    </li>
   )
 }
 

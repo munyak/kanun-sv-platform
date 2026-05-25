@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import AuthShell from '../components/AuthShell'
 
 export default function Signup() {
   const nav = useNavigate()
+  const [searchParams] = useSearchParams()
+  const prefilledEmail = searchParams.get('email') || ''
   const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(prefilledEmail)
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)

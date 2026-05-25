@@ -127,6 +127,7 @@ const NAV_BY_ROLE = {
     { to: '/', label: 'My Day', icon: I.sun, exact: true },
     { to: '/visits', label: 'My Visits', icon: I.calendar },
     { to: '/cases', label: 'My Cases', icon: I.folder },
+    { to: '/my-profile', label: 'My Profile', icon: I.team },
   ],
   parent: [{ to: '/', label: 'My Visits', icon: I.calendar, exact: true }],
   attorney: [
@@ -206,7 +207,7 @@ export default function AppShell() {
                   <div className="user-menu-name">{user?.user_metadata?.full_name || user?.email}</div>
                   <div className="user-menu-email">{user?.email}</div>
                 </div>
-                <button className="user-menu-item" onClick={() => { setMenuOpen(false); nav('/settings') }}>Settings</button>
+                <button className="user-menu-item" onClick={() => { setMenuOpen(false); nav(role === 'monitor' ? '/my-profile' : '/settings') }}>{role === 'monitor' ? 'My profile' : 'Settings'}</button>
                 <button className="user-menu-item" onClick={handleSignOut}>Sign out</button>
               </div>
             )}

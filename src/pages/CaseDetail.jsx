@@ -42,7 +42,8 @@ function statusBadge(status) {
 export default function CaseDetail() {
   const { id } = useParams()
   const nav = useNavigate()
-  const { activeOrgId } = useAuth()
+  const { activeOrgId, role } = useAuth()
+  const isMonitor = role === 'monitor'
   const [loading, setLoading] = useState(true)
   const [c, setCase] = useState(null)
   const [children, setChildren] = useState([])
@@ -219,10 +220,18 @@ export default function CaseDetail() {
           <h1 className="page-title cell-mono">{c.case_number || `Case ${c.id.slice(0, 6)}`}</h1>
           <div className="page-subtitle">{c.court_name || 'No court on file'} · opened {fmtDate(c.created_at)}</div>
         </div>
-        <div className="btn-group">
-          <button className="btn btn-secondary" onClick={() => { setEditVisit(null); setShowVisit(true) }}>+ Schedule visit</button>
-        </div>
+        {!isMonitor && (
+          <div className="btn-group">
+            <button className="btn btn-secondary" onClick={() => { setEditVisit(null); setShowVisit(true) }}>+ Schedule visit</button>
+          </div>
+        )}
       </div>
+
+      {isMonitor && (
+        <div className="confidential-banner">
+          Case configuration is managed by your agency. You have read-only access here — use the visits below to check in and log observations.
+        </div>
+      )}
 
       <div className="case-grid">
         <div>
@@ -232,20 +241,24 @@ export default function CaseDetail() {
             <div className="card-body">
               <div className="kv-grid">
                 <div><div className="kv-label">Status</div><div>
-                  <select className="form-select" value={c.status || 'intake'}
-                    onChange={(e) => updateCase({ status: e.target.value })}>
-                    {CASE_STATUS.map((s) => (
-                      <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-                    ))}
-                  </select>
+                  {isMonitor ? statusBadge(c.status) : (
+                    <select className="form-select" value={c.status || 'intake'}
+                      onChange={(e) => updateCase({ status: e.target.value })}>
+                      {CASE_STATUS.map((s) => (
+                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                      ))}
+                    </select>
+                  )}
                 </div></div>
                 <div><div className="kv-label">Risk level</div><div>
-                  <select className="form-select" value={c.risk_level || 'medium'}
-                    onChange={(e) => updateCase({ risk_level: e.target.value })}>
-                    {RISK_LEVELS.map((r) => (
-                      <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
-                    ))}
-                  </select>
+                  {isMonitor ? <span>{(c.risk_level || '—').replace(/_/g, ' ')}</span> : (
+                    <select className="form-select" value={c.risk_level || 'medium'}
+                      onChange={(e) => updateCase({ risk_level: e.target.value })}>
+                      {RISK_LEVELS.map((r) => (
+                        <option key={r} value={r}>{r.charAt(0).toUpperCase() + r.slice(1)}</option>
+                      ))}
+                    </select>
+                  )}
                 </div></div>
                 <div><div className="kv-label">Supervision type</div><div>{c.supervision_type ? c.supervision_type.replace(/_/g, ' ') : '—'}</div></div>
                 <div><div className="kv-label">Referral source</div><div>{c.referral_source || '—'}</div></div>
@@ -267,8 +280,8 @@ export default function CaseDetail() {
             <div className="card-header"><div className="card-title">Parties</div></div>
             <div className="card-body">
               <div className="party-grid">
-                <PartyBlock title="Custodial" p={c.custodial} caseId={c.id} onPortal={(p) => generateToken('parent', p.id, `${p.first_name} ${p.last_name}`, p.email)} />
-                <PartyBlock title="Noncustodial" p={c.noncustodial} caseId={c.id} onPortal={(p) => generateToken('parent', p.id, `${p.first_name} ${p.last_name}`, p.email)} />
+                <PartyBlock title="Custodial" p={c.custodial} caseId={c.id} onPortal={isMonitor ? null : (p) => generateToken('parent', p.id, `${p.first_name} ${p.last_name}`, p.email)} />
+                <PartyBlock title="Noncustodial" p={c.noncustodial} caseId={c.id} onPortal={isMonitor ? null : (p) => generateToken('parent', p.id, `${p.first_name} ${p.last_name}`, p.email)} />
               </div>
             </div>
           </div>
@@ -297,6 +310,7 @@ export default function CaseDetail() {
           </div>
 
           {/* E-signatures */}
+          {!isMonitor && (
           <div className="card">
             <div className="card-header"><div className="card-title">Signatures &amp; agreements</div></div>
             <div className="card-body-flush">
@@ -336,8 +350,10 @@ export default function CaseDetail() {
               </ul>
             </div>
           </div>
+          )}
 
           {/* Invoices */}
+          {!isMonitor && (
           <div className="card">
             <div className="card-header">
               <div className="card-title">Invoices</div>
@@ -373,10 +389,12 @@ export default function CaseDetail() {
               )}
             </div>
           </div>
+          )}
         </div>
 
         <div>
           {/* Monitor assignment */}
+          {!isMonitor && (
           <div className="card">
             <div className="card-header"><div className="card-title">Primary monitor</div></div>
             <div className="card-body">
@@ -389,8 +407,19 @@ export default function CaseDetail() {
               </select>
             </div>
           </div>
+          )}
+
+          {isMonitor && c.monitor && (
+            <div className="card">
+              <div className="card-header"><div className="card-title">Primary monitor</div></div>
+              <div className="card-body">
+                <div className="cell-strong">{c.monitor.first_name} {c.monitor.last_name}</div>
+              </div>
+            </div>
+          )}
 
           {/* Reminders */}
+          {!isMonitor && (
           <div className="card">
             <div className="card-header"><div className="card-title">Reminders</div></div>
             <div className="card-body">
@@ -424,8 +453,10 @@ export default function CaseDetail() {
               </div>
             </div>
           </div>
+          )}
 
           {/* Portal links */}
+          {!isMonitor && (
           <div className="card">
             <div className="card-header">
               <div className="card-title">Portal links</div>
@@ -462,12 +493,15 @@ export default function CaseDetail() {
               )}
             </div>
           </div>
+          )}
 
           {/* Upcoming visits */}
           <div className="card">
             <div className="card-header">
               <div className="card-title">Upcoming</div>
-              <button className="btn btn-sm btn-primary" onClick={() => { setEditVisit(null); setShowVisit(true) }}>+ Add</button>
+              {!isMonitor && (
+                <button className="btn btn-sm btn-primary" onClick={() => { setEditVisit(null); setShowVisit(true) }}>+ Add</button>
+              )}
             </div>
             <div className="card-body-flush">
               {upcoming.length === 0 ? (
@@ -562,9 +596,11 @@ function PartyBlock({ title, p, caseId, onPortal }) {
       )}
       {p.attorney_name && <div className="kv-line"><strong>Attorney:</strong> {p.attorney_name} {p.attorney_phone ? `· ${p.attorney_phone}` : ''}</div>}
       {p.emergency_contact_name && <div className="kv-line"><strong>Emergency:</strong> {p.emergency_contact_name} {p.emergency_contact_phone ? `· ${p.emergency_contact_phone}` : ''}</div>}
-      <div style={{ marginTop: 10 }}>
-        <button className="btn btn-sm btn-secondary" onClick={() => onPortal?.(p)}>Generate parent portal link</button>
-      </div>
+      {onPortal && (
+        <div style={{ marginTop: 10 }}>
+          <button className="btn btn-sm btn-secondary" onClick={() => onPortal?.(p)}>Generate parent portal link</button>
+        </div>
+      )}
     </div>
   )
 }
