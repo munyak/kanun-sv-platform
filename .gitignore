@@ -6,3 +6,7 @@ dist
 
 # Local Netlify folder
 .netlify
+
+# Supabase CLI temp/local state
+supabase/.temp
+supabase/.branches
