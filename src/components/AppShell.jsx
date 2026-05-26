@@ -151,12 +151,16 @@ function Initials({ user }) {
 }
 
 export default function AppShell() {
-  const { user, org, role, memberships, setActiveOrg, activeOrgId, signOut } = useAuth()
+  const {
+    user, org, role, memberships, setActiveOrg, activeOrgId, signOut,
+    actualRole, viewAsRole, canSwitchView, setViewAsRole,
+  } = useAuth()
   const nav = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const items = NAV_BY_ROLE[role] || NAV_BY_ROLE.agency_owner
   const isMonitor = role === 'monitor'
+  const isViewingAs = !!viewAsRole
 
   async function handleSignOut() {
     await signOut()
@@ -203,7 +207,29 @@ export default function AppShell() {
               ))}
             </select>
           )}
-          {role && <span className="role-badge">{roleLabel(role)}</span>}
+          {canSwitchView && (
+            <select
+              className={`view-as-switcher${isViewingAs ? ' view-as-switcher-active' : ''}`}
+              value={viewAsRole || ''}
+              onChange={(e) => {
+                const next = e.target.value || null
+                setViewAsRole(next)
+                // Land on the appropriate home so the user sees the right
+                // dashboard immediately after switching.
+                nav('/', { replace: true })
+              }}
+              aria-label="Switch view (dev)"
+              title="Dev: preview the app as another role"
+            >
+              <option value="">Owner view</option>
+              <option value="monitor">Monitor view</option>
+            </select>
+          )}
+          {role && (
+            <span className={`role-badge${isViewingAs ? ' role-badge-viewas' : ''}`}>
+              {isViewingAs ? `Viewing as ${roleLabel(role)}` : roleLabel(role)}
+            </span>
+          )}
           <button className="notif-bell" aria-label="Notifications" title="Notifications (coming soon)">
             {I.bell}
           </button>
@@ -254,6 +280,22 @@ export default function AppShell() {
         </aside>
 
         <main className="shell-main">
+          {isViewingAs && (
+            <div className="view-as-banner" role="status">
+              <span className="view-as-banner-dot" />
+              <span>
+                Dev preview — viewing the app as <strong>{roleLabel(role)}</strong>.
+                Your real role is <strong>{roleLabel(actualRole)}</strong>.
+              </span>
+              <button
+                type="button"
+                className="view-as-banner-exit"
+                onClick={() => { setViewAsRole(null); nav('/', { replace: true }) }}
+              >
+                Exit preview
+              </button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>

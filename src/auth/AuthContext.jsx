@@ -18,6 +18,11 @@ function pickPrimaryRole(rows) {
   return [...rows].sort((a, b) => (ROLE_RANK[b.role] || 0) - (ROLE_RANK[a.role] || 0))[0]
 }
 
+// Owner-tier roles that can run the agency (configure org, see all monitors etc.)
+// Exported below for use in route guards; declared up here so AuthProvider can
+// check whether the "view as" override should apply.
+const OWNER_TIER_ROLES = ['platform_admin', 'agency_owner', 'agency_manager']
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [user, setUser] = useState(null)
@@ -26,6 +31,9 @@ export function AuthProvider({ children }) {
   const [onboarding, setOnboarding] = useState(null)
   const [loading, setLoading] = useState(true)
   const [bootstrapping, setBootstrapping] = useState(true)
+  // Owner-only dev/testing override: when set, the app renders as if the user
+  // had this role (e.g. "monitor") without touching the real membership.
+  const [viewAsRole, setViewAsRoleState] = useState(() => localStorage.getItem('kanun.viewAsRole') || null)
   const mountedRef = useRef(true)
 
   useEffect(() => () => { mountedRef.current = false }, [])
@@ -104,14 +112,26 @@ export function AuthProvider({ children }) {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
     localStorage.removeItem('kanun.activeOrgId')
+    localStorage.removeItem('kanun.viewAsRole')
     setMemberships([])
     setOnboarding(null)
     setActiveOrgId(null)
+    setViewAsRoleState(null)
+  }, [])
+
+  const setViewAsRole = useCallback((nextRole) => {
+    setViewAsRoleState(nextRole)
+    if (nextRole) localStorage.setItem('kanun.viewAsRole', nextRole)
+    else localStorage.removeItem('kanun.viewAsRole')
   }, [])
 
   const value = useMemo(() => {
     const activeMembership = memberships.find((m) => m.org_id === activeOrgId) || null
-    const role = activeMembership?.role || null
+    const actualRole = activeMembership?.role || null
+    // Only owner-tier roles can use the dev "view as" override.
+    const canSwitchView = OWNER_TIER_ROLES.includes(actualRole)
+    const effectiveViewAs = canSwitchView ? viewAsRole : null
+    const role = effectiveViewAs || actualRole
     const org = activeMembership?.sv_organizations || null
     return {
       session,
@@ -121,6 +141,10 @@ export function AuthProvider({ children }) {
       activeMembership,
       org,
       role,
+      actualRole,
+      viewAsRole: effectiveViewAs,
+      canSwitchView,
+      setViewAsRole,
       onboarding,
       hasOrg: !!activeOrgId,
       loading,
@@ -129,7 +153,7 @@ export function AuthProvider({ children }) {
       refresh,
       signOut,
     }
-  }, [session, user, memberships, activeOrgId, onboarding, loading, bootstrapping, setActiveOrg, refresh, signOut])
+  }, [session, user, memberships, activeOrgId, viewAsRole, onboarding, loading, bootstrapping, setActiveOrg, setViewAsRole, refresh, signOut])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

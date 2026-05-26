@@ -299,6 +299,72 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
 }
 
+/* Dev-only "view as" override: amber when active to flag non-prod state. */
+.role-badge-viewas {
+  background: #FFF4D6;
+  color: #8A5A00;
+}
+
+.view-as-switcher {
+  height: 28px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2386868B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--t-color), background-color var(--t-color);
+}
+.view-as-switcher:hover { border-color: var(--border-strong); }
+.view-as-switcher-active {
+  background-color: #FFF4D6;
+  border-color: #E0AC4F;
+  color: #6A4400;
+}
+
+.view-as-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  background: #FFF4D6;
+  border: 1px solid #E0AC4F;
+  border-radius: var(--r);
+  color: #6A4400;
+  font-size: 13px;
+  font-weight: 500;
+}
+.view-as-banner-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #E0AC4F;
+  flex-shrink: 0;
+}
+.view-as-banner strong { font-weight: 700; }
+.view-as-banner-exit {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #E0AC4F;
+  color: #6A4400;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.view-as-banner-exit:hover { background: rgba(224, 172, 79, 0.18); }
+
 .notif-bell {
   width: 36px;
   height: 36px;
@@ -2220,6 +2286,9 @@ h1, h2, h3, h4, h5, h6 {
   .topbar-org-sub { display: none; }
   .role-badge { display: none; }
   .org-switcher { max-width: 140px; }
+  .view-as-switcher { max-width: 130px; font-size: 11px; }
+  .view-as-banner { font-size: 12px; padding: 8px 12px; }
+  .view-as-banner-exit { height: 24px; padding: 0 8px; }
 
   .shell-sidebar {
     position: fixed;
