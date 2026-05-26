@@ -29,6 +29,30 @@ function statusBadge(status) {
   return <span className={`badge ${cls}`}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
 }
 
+function PipelineStage({ label, sub, n, active, onClick, tone }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`pipeline-stage tone-${tone}${active ? ' active' : ''}`}
+    >
+      <div className="pipeline-stage-n">{n}</div>
+      <div className="pipeline-stage-label">{label}</div>
+      <div className="pipeline-stage-sub">{sub}</div>
+    </button>
+  )
+}
+
+function PipelineArrow() {
+  return (
+    <div className="pipeline-arrow" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 12h14M13 6l6 6-6 6" />
+      </svg>
+    </div>
+  )
+}
+
 export default function Cases() {
   const { activeOrgId, role, user } = useAuth()
   const isMonitor = role === 'monitor'
@@ -89,6 +113,17 @@ export default function Cases() {
         .filter(Boolean).some((v) => v.toLowerCase().includes(q))
     })
 
+  // Pipeline stage counts — rendered as a workflow strip at the top so
+  // owners can see their funnel at a glance and jump straight to a stage.
+  // Order is the actual case lifecycle: intake → active → suspended → closed.
+  const stageCounts = {
+    intake:    cases.filter((c) => c.status === 'intake').length,
+    active:    cases.filter((c) => c.status === 'active').length,
+    suspended: cases.filter((c) => c.status === 'suspended').length,
+    closed:    cases.filter((c) => c.status === 'completed' || c.status === 'terminated' || c.status === 'archived').length,
+  }
+  const unassignedCount = cases.filter((c) => !c.monitor && c.status !== 'archived' && c.status !== 'completed' && c.status !== 'terminated').length
+
   return (
     <div>
       <div className="page-header">
@@ -110,6 +145,57 @@ export default function Cases() {
           onClose={() => setShowCreate(false)}
           onSaved={(c) => { setShowCreate(false); nav(`/cases/${c.id}`) }}
         />
+      )}
+
+      {!isMonitor && cases.length > 0 && (
+        <div className="pipeline-strip">
+          <PipelineStage
+            label="Intake"
+            sub="Awaiting setup"
+            n={stageCounts.intake}
+            active={filter === 'intake'}
+            onClick={() => setFilter('intake')}
+            tone="yellow"
+          />
+          <PipelineArrow />
+          <PipelineStage
+            label="Active"
+            sub="Monitoring underway"
+            n={stageCounts.active}
+            active={filter === 'active'}
+            onClick={() => setFilter('active')}
+            tone="moss"
+          />
+          <PipelineArrow />
+          <PipelineStage
+            label="Suspended"
+            sub="Paused, follow-up needed"
+            n={stageCounts.suspended}
+            active={filter === 'suspended'}
+            onClick={() => setFilter('suspended')}
+            tone="orange"
+          />
+          <PipelineArrow />
+          <PipelineStage
+            label="Closed"
+            sub="Completed or terminated"
+            n={stageCounts.closed}
+            active={filter === 'completed' || filter === 'archived'}
+            onClick={() => setFilter('completed')}
+            tone="gray"
+          />
+          {unassignedCount > 0 && (
+            <button
+              type="button"
+              className="pipeline-pill"
+              onClick={() => setFilter('all')}
+              title="Cases without a primary monitor assigned"
+            >
+              <span className="pipeline-pill-dot" />
+              {unassignedCount} unassigned
+            </button>
+          )}
+        </div>
       )}
 
       <div className="card">

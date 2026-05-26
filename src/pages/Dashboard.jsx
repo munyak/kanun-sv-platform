@@ -100,6 +100,15 @@ function OwnerDashboard({ org }) {
   const [weekStrip, setWeekStrip] = useState([])
   const [activity, setActivity] = useState([])
   const [todoItems, setTodoItems] = useState([])
+  // Onboarding checklist state — drives the empty-state guided flow for fresh
+  // agencies. Each step flips to "done" automatically once its data exists,
+  // so the checklist disappears as soon as the agency is fully set up.
+  const [onboardCounts, setOnboardCounts] = useState({
+    monitors: null,    // total monitors (incl. pending)
+    cases: null,       // total cases (any status)
+    visits: null,      // total visits (any status, all time)
+    reportsWritten: 0, // any report ever submitted
+  })
 
   useEffect(() => { if (activeOrgId) load() }, [activeOrgId])
 
@@ -300,12 +309,67 @@ function OwnerDashboard({ org }) {
         }
       })
       setTodoItems(todos.slice(0, 6))
+
+      // Onboarding counts — fires last so the priority cards render even if
+      // these queries are slow.
+      const [monCount, caseAnyCount, visitAnyCount, reportCount] = await Promise.all([
+        supabase.from('sv_monitors').select('id', { count: 'exact', head: true }).eq('org_id', activeOrgId),
+        supabase.from('sv_cases').select('id', { count: 'exact', head: true }).eq('org_id', activeOrgId),
+        supabase.from('sv_visits').select('id', { count: 'exact', head: true }).eq('org_id', activeOrgId),
+        supabase.from('sv_reports').select('id', { count: 'exact', head: true }).eq('org_id', activeOrgId).not('submitted_at', 'is', null).is('deleted_at', null),
+      ])
+      setOnboardCounts({
+        monitors: monCount.count || 0,
+        cases: caseAnyCount.count || 0,
+        visits: visitAnyCount.count || 0,
+        reportsWritten: reportCount.count || 0,
+      })
     } catch (err) {
       console.error('Dashboard load error:', err)
     } finally {
       setLoading(false)
     }
   }
+
+  // Show the onboarding checklist until the agency has at least one monitor,
+  // one case, one visit, and one submitted report — i.e. they've completed
+  // the full end-to-end loop at least once.
+  const onboarding = onboardCounts.monitors !== null && (
+    onboardCounts.monitors === 0 ||
+    onboardCounts.cases === 0 ||
+    onboardCounts.visits === 0 ||
+    onboardCounts.reportsWritten === 0
+  )
+  const onboardSteps = onboardCounts.monitors === null ? null : [
+    {
+      done: onboardCounts.monitors > 0,
+      title: 'Add your first monitor',
+      desc: 'Invite a 1099 monitor by email. They sign in on their phone and run visits.',
+      cta: 'Add monitor',
+      to: '/monitors',
+    },
+    {
+      done: onboardCounts.cases > 0,
+      title: 'Run your first intake',
+      desc: 'Capture the case, parties, and child in a guided 5-step intake (CA 5.20 compliant).',
+      cta: 'Start intake',
+      to: '/intake',
+    },
+    {
+      done: onboardCounts.visits > 0,
+      title: 'Schedule the first visit',
+      desc: 'Assign a monitor and time. Parents get a portal link automatically.',
+      cta: 'Open a case',
+      to: '/cases',
+    },
+    {
+      done: onboardCounts.reportsWritten > 0,
+      title: 'Complete a visit',
+      desc: 'Monitor checks in, runs the 6-phase flow, writes the report — you review and ship to court.',
+      cta: 'See workflow',
+      to: '/visits',
+    },
+  ]
 
   return (
     <div>
@@ -321,6 +385,10 @@ function OwnerDashboard({ org }) {
           <Link to="/intake" className="btn btn-primary">New intake</Link>
         </div>
       </div>
+
+      {/* Onboarding checklist — shown until the agency has run a full visit
+          cycle end-to-end at least once. */}
+      {onboarding && onboardSteps && <OnboardingChecklist steps={onboardSteps} />}
 
       {/* Priority Command Cards — clickable, action-oriented */}
       <div className="priority-grid">
@@ -492,6 +560,52 @@ function greetingTime() {
   return 'evening'
 }
 
+function OnboardingChecklist({ steps }) {
+  const completed = steps.filter((s) => s.done).length
+  const total = steps.length
+  const pct = Math.round((completed / total) * 100)
+  // Pick the first incomplete step as the "next action" so we can highlight it.
+  const nextIdx = steps.findIndex((s) => !s.done)
+  return (
+    <div className="onboard-card">
+      <div className="onboard-head">
+        <div>
+          <div className="onboard-eyebrow">Get started</div>
+          <div className="onboard-title">
+            {completed === total
+              ? "You're set up — nice work."
+              : completed === 0
+                ? "Let's get your agency running"
+                : `${completed} of ${total} done — keep going`}
+          </div>
+        </div>
+        <div className="onboard-progress" aria-label={`${pct}% complete`}>
+          <div className="onboard-progress-bar"><div style={{ width: `${pct}%` }} /></div>
+          <div className="onboard-progress-text">{pct}%</div>
+        </div>
+      </div>
+      <ol className="onboard-steps">
+        {steps.map((s, i) => (
+          <li key={s.title} className={`onboard-step${s.done ? ' done' : ''}${i === nextIdx ? ' next' : ''}`}>
+            <div className="onboard-step-check" aria-hidden="true">
+              {s.done ? '✓' : i + 1}
+            </div>
+            <div className="onboard-step-body">
+              <div className="onboard-step-title">{s.title}</div>
+              <div className="onboard-step-desc">{s.desc}</div>
+            </div>
+            {!s.done && (
+              <Link to={s.to} className={`btn btn-sm ${i === nextIdx ? 'btn-primary' : 'btn-secondary'}`}>
+                {s.cta}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}
+
 function PriorityCard({ to, tone, icon, n, label, urgent }) {
   return (
     <Link to={to} className={`priority-card priority-${tone} ${urgent ? 'urgent' : ''}`}>
@@ -576,7 +690,10 @@ function MonitorDashboard({ user }) {
   const [upcoming, setUpcoming] = useState([])
   const [reportsPending, setReportsPending] = useState([])
   const [monitorId, setMonitorId] = useState(null)
-  const [counts, setCounts] = useState({ activeCases: 0, weekVisits: 0, reportsDue: 0 })
+  const [counts, setCounts] = useState({ activeCases: 0, weekVisits: 0, reportsDue: 0, weekHours: 0 })
+  // Reports more than 24h past the visit checkout — these block payment and
+  // court delivery, so we surface them as an overdue strip at the top.
+  const [overdueReports, setOverdueReports] = useState([])
 
   useEffect(() => { if (activeOrgId && user) load() }, [activeOrgId, user?.id])
 
@@ -629,10 +746,31 @@ function MonitorDashboard({ user }) {
       setToday(tRes.data || [])
       setUpcoming(uRes.data || [])
       setReportsPending(pendingRes.data || [])
+
+      // Hours this week: sum scheduled durations across today + upcoming.
+      // We use scheduled time (not actual) so monitors can plan their week.
+      const allWeek = [...(tRes.data || []), ...(uRes.data || [])]
+      const weekHours = allWeek.reduce((acc, v) => {
+        if (!v.scheduled_start_time || !v.scheduled_end_time) return acc
+        const [sh, sm] = v.scheduled_start_time.split(':').map(Number)
+        const [eh, em] = v.scheduled_end_time.split(':').map(Number)
+        const mins = (eh * 60 + em) - (sh * 60 + sm)
+        return acc + (mins > 0 ? mins : 0)
+      }, 0) / 60
+
+      // Overdue = report_pending AND checked out > 24h ago. These should
+      // already be submitted, so we surface them above today's visits.
+      const cutoff = Date.now() - 24 * 3600 * 1000
+      const overdue = (pendingRes.data || []).filter((v) =>
+        v.checked_out_at && new Date(v.checked_out_at).getTime() < cutoff
+      )
+      setOverdueReports(overdue)
+
       setCounts({
         activeCases: caseCount.count || 0,
         weekVisits: weekCount.count || 0,
         reportsDue: (pendingRes.data || []).length,
+        weekHours: Math.round(weekHours * 10) / 10,
       })
     } finally { setLoading(false) }
   }
@@ -669,6 +807,25 @@ function MonitorDashboard({ user }) {
 
       {monitorId && (
         <>
+          {/* Overdue reports — most urgent. Shown above everything else so
+              monitors can clear them before starting new visits. */}
+          {overdueReports.length > 0 && (
+            <div className="overdue-banner" role="alert">
+              <div className="overdue-banner-icon">!</div>
+              <div className="overdue-banner-body">
+                <div className="overdue-banner-title">
+                  {overdueReports.length} report{overdueReports.length === 1 ? ' is' : 's are'} overdue
+                </div>
+                <div className="overdue-banner-desc">
+                  Reports more than 24 hours old delay payment and court delivery. Please finish them first.
+                </div>
+              </div>
+              <Link to={`/visits/${overdueReports[0].id}/report`} className="btn btn-primary overdue-banner-btn">
+                {overdueReports.length === 1 ? 'Finish report' : 'Finish oldest →'}
+              </Link>
+            </div>
+          )}
+
           {/* Hero — the most important visit, with one clear next-action button */}
           <div className="monitor-hero">
             <div className="monitor-hero-headline">{todayHeadline}</div>
@@ -682,20 +839,28 @@ function MonitorDashboard({ user }) {
             )}
           </div>
 
-          {/* Quick stats — minimal, focused */}
-          <div className="monitor-stats">
-            <Link to="/cases" className="monitor-stat">
-              <div className="monitor-stat-n">{counts.activeCases}</div>
-              <div className="monitor-stat-l">My cases</div>
-            </Link>
-            <Link to="/visits" className="monitor-stat">
-              <div className="monitor-stat-n">{counts.weekVisits}</div>
-              <div className="monitor-stat-l">This week</div>
-            </Link>
-            <Link to="/visits?status=report_pending" className={`monitor-stat ${counts.reportsDue > 0 ? 'urgent' : ''}`}>
-              <div className="monitor-stat-n">{counts.reportsDue}</div>
-              <div className="monitor-stat-l">Reports due</div>
-            </Link>
+          {/* "This week at a glance" — explicit expectations so monitors
+              know what their week looks like before they even scroll. */}
+          <div className="monitor-week-summary">
+            <div className="monitor-week-summary-title">This week at a glance</div>
+            <div className="monitor-stats">
+              <Link to="/visits" className="monitor-stat">
+                <div className="monitor-stat-n">{counts.weekVisits}</div>
+                <div className="monitor-stat-l">Visits scheduled</div>
+              </Link>
+              <Link to="/visits" className="monitor-stat">
+                <div className="monitor-stat-n">{counts.weekHours || 0}<span className="monitor-stat-unit">h</span></div>
+                <div className="monitor-stat-l">Hours committed</div>
+              </Link>
+              <Link to="/cases" className="monitor-stat">
+                <div className="monitor-stat-n">{counts.activeCases}</div>
+                <div className="monitor-stat-l">Active cases</div>
+              </Link>
+              <Link to="/visits?status=report_pending" className={`monitor-stat ${counts.reportsDue > 0 ? 'urgent' : ''}`}>
+                <div className="monitor-stat-n">{counts.reportsDue}</div>
+                <div className="monitor-stat-l">Reports owed</div>
+              </Link>
+            </div>
           </div>
 
           {/* Reports due — surface above the visit list when present */}

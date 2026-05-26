@@ -18,12 +18,6 @@ function fmtDate(s) {
   return new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-function yesNo(b) {
-  if (b === true) return <span className="badge badge-green">Yes</span>
-  if (b === false) return <span className="badge badge-red">No</span>
-  return <span className="badge badge-gray">—</span>
-}
-
 function statusBadge(s) {
   const map = {
     active: 'badge-green',
@@ -34,6 +28,41 @@ function statusBadge(s) {
   const cls = map[s] || 'badge-gray'
   const label = (s || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
   return <span className={`badge ${cls}`}>{label}</span>
+}
+
+// One-glance compliance chip for the workload row. Surfaces expiring or
+// expired certs first (most actionable), then drops to a simple OK/Gaps
+// summary based on the boolean Cal-5.20 prerequisites.
+function ComplianceChip({ m }) {
+  if (m._certWarning?.kind === 'expired') {
+    return <span className="comp-chip comp-expired">{m._certWarning.name} expired</span>
+  }
+  if (m._certWarning?.kind === 'expiring') {
+    return <span className="comp-chip comp-expiring">{m._certWarning.name} ≤60d</span>
+  }
+  const required = ['livescan_completed', 'trustline_registered', 'kcm_certified', 'is_21_or_older', 'no_crime_against_person']
+  const ok = required.every((k) => m[k] === true)
+  return ok
+    ? <span className="comp-chip comp-ok">All set</span>
+    : <span className="comp-chip comp-gap">Gaps</span>
+}
+
+// Returns null, 'expired', or 'expiring' for KCM / TrustLine — both are
+// required Cal-5.20 certs. We surface a chip on the workload row so owners
+// can act before a cert lapses and visits get blocked.
+function certExpiryWarning(m) {
+  const now = Date.now()
+  const in60 = now + 60 * 24 * 3600 * 1000
+  const checks = []
+  if (m.kcm_expiry_date) checks.push({ name: 'KCM', t: new Date(m.kcm_expiry_date).getTime() })
+  if (m.trustline_expiry) checks.push({ name: 'TrustLine', t: new Date(m.trustline_expiry).getTime() })
+  for (const c of checks) {
+    if (c.t < now) return { kind: 'expired', name: c.name }
+  }
+  for (const c of checks) {
+    if (c.t < in60) return { kind: 'expiring', name: c.name }
+  }
+  return null
 }
 
 const initialForm = {
@@ -92,7 +121,11 @@ export default function Monitors() {
   async function load() {
     setLoading(true)
     try {
-      const [mRes, invRes] = await Promise.all([
+      const today = new Date().toISOString().slice(0, 10)
+      const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7)
+      const weekEndStr = weekEnd.toISOString().slice(0, 10)
+
+      const [mRes, invRes, vRes, rRes] = await Promise.all([
         supabase.from('sv_monitors').select('*').eq('org_id', activeOrgId).order('last_name', { ascending: true }),
         supabase.from('sv_invitations')
           .select('id, email, role, expires_at, accepted_at, created_at')
@@ -100,9 +133,36 @@ export default function Monitors() {
           .eq('role', 'monitor')
           .is('accepted_at', null)
           .order('created_at', { ascending: false }),
+        // Workload: visits scheduled in the next 7 days, per monitor.
+        supabase.from('sv_visits').select('monitor_id')
+          .eq('org_id', activeOrgId)
+          .gte('scheduled_date', today).lte('scheduled_date', weekEndStr)
+          .not('monitor_id', 'is', null),
+        // Workload: reports the monitor still owes (pending or changes requested).
+        supabase.from('sv_reports').select('monitor_id, status, submitted_at')
+          .eq('org_id', activeOrgId)
+          .in('status', ['draft', 'pending_review', 'changes_requested'])
+          .is('deleted_at', null)
+          .not('monitor_id', 'is', null),
       ])
       if (mRes.error) throw mRes.error
-      setMonitors(mRes.data || [])
+
+      const weekCounts = {}
+      ;(vRes.data || []).forEach((v) => {
+        weekCounts[v.monitor_id] = (weekCounts[v.monitor_id] || 0) + 1
+      })
+      const reportCounts = {}
+      ;(rRes.data || []).forEach((r) => {
+        reportCounts[r.monitor_id] = (reportCounts[r.monitor_id] || 0) + 1
+      })
+
+      const enriched = (mRes.data || []).map((m) => ({
+        ...m,
+        _weekVisits: weekCounts[m.id] || 0,
+        _reportsDue: reportCounts[m.id] || 0,
+        _certWarning: certExpiryWarning(m),
+      }))
+      setMonitors(enriched)
       setPendingInvites(invRes.data || [])
     } catch (err) {
       console.error('Monitors load error:', err)
@@ -547,25 +607,36 @@ export default function Monitors() {
                 <tr>
                   <th>Name</th>
                   <th>Status</th>
+                  <th>This week</th>
+                  <th>Reports due</th>
+                  <th>Compliance</th>
                   <th>Training</th>
-                  <th>LiveScan</th>
-                  <th>TrustLine</th>
-                  <th>KCM</th>
-                  <th>Vehicle</th>
                   <th>Joined</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {monitors.map((m) => (
-                  <tr key={m.id}>
-                    <td className="cell-strong">{m.first_name} {m.last_name}<div className="cell-muted">{m.email || ''}</div></td>
+                  <tr key={m.id} className={m._reportsDue > 0 ? 'row-attention' : ''}>
+                    <td className="cell-strong">
+                      <Link to={`/monitors/${m.id}`} className="cell-link">{m.first_name} {m.last_name}</Link>
+                      <div className="cell-muted">{m.email || ''}</div>
+                    </td>
                     <td>{statusBadge(m.status)}</td>
+                    <td>
+                      {m._weekVisits === 0
+                        ? <span className="cell-muted">—</span>
+                        : <span className="workload-num">{m._weekVisits}</span>}
+                    </td>
+                    <td>
+                      {m._reportsDue === 0
+                        ? <span className="cell-muted">—</span>
+                        : <span className="workload-num workload-num-alert">{m._reportsDue}</span>}
+                    </td>
+                    <td>
+                      <ComplianceChip m={m} />
+                    </td>
                     <td>{trainingBadge(m.training_hours_completed)}</td>
-                    <td>{yesNo(m.livescan_completed)}</td>
-                    <td>{yesNo(m.trustline_registered)}</td>
-                    <td>{yesNo(m.kcm_certified)}</td>
-                    <td>{yesNo(m.has_vehicle)}</td>
                     <td className="cell-muted">{fmtDate(m.created_at)}</td>
                     <td><Link to={`/monitors/${m.id}`} className="btn btn-sm btn-secondary">View →</Link></td>
                   </tr>

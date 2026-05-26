@@ -365,6 +365,376 @@ h1, h2, h3, h4, h5, h6 {
 }
 .view-as-banner-exit:hover { background: rgba(224, 172, 79, 0.18); }
 
+/* ===== Monitor weekly hero + overdue banner ======================== */
+.overdue-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #FFE4E4;
+  border: 1px solid #F09EA8;
+  border-radius: var(--r-lg, 14px);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.overdue-banner-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #B0001E;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.overdue-banner-body { flex: 1; min-width: 0; }
+.overdue-banner-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #6F000F;
+}
+.overdue-banner-desc {
+  font-size: 13px;
+  color: #8B1027;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.overdue-banner-btn {
+  flex-shrink: 0;
+  background: #B0001E;
+  border-color: #B0001E;
+}
+.overdue-banner-btn:hover { background: #8B0017; }
+
+.monitor-week-summary {
+  margin-bottom: 20px;
+}
+.monitor-week-summary-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.monitor-stat-unit {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: 2px;
+}
+
+@media (max-width: 768px) {
+  .overdue-banner { flex-direction: column; align-items: stretch; text-align: left; }
+  .overdue-banner-btn { width: 100%; }
+}
+
+/* ===== Cases pipeline strip ========================================
+   Visual funnel: Intake → Active → Suspended → Closed. Each stage is a
+   click-to-filter card. The arrows make the workflow direction obvious. */
+.pipeline-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.pipeline-stage {
+  flex: 1 1 0;
+  min-width: 140px;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg, 12px);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color var(--t-color), box-shadow var(--t-color), transform 120ms var(--ease-out);
+  font-family: inherit;
+}
+.pipeline-stage:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+.pipeline-stage.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.pipeline-stage-n {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.pipeline-stage-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.pipeline-stage-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.pipeline-stage.tone-yellow .pipeline-stage-n { color: #8A5A00; }
+.pipeline-stage.tone-moss   .pipeline-stage-n { color: var(--accent); }
+.pipeline-stage.tone-orange .pipeline-stage-n { color: #B36B00; }
+.pipeline-stage.tone-gray   .pipeline-stage-n { color: var(--text-secondary); }
+
+.pipeline-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--border-strong);
+  flex-shrink: 0;
+}
+
+.pipeline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  align-self: center;
+  padding: 0 14px;
+  margin-left: 8px;
+  background: #FFFBED;
+  border: 1px solid #E0AC4F;
+  color: #6A4400;
+  border-radius: var(--r-full);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.pipeline-pill:hover { background: #FFF4D6; }
+.pipeline-pill-dot {
+  width: 6px;
+  height: 6px;
+  background: #E0AC4F;
+  border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+  .pipeline-arrow { display: none; }
+  .pipeline-stage { min-width: calc(50% - 4px); }
+}
+
+/* ===== Workload chips (Monitors list) ============================= */
+.workload-num {
+  display: inline-block;
+  min-width: 28px;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.workload-num-alert { color: #B36B00; }
+.row-attention { background: rgba(255, 244, 214, 0.4); }
+.row-attention:hover { background: rgba(255, 244, 214, 0.6); }
+
+.comp-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.comp-ok       { background: var(--accent-soft); color: var(--accent); }
+.comp-gap      { background: #F2F2F2; color: #6E6E73; }
+.comp-expiring { background: #FFF4D6; color: #8A5A00; }
+.comp-expired  { background: #FFE4E4; color: #B0001E; }
+
+/* ===== Next-action banner (CaseDetail) ============================
+   The "what to do next" prompt at the top of each case. Three tones:
+     - action: bright, action ready (assign / schedule / activate)
+     - attention: gentler — pointer to existing UI on the page
+     - soft: contextual reminder (e.g. signatures pending) */
+.next-action-banner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 22px;
+  border-radius: var(--r-lg, 14px);
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+.next-action-banner.tone-action {
+  background: linear-gradient(135deg, var(--accent-faint), var(--bg-card));
+  border-color: var(--accent-soft);
+}
+.next-action-banner.tone-attention {
+  background: #FFFBED;
+  border-color: #E0AC4F;
+}
+.next-action-banner.tone-soft {
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+.next-action-body { flex: 1; min-width: 0; }
+.next-action-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.next-action-banner.tone-attention .next-action-eyebrow { color: #8A5A00; }
+.next-action-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.next-action-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.next-action-hint {
+  font-size: 13px;
+  color: var(--text-tertiary, #86868B);
+  margin-top: 8px;
+  font-style: italic;
+}
+.next-action-btn { flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 768px) {
+  .next-action-banner { flex-direction: column; align-items: stretch; }
+  .next-action-btn { width: 100%; }
+}
+
+/* ===== Onboarding checklist (owner dashboard) =====================
+   Replaces the "0 0 0 0" priority cards for fresh agencies and walks
+   the owner through Monitor → Intake → Visit → Report end-to-end. */
+.onboard-card {
+  background: linear-gradient(135deg, var(--accent-faint) 0%, var(--bg-card) 100%);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--r-lg, 14px);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(45,106,79,0.04);
+}
+.onboard-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.onboard-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.onboard-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+.onboard-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.onboard-progress-bar {
+  width: 120px;
+  height: 6px;
+  background: rgba(45,106,79,0.12);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.onboard-progress-bar > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 400ms var(--ease-out);
+}
+.onboard-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 32px;
+  text-align: right;
+}
+
+.onboard-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.onboard-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  transition: border-color var(--t-color), box-shadow var(--t-color);
+}
+.onboard-step.next {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.onboard-step.done { opacity: 0.7; }
+.onboard-step-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-hover, #F2F2F2);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.onboard-step.done .onboard-step-check {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+.onboard-step.next .onboard-step-check {
+  background: var(--accent);
+  color: #FFFFFF;
+}
+.onboard-step-body { flex: 1; min-width: 0; }
+.onboard-step-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.onboard-step.done .onboard-step-title { text-decoration: line-through; }
+.onboard-step-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+@media (max-width: 768px) {
+  .onboard-head { flex-direction: column; align-items: stretch; }
+  .onboard-progress { align-self: flex-start; }
+  .onboard-step { flex-wrap: wrap; }
+  .onboard-step .btn { width: 100%; margin-top: 8px; }
+}
+
 .notif-bell {
   width: 36px;
   height: 36px;

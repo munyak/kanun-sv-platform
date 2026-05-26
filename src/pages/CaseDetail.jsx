@@ -233,6 +233,17 @@ export default function CaseDetail() {
         </div>
       )}
 
+      {!isMonitor && (
+        <NextActionBanner
+          c={c}
+          upcoming={upcoming}
+          visits={visits}
+          signedSet={signedSet}
+          onSchedule={() => { setEditVisit(null); setShowVisit(true) }}
+          onActivate={() => updateCase({ status: 'active' })}
+        />
+      )}
+
       <div className="case-grid">
         <div>
           {/* Overview card */}
@@ -572,6 +583,76 @@ export default function CaseDetail() {
       )}
 
       {toast && <div className={`toast ${toast.kind === 'error' ? 'error' : ''}`}>{toast.message}</div>}
+    </div>
+  )
+}
+
+/**
+ * Workflow-driving banner at the top of CaseDetail. Surfaces the most
+ * relevant next action based on case state so owners aren't left guessing
+ * what to do after creating a case. Returns null when nothing's needed.
+ *
+ * Order is deliberate — assignment must happen before scheduling, scheduling
+ * before activation, etc. We only ever show the first applicable step.
+ */
+function NextActionBanner({ c, upcoming, visits, signedSet, onSchedule, onActivate }) {
+  const hasMonitor = !!c.primary_monitor_id
+  const hasUpcoming = upcoming.length > 0
+  const completedCount = visits.filter((v) => v.status === 'completed' || v.status === 'report_submitted').length
+  const docsMissing = ['service_agreement', 'confidentiality', 'mandated_reporter']
+    .filter((k) => !signedSet.has(k))
+
+  let step = null
+  if (!hasMonitor) {
+    step = {
+      tone: 'attention',
+      eyebrow: 'Next step',
+      title: 'Assign a monitor to this case',
+      desc: 'Pick from your active monitor roster below. They\'ll see this case in "My cases" and can start running visits.',
+      cta: null, // Scroll target — the monitor selector is in the right column.
+      hint: 'Use the "Primary monitor" picker on the right →',
+    }
+  } else if (!hasUpcoming) {
+    step = {
+      tone: 'action',
+      eyebrow: 'Next step',
+      title: 'Schedule the first visit',
+      desc: 'Pick a date, time, and location. The parents get a portal link automatically once you save.',
+      cta: { label: 'Schedule visit', onClick: onSchedule },
+    }
+  } else if (c.status === 'intake' && completedCount > 0) {
+    step = {
+      tone: 'action',
+      eyebrow: 'Ready to move forward',
+      title: 'Move this case to Active',
+      desc: 'The first visit is done — flip status to Active so it shows up in your active caseload and reports.',
+      cta: { label: 'Mark as Active', onClick: onActivate },
+    }
+  } else if (c.status === 'intake' && docsMissing.length > 0) {
+    step = {
+      tone: 'soft',
+      eyebrow: 'Before the first visit',
+      title: `Collect ${docsMissing.length} required signature${docsMissing.length === 1 ? '' : 's'}`,
+      desc: 'Get the service agreement, confidentiality, and mandated-reporter signatures from both parents before monitoring starts.',
+      hint: 'See the "Required signatures" section below ↓',
+    }
+  }
+
+  if (!step) return null
+
+  return (
+    <div className={`next-action-banner tone-${step.tone}`}>
+      <div className="next-action-body">
+        <div className="next-action-eyebrow">{step.eyebrow}</div>
+        <div className="next-action-title">{step.title}</div>
+        <div className="next-action-desc">{step.desc}</div>
+        {step.hint && <div className="next-action-hint">{step.hint}</div>}
+      </div>
+      {step.cta && (
+        <button className="btn btn-primary next-action-btn" onClick={step.cta.onClick}>
+          {step.cta.label}
+        </button>
+      )}
     </div>
   )
 }
