@@ -59,7 +59,10 @@ export default function Login() {
 
         {mode === 'password' && (
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <div className="form-label-row">
+              <label className="form-label">Password</label>
+              <Link to="/forgot-password" className="form-label-link">Forgot password?</Link>
+            </div>
             <input type="password" required className="form-input"
               value={password} onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password" />

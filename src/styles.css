@@ -1759,6 +1759,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 .auth-footer a:hover { text-decoration: underline; }
 
+.form-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.form-label-link {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+.form-label-link:hover { text-decoration: underline; }
+
 /* ============================================================
    Wizard layout
    ============================================================ */
