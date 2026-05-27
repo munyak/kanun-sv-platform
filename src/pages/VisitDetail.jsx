@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import VisitPhotos from '../components/VisitPhotos'
+import { readGeolocation } from '../lib/visitPhotos'
 
 /* ============================================================
    Guided monitor visit workflow
@@ -104,16 +106,9 @@ function fmtDuration(ms) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
-async function tryGetPosition() {
-  if (!('geolocation' in navigator)) return null
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => resolve(null),
-      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 },
-    )
-  })
-}
+// Geolocation reader lives in lib/visitPhotos so it can be reused by the
+// photo uploader. Same `{lat, lng, accuracy}` shape used here.
+const tryGetPosition = readGeolocation
 
 function derivePhase(visit, report) {
   if (!visit) return 'preflight'
@@ -276,9 +271,10 @@ export default function VisitDetail() {
               checked_in_at: new Date().toISOString(),
               checkin_lat: pos?.lat ?? null,
               checkin_lng: pos?.lng ?? null,
+              checkin_accuracy_m: pos?.accuracy ?? null,
               checkin_monitor_id: visit.monitor_id,
             })
-            if (ok) showToast(pos ? 'Checked in with GPS' : 'Checked in')
+            if (ok) showToast(pos ? `Checked in · GPS ±${Math.round(pos.accuracy || 0)}m` : 'Checked in')
           }}
         />
       )}
@@ -311,6 +307,9 @@ export default function VisitDetail() {
           observations={observations}
           courtConditions={courtConditions}
           busy={busy}
+          orgId={activeOrgId}
+          userId={user?.id}
+          onPhotoError={(m) => showToast(m, 'error')}
           onAddObservation={async (entry) => {
             try {
               const { error } = await supabase.from('sv_visit_observations').insert({
@@ -340,6 +339,7 @@ export default function VisitDetail() {
               actual_end_time: now.toISOString(),
               checkout_lat: pos?.lat ?? null,
               checkout_lng: pos?.lng ?? null,
+              checkout_accuracy_m: pos?.accuracy ?? null,
               actual_duration_minutes: minutes,
             })
             if (ok) showToast('Visit ended · time to wrap up')
@@ -352,6 +352,9 @@ export default function VisitDetail() {
           visit={visit}
           observations={observations}
           busy={busy}
+          orgId={activeOrgId}
+          userId={user?.id}
+          onPhotoError={(m) => showToast(m, 'error')}
           onSaveChecklist={(items) => patchVisit({ departure_checklist: items })}
           onPartyDeparture={(role, ts) => {
             const patch = role === 'custodial'
@@ -377,6 +380,8 @@ export default function VisitDetail() {
           visit={visit}
           report={report}
           observations={observations}
+          orgId={activeOrgId}
+          userId={user?.id}
           onView={() => nav(`/visits/${visit.id}/report`)}
         />
       )}
@@ -579,7 +584,11 @@ function ArrivalPhase({ visit, busy, onSavePartiesPresent, onSaveArrivalNotes, o
         <div className="vw-tiles">
           <InfoTile label="Location" value={visit.location || c?.preferred_location} />
           {(visit.checkin_lat && visit.checkin_lng) && (
-            <InfoTile label="GPS" value={`${Number(visit.checkin_lat).toFixed(4)}, ${Number(visit.checkin_lng).toFixed(4)}`} mono />
+            <InfoTile
+              label={visit.checkin_accuracy_m ? `GPS ±${Math.round(visit.checkin_accuracy_m)}m` : 'GPS'}
+              value={`${Number(visit.checkin_lat).toFixed(4)}, ${Number(visit.checkin_lng).toFixed(4)}`}
+              mono
+            />
           )}
         </div>
       </div>
@@ -699,7 +708,7 @@ function PartyArrivalRow({ label, name, arrivalTime, onArrived, onUndo, disabled
    Phase 3 — Active monitoring
    ============================================================ */
 
-function ActivePhase({ visit, observations, courtConditions, busy, onAddObservation, onSaveCompliance, onCheckOut }) {
+function ActivePhase({ visit, observations, courtConditions, busy, onAddObservation, onSaveCompliance, onCheckOut, orgId, userId, onPhotoError }) {
   const startedAt = visit.actual_start_time || visit.checked_in_at
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
@@ -791,6 +800,21 @@ function ActivePhase({ visit, observations, courtConditions, busy, onAddObservat
         ) : (
           observations.map((o) => <ObservationItem key={o.id} obs={o} />)
         )}
+      </div>
+
+      {/* Photo evidence */}
+      <div className="vw-card">
+        <div className="vw-card-head">
+          <div className="vw-card-title">Photo evidence</div>
+          <div className="vw-card-sub">Setting, parties, anything noteworthy</div>
+        </div>
+        <VisitPhotos
+          orgId={orgId}
+          visitId={visit.id}
+          monitorId={visit.monitor_id}
+          userId={userId}
+          onError={onPhotoError}
+        />
       </div>
 
       {/* Composer */}
@@ -926,10 +950,6 @@ function ObservationComposer({ onSubmit, busy }) {
           </div>
         )}
       </div>
-
-      <button type="button" className="vw-photo-stub" disabled title="Coming with mobile app">
-        📷 Add photo note (coming soon)
-      </button>
     </div>
   )
 }
@@ -938,7 +958,7 @@ function ObservationComposer({ onSubmit, busy }) {
    Phase 4 — Closeout
    ============================================================ */
 
-function CloseoutPhase({ visit, observations, busy, onSaveChecklist, onPartyDeparture, onSaveDepartureNotes, onWriteReport }) {
+function CloseoutPhase({ visit, observations, busy, onSaveChecklist, onPartyDeparture, onSaveDepartureNotes, onWriteReport, orgId, userId, onPhotoError }) {
   const initial = visit.departure_checklist || {}
   const [items, setItems] = useState(initial)
   const [notes, setNotes] = useState(visit.departure_notes || '')
@@ -1031,6 +1051,20 @@ function CloseoutPhase({ visit, observations, busy, onSaveChecklist, onPartyDepa
         />
       </div>
 
+      <div className="vw-card">
+        <div className="vw-card-head">
+          <div className="vw-card-title">Photos</div>
+          <div className="vw-card-sub">Add any final photos before writing the report</div>
+        </div>
+        <VisitPhotos
+          orgId={orgId}
+          visitId={visit.id}
+          monitorId={visit.monitor_id}
+          userId={userId}
+          onError={onPhotoError}
+        />
+      </div>
+
       <StickyAction>
         <button className="btn btn-primary btn-xl" onClick={onWriteReport} disabled={busy}>
           Write report →
@@ -1069,7 +1103,7 @@ function ReportInProgressPhase({ visit, report, onContinue }) {
    Phase 6 — Submitted / review
    ============================================================ */
 
-function SubmittedPhase({ visit, report, observations, onView }) {
+function SubmittedPhase({ visit, report, observations, onView, orgId, userId }) {
   const statusLabel = {
     pending_review:    'Pending agency review',
     changes_requested: 'Changes requested by reviewer',
@@ -1101,6 +1135,21 @@ function SubmittedPhase({ visit, report, observations, onView }) {
           <InfoTile label="Concerns" value={String(observations.filter((o) => o.severity === 'concern').length)} />
         </div>
       </div>
+
+      <div className="vw-card">
+        <div className="vw-card-head">
+          <div className="vw-card-title">Photos</div>
+          <div className="vw-card-sub">Captured during the visit</div>
+        </div>
+        <VisitPhotos
+          orgId={orgId}
+          visitId={visit.id}
+          monitorId={visit.monitor_id}
+          userId={userId}
+          readOnly
+        />
+      </div>
+
       <StickyAction>
         <button className="btn btn-primary btn-xl" onClick={onView}>
           {report?.status === 'changes_requested' ? 'Address changes →' : 'View report →'}

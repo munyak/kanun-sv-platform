@@ -3461,16 +3461,167 @@ h1, h2, h3, h4, h5, h6 {
 .vw-template-cat.tone-red    { background: var(--error-soft);   color: var(--error); }
 .vw-template-text { font-size: 13px; color: var(--text-primary); line-height: 1.4; }
 
-.vw-photo-stub {
-  width: 100%;
-  background: transparent;
-  border: 1px dashed var(--border-strong);
+/* ============================================================
+   Visit photos (mobile capture + thumbnail strip + lightbox)
+   ============================================================ */
+.vw-photos { display: flex; flex-direction: column; gap: 12px; }
+
+.vw-photo-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.vw-photo-action {
+  flex: 1 1 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
   border-radius: var(--r);
-  padding: 10px;
-  margin-top: 8px;
-  font-size: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid transparent;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+  transition: background var(--t-color), border-color var(--t-color), transform 150ms var(--ease-out);
+}
+.vw-photo-action:hover:not(:disabled) { background: var(--accent); color: #fff; }
+.vw-photo-action:active:not(:disabled) { transform: scale(0.98); }
+.vw-photo-action:disabled { opacity: 0.5; cursor: not-allowed; }
+.vw-photo-action-gallery {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.vw-photo-action-gallery:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+.vw-photo-action-icon { font-size: 18px; line-height: 1; }
+
+.vw-photo-empty {
+  font-size: 13px;
   color: var(--text-tertiary);
-  cursor: not-allowed;
+  padding: 8px 0;
+  letter-spacing: -0.01em;
+}
+
+.vw-photo-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 8px;
+}
+.vw-photos.compact .vw-photo-strip {
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+}
+
+.vw-photo-thumb { position: relative; }
+.vw-photo-thumb-btn {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-subtle);
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+.vw-photo-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.vw-photo-thumb-skel {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--bg-subtle), var(--bg-hover), var(--bg-subtle));
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.4s infinite ease-in-out;
+}
+.vw-photo-thumb-time {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.vw-photo-thumb-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--error);
+  color: #fff;
+  border: 2px solid var(--bg-card);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.vw-photo-thumb-remove:hover { background: color-mix(in srgb, var(--error) 85%, black); }
+
+.vw-photo-viewer {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeIn 160ms var(--ease-out);
+}
+.vw-photo-viewer img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--r);
+}
+.vw-photo-viewer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.vw-photo-viewer-close:hover { background: rgba(255, 255, 255, 0.25); }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .vw-end-btn { background: var(--error); border-color: var(--error); color: #fff; }
@@ -4420,4 +4571,43 @@ h1, h2, h3, h4, h5, h6 {
   .dashboard-2col .card { margin-bottom: 0; }
   .activity-text { font-size: 12px; }
   .dash-visit-item { grid-template-columns: 60px 1fr auto; padding: 10px 12px; gap: 8px; }
+}
+
+/* ============================================================
+   Mobile touch-target sweep (Apple HIG: 44px minimum)
+   ------------------------------------------------------------
+   Desktop sizes (36/30px) stay as-is for density; phones get
+   finger-friendly hit areas everywhere.
+   ============================================================ */
+@media (max-width: 768px) {
+  .btn { min-height: 44px; padding: 0 18px; font-size: 15px; }
+  .btn-sm { min-height: 40px; padding: 0 14px; font-size: 14px; }
+  .hamburger { width: 44px; height: 44px; }
+  .notif-bell { width: 44px; height: 44px; }
+  .user-trigger { padding: 6px; }
+  .user-trigger .avatar { width: 36px; height: 36px; font-size: 13px; }
+
+  /* Composer Add/Templates buttons sit near a textarea — bump them too */
+  .vw-composer-actions .btn { min-height: 40px; }
+  .vw-cat-pick { min-height: 40px; padding: 8px 14px; font-size: 13px; }
+  .vw-sev-btn { min-height: 40px; padding: 8px 12px; font-size: 13px; }
+
+  /* Forms */
+  .form-input, .form-select { height: 44px; font-size: 16px; }
+  .form-textarea { font-size: 16px; }
+
+  /* Sidebar nav links — comfortable thumb tap */
+  .nav-link { height: 48px; font-size: 15px; }
+
+  /* Sticky composer should clear iOS home indicator */
+  .vw-composer { bottom: max(88px, env(safe-area-inset-bottom, 0)); }
+  .vw-sticky-action { padding-bottom: max(16px, env(safe-area-inset-bottom, 0)); }
+}
+
+/* Prevent iOS Safari from auto-zooming into form fields on focus.
+   16px font-size on inputs is the documented threshold. */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 768px) {
+    .auth-card .form-input { font-size: 16px; }
+  }
 }
