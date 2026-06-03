@@ -3,6 +3,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import VisitPhotos from '../components/VisitPhotos'
+import VoiceRecorder from '../components/VoiceRecorder'
+import { useGpsTracker, GpsStatusBar } from '../components/GpsTracker'
+import QuickFlags from '../components/QuickFlags'
 import { readGeolocation } from '../lib/visitPhotos'
 
 /* ============================================================
