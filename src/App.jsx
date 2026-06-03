@@ -84,6 +84,10 @@ export default function App() {
             path="/settings"
             element={<RequireRole allow={OWNER_ROLES} redirect><Settings /></RequireRole>}
           />
+          <Route
+            path="/admin"
+            element={<RequireRole allow={['platform_admin']} redirect><PlatformAdmin /></RequireRole>}
+          />
 
           {/* Monitor-only */}
           <Route
