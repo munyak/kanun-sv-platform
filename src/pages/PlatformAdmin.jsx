@@ -53,6 +53,11 @@ export default function PlatformAdmin() {
   const [toast, setToast] = useState(null)
   const [resetBusy, setResetBusy] = useState(null)
 
+  // Background checks
+  const [bgChecks, setBgChecks] = useState([])
+  const [orderCheckMonitor, setOrderCheckMonitor] = useState(null)
+  const [orderBusy, setOrderBusy] = useState(false)
+
   // Detail panels
   const [selectedOrg, setSelectedOrg] = useState(null)
   const [orgDetail, setOrgDetail] = useState(null)
@@ -68,12 +73,13 @@ export default function PlatformAdmin() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [sRes, oRes, uRes, aRes, atRes] = await Promise.all([
+      const [sRes, oRes, uRes, aRes, atRes, bgRes] = await Promise.all([
         supabase.rpc('platform_admin_stats'),
         supabase.rpc('platform_admin_orgs'),
         supabase.rpc('platform_admin_users'),
         supabase.rpc('platform_admin_activity'),
         supabase.rpc('platform_admin_attention'),
+        supabase.rpc('platform_admin_background_checks'),
       ])
       if (sRes.error) throw sRes.error
       setStats(sRes.data)
@@ -81,6 +87,7 @@ export default function PlatformAdmin() {
       setUsers(uRes.data || [])
       setActivity(aRes.data || [])
       setAttention(atRes.data || {})
+      setBgChecks(bgRes.data || [])
     } catch (e) {
       console.error('PlatformAdmin load:', e)
       showToast(e.message || 'Failed to load', 'error')
@@ -107,6 +114,30 @@ export default function PlatformAdmin() {
       setUserDetail(data)
     } catch (e) { showToast(e.message, 'error') }
     finally { setUserDetailLoading(false) }
+  }
+
+  async function handleOrderCheck(monitor) {
+    setOrderBusy(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('certn-proxy', {
+        body: {
+          action: 'order_check',
+          monitor_id: monitor.id,
+          org_id: monitor.org_id || selectedOrg,
+          first_name: monitor.first_name,
+          last_name: monitor.last_name,
+          email: monitor.email,
+          check_type: 'criminal_record',
+        },
+      })
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+      showToast(`Background check ordered for ${monitor.first_name} ${monitor.last_name}`)
+      setOrderCheckMonitor(null)
+      load()
+    } catch (e) {
+      showToast(e.message || 'Failed to order check', 'error')
+    } finally { setOrderBusy(false) }
   }
 
   async function handlePasswordReset(email) {
@@ -153,6 +184,7 @@ export default function PlatformAdmin() {
           { key: 'organizations', label: `Organizations (${orgs.length})` },
           { key: 'users', label: `Users (${users.length})` },
           { key: 'attention', label: `Needs attention${attentionCount ? ` (${attentionCount})` : ''}` },
+          { key: 'background_checks', label: `Background checks (${bgChecks.length})` },
         ].map(t => (
           <button key={t.key} className={`admin-tab ${tab === t.key ? 'active' : ''}`} onClick={() => { setTab(t.key); setSelectedOrg(null); setSelectedUser(null) }}>{t.label}</button>
         ))}
@@ -223,7 +255,7 @@ export default function PlatformAdmin() {
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 13 }}>{m.first_name} {m.last_name} — compliance gap</div>
                           <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
-                            {!m.livescan_cleared && 'LiveScan '}{!m.trustline_registered && 'TrustLine '}{!m.mandated_reporter_trained && 'Mandated Reporter'}
+                            {!m.livescan_completed && 'LiveScan '}{!m.trustline_registered && 'TrustLine '}{!m.mandated_reporter_training_date && 'Mandated Reporter'}
                             {' · '}{m.org_name}
                           </div>
                         </div>
@@ -308,10 +340,13 @@ export default function PlatformAdmin() {
                             <div style={{ fontSize: 13, fontWeight: 500 }}>{m.first_name} {m.last_name}</div>
                             <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{m.email || m.phone || '—'}</div>
                           </div>
-                          <div style={{ display: 'flex', gap: 4 }}>
-                            <CompliancePill ok={m.livescan_cleared} label="LS" />
+                          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                            <CompliancePill ok={m.livescan_completed} label="LS" />
                             <CompliancePill ok={m.trustline_registered} label="TL" />
-                            <CompliancePill ok={m.mandated_reporter_trained} label="MR" />
+                            <CompliancePill ok={m.mandated_reporter_training_date} label="MR" />
+                            <button className="btn btn-sm btn-secondary" style={{ marginLeft: 8, fontSize: 11 }} onClick={(e) => { e.stopPropagation(); setOrderCheckMonitor({ ...m, org_id: selectedOrg }) }}>
+                              Run check
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -422,12 +457,12 @@ export default function PlatformAdmin() {
                           <KV label="Name" value={`${userDetail.monitor_profile.first_name} ${userDetail.monitor_profile.last_name}`} />
                           <KV label="Phone" value={userDetail.monitor_profile.phone} />
                           <KV label="Languages" value={Array.isArray(userDetail.monitor_profile.languages) ? userDetail.monitor_profile.languages.join(', ') : userDetail.monitor_profile.languages} />
-                          <KV label="Travel radius" value={userDetail.monitor_profile.travel_radius_miles ? `${userDetail.monitor_profile.travel_radius_miles} mi` : '—'} />
+                          <KV label="Travel radius" value={userDetail.monitor_profile.max_travel_radius_miles ? `${userDetail.monitor_profile.max_travel_radius_miles} mi` : '—'} />
                         </div>
                         <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
-                          <CompliancePill ok={userDetail.monitor_profile.livescan_cleared} label="LiveScan" full />
+                          <CompliancePill ok={userDetail.monitor_profile.livescan_completed} label="LiveScan" full />
                           <CompliancePill ok={userDetail.monitor_profile.trustline_registered} label="TrustLine" full />
-                          <CompliancePill ok={userDetail.monitor_profile.mandated_reporter_trained} label="Mandated Reporter" full />
+                          <CompliancePill ok={userDetail.monitor_profile.mandated_reporter_training_date} label="Mandated Reporter" full />
                         </div>
                       </DetailSection>
                     )}
@@ -501,9 +536,9 @@ export default function PlatformAdmin() {
                       <tr key={i}>
                         <td className="cell-strong">{m.first_name} {m.last_name}</td>
                         <td>{m.org_name}</td>
-                        <td><CompliancePill ok={m.livescan_cleared} label={m.livescan_cleared ? 'Cleared' : 'Missing'} full /></td>
+                        <td><CompliancePill ok={m.livescan_completed} label={m.livescan_completed ? 'Cleared' : 'Missing'} full /></td>
                         <td><CompliancePill ok={m.trustline_registered} label={m.trustline_registered ? 'Registered' : 'Missing'} full /></td>
-                        <td><CompliancePill ok={m.mandated_reporter_trained} label={m.mandated_reporter_trained ? 'Trained' : 'Missing'} full /></td>
+                        <td><CompliancePill ok={m.mandated_reporter_training_date} label={m.mandated_reporter_training_date ? 'Trained' : 'Missing'} full /></td>
                       </tr>
                     ))}
                   </tbody>
@@ -531,6 +566,97 @@ export default function PlatformAdmin() {
                   <span className={`badge badge-${inc.severity === 'critical' ? 'red' : 'yellow'}`}>{inc.severity}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ BACKGROUND CHECKS TAB ============ */}
+      {tab === 'background_checks' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div className="card">
+            <div className="card-header">
+              <div>
+                <div className="card-title">Background checks</div>
+                <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>Powered by Certn — criminal records, identity verification, watchlist screening</div>
+              </div>
+            </div>
+            <div className="card-body-flush">
+              {bgChecks.length === 0 ? (
+                <div style={{ padding: 48, textAlign: 'center' }}>
+                  <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>No background checks ordered yet</div>
+                  <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 16 }}>Order checks from the Organizations tab by clicking an org and selecting a monitor.</div>
+                </div>
+              ) : (
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Monitor</th>
+                      <th>Organization</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Result</th>
+                      <th>Criminal</th>
+                      <th>Identity</th>
+                      <th>Watchlist</th>
+                      <th>Requested</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {bgChecks.map((bc, i) => (
+                      <tr key={i}>
+                        <td className="cell-strong">{bc.monitor_name || `${bc.first_name} ${bc.last_name}`}</td>
+                        <td>{bc.org_name}</td>
+                        <td style={{ fontSize: 12 }}>{(bc.check_type || '').replace(/_/g, ' ')}</td>
+                        <td><BgStatusBadge status={bc.certn_status} /></td>
+                        <td><BgResultBadge result={bc.overall_result} /></td>
+                        <td>{bc.criminal_record_found === null ? '—' : bc.criminal_record_found ? <span style={{ color: 'var(--error)' }}>Found</span> : <span style={{ color: 'var(--success)' }}>Clear</span>}</td>
+                        <td>{bc.identity_verified === null ? '—' : bc.identity_verified ? <span style={{ color: 'var(--success)' }}>Verified</span> : <span style={{ color: 'var(--error)' }}>Failed</span>}</td>
+                        <td>{bc.sanctions_found === null ? '—' : bc.sanctions_found ? <span style={{ color: 'var(--error)' }}>Found</span> : <span style={{ color: 'var(--success)' }}>Clear</span>}</td>
+                        <td className="cell-muted">{fmtRelative(bc.requested_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <div className="card-title">Setup</div>
+            </div>
+            <div className="card-body">
+              <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+                <p style={{ marginBottom: 12 }}>To activate background checks, you need a Certn API key. Sign up at <a href="https://certn.co" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>certn.co</a> and add your API key to the Supabase Edge Function environment variables:</p>
+                <div style={{ background: 'var(--bg-subtle)', padding: '12px 16px', borderRadius: 'var(--r)', fontFamily: 'var(--font-mono)', fontSize: 12, marginBottom: 12 }}>
+                  CERTN_API_KEY=your_api_key_here<br/>
+                  CERTN_BASE_URL=https://api.ca.certn.co
+                </div>
+                <p>Checks include: criminal record (CA DOJ + FBI), sex offender registry, identity verification, and global watchlist/sanctions screening. Results typically return in 1-3 business days.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order check modal */}
+      {orderCheckMonitor && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setOrderCheckMonitor(null)}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--r-lg)', padding: 24, maxWidth: 420, width: '90%', boxShadow: 'var(--shadow-pop)' }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: 16, fontWeight: 550, marginBottom: 4 }}>Order background check</h3>
+            <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 16 }}>
+              This will order a criminal record check, identity verification, and watchlist screening for {orderCheckMonitor.first_name} {orderCheckMonitor.last_name} via Certn.
+            </p>
+            <div className="admin-kv-grid" style={{ marginBottom: 16 }}>
+              <KV label="Name" value={`${orderCheckMonitor.first_name} ${orderCheckMonitor.last_name}`} />
+              <KV label="Email" value={orderCheckMonitor.email || '—'} />
+            </div>
+            <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary" onClick={() => setOrderCheckMonitor(null)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => handleOrderCheck(orderCheckMonitor)} disabled={orderBusy}>
+                {orderBusy ? 'Ordering...' : 'Order check ($13.99)'}
+              </button>
             </div>
           </div>
         </div>
@@ -596,4 +722,17 @@ function KV({ label, value }) {
       <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{value || '—'}</div>
     </div>
   )
+}
+
+function BgStatusBadge({ status }) {
+  if (!status) return <span className="badge badge-gray">—</span>
+  const map = { pending: 'gray', ordering: 'gray', submitted: 'blue', in_progress: 'blue', complete: 'green', COMPLETE: 'green', error: 'red' }
+  return <span className={`badge badge-${map[status] || 'gray'}`}>{(status || '').replace(/_/g, ' ')}</span>
+}
+
+function BgResultBadge({ result }) {
+  if (!result) return <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Pending</span>
+  const map = { clear: 'green', CLEAR: 'green', review: 'yellow', REVIEW: 'yellow', fail: 'red', FAIL: 'red' }
+  const color = map[result] || 'gray'
+  return <span className={`badge badge-${color}`}>{result}</span>
 }
