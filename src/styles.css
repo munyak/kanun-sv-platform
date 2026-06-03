@@ -22,11 +22,11 @@
   --border-strong:  #D1CBC3;
   --divider:        #EDE9E3;
 
-  /* ---------- Color: Brand (refined sage) ---------- */
-  --accent:         #2B6B4F;   /* institutional forest */
-  --accent-hover:   #357A5B;
-  --accent-soft:    #E7F0EB;   /* tinted bg */
-  --accent-faint:   #F2F7F4;
+  /* ---------- Color: Brand (Mercury: dark warm slate) ---------- */
+  --accent:         #1F2937;   /* dark charcoal â€” CTAs, primary actions */
+  --accent-hover:   #374151;   /* lighter slate on hover */
+  --accent-soft:    #F0EFED;   /* warm tinted bg for active nav */
+  --accent-faint:   #F6F5F3;
 
   /* ---------- Color: System (muted, professional) ---------- */
   --success:        #2E7D4F;
@@ -42,7 +42,7 @@
   --shadow-card:    0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02);
   --shadow-hover:   0 1px 3px rgba(0,0,0,0.04), 0 3px 10px rgba(0,0,0,0.03);
   --shadow-pop:     0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
-  --ring:           0 0 0 3px rgba(43, 107, 79, 0.12);
+  --ring:           0 0 0 3px rgba(31, 41, 55, 0.1);
 
   /* ---------- Radius (Mercury: restrained) ---------- */
   --r-sm: 4px;
@@ -70,7 +70,7 @@
   /* ---------- Legacy aliases (kept so inline styles in pages still resolve) ---------- */
   --forest:        var(--accent);
   --forest-light:  var(--accent-hover);
-  --forest-dark:   #1F4D38;
+  --forest-dark:   #111827;
   --forest-50:     var(--accent-faint);
   --forest-100:    var(--accent-soft);
   --moss:          var(--accent-hover);
@@ -136,7 +136,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
-::selection { background: var(--accent-soft); color: var(--accent); }
+::selection { background: rgba(31, 41, 55, 0.1); color: var(--text-primary); }
 
 /* Mercury-style subtle page divider */
 hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0; }
@@ -200,7 +200,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   width: 32px;
   height: 32px;
   border-radius: 7px;
-  background: var(--accent);
+  background: var(--text-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -882,10 +882,10 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 .nav-link:hover .nav-icon { color: var(--text-secondary); }
 .nav-link.active {
   background: var(--accent-soft);
-  color: var(--accent);
+  color: var(--text-primary);
   font-weight: 500;
 }
-.nav-link.active .nav-icon { color: var(--accent); }
+.nav-link.active .nav-icon { color: var(--text-primary); }
 
 .sidebar-footer {
   padding: 12px 14px 0;
@@ -902,7 +902,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   letter-spacing: 0;
   transition: color var(--t-color);
 }
-.footer-link:hover { color: var(--accent); }
+.footer-link:hover { color: var(--text-primary); }
 
 .footer-meta {
   font-size: 11px;
@@ -1057,8 +1057,8 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
   flex-shrink: 0;
   order: 2; /* icon top-right */
 }
@@ -1448,8 +1448,8 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 .cell-strong { font-weight: 550; color: var(--text-primary); letter-spacing: -0.015em; }
 .cell-mono   { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
 .cell-muted  { color: var(--text-tertiary); font-size: 13px; }
-.cell-link   { color: var(--accent); font-weight: 500; transition: color var(--t-color); }
-.cell-link:hover { color: var(--accent-hover); }
+.cell-link   { color: var(--text-primary); font-weight: 500; text-decoration: underline; text-underline-offset: 2px; transition: color var(--t-color); }
+.cell-link:hover { color: var(--text-secondary); }
 
 /* ============================================================
    Status dots (replaces pills/badges)
