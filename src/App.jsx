@@ -86,6 +86,10 @@ export default function App() {
             element={<RequireRole allow={OWNER_ROLES} redirect><Settings /></RequireRole>}
           />
           <Route
+            path="/billing"
+            element={<RequireRole allow={OWNER_ROLES} redirect><Billing /></RequireRole>}
+          />
+          <Route
             path="/admin"
             element={<RequireRole allow={['platform_admin']} redirect><PlatformAdmin /></RequireRole>}
           />
