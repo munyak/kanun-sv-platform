@@ -118,6 +118,7 @@ const NAV_BY_ROLE = {
     { to: '/reports', label: 'Reports', icon: I.shield },
     { to: '/team', label: 'Team', icon: I.team },
     { to: '/settings', label: 'Settings', icon: I.settings },
+    { to: '/billing', label: 'Billing', icon: I.briefcase },
   ],
   agency_manager: [
     { to: '/', label: 'Dashboard', icon: I.dashboard, exact: true },
