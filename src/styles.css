@@ -1,71 +1,71 @@
 /* ============================================================
-   KaNun Wellness — Design System
-   Apple Human Interface Guidelines × SimplePractice clarity
+   KaNun Wellness â€” Design System
+   Mercury Ã— Institutional Trust Â· Warm Neutral Palette
    ============================================================ */
 
 :root {
-  /* ---------- Color: Surfaces ---------- */
-  --bg-page:        #F5F5F7;   /* Apple warm gray page */
+  /* ---------- Color: Surfaces (warm neutral) ---------- */
+  --bg-page:        #F8F6F3;   /* warm cream page */
   --bg-card:        #FFFFFF;
   --bg-elevated:    #FFFFFF;
-  --bg-subtle:      #F9F9FB;   /* alt row, sunken fills */
-  --bg-hover:       #F5F5F7;
+  --bg-subtle:      #F4F1ED;   /* alt row, sunken fills */
+  --bg-hover:       #F1EDE8;
 
-  /* ---------- Color: Text ---------- */
-  --text-primary:   #1D1D1F;
-  --text-secondary: #6E6E73;
-  --text-tertiary:  #86868B;
+  /* ---------- Color: Text (warm) ---------- */
+  --text-primary:   #1A1916;
+  --text-secondary: #65625B;
+  --text-tertiary:  #95918A;
   --text-on-accent: #FFFFFF;
 
-  /* ---------- Color: Borders ---------- */
-  --border:         #E5E5EA;
-  --border-strong:  #D2D2D7;
-  --divider:        #F0F0F2;
+  /* ---------- Color: Borders (warm) ---------- */
+  --border:         #E4DFD8;
+  --border-strong:  #D1CBC3;
+  --divider:        #EDE9E3;
 
-  /* ---------- Color: Brand ---------- */
-  --accent:         #2D6A4F;   /* deep forest */
-  --accent-hover:   #40916C;
-  --accent-soft:    #E8F1EC;   /* tinted bg */
-  --accent-faint:   #F3F8F5;
+  /* ---------- Color: Brand (refined sage) ---------- */
+  --accent:         #2B6B4F;   /* institutional forest */
+  --accent-hover:   #357A5B;
+  --accent-soft:    #E7F0EB;   /* tinted bg */
+  --accent-faint:   #F2F7F4;
 
-  /* ---------- Color: System (Apple) ---------- */
-  --success:        #34C759;
-  --success-soft:   #E8F8EC;
-  --warning:        #FF9500;
-  --warning-soft:   #FFF2E0;
-  --error:          #FF3B30;
-  --error-soft:     #FFE9E7;
-  --info:           #007AFF;
-  --info-soft:      #E5F0FF;
+  /* ---------- Color: System (muted, professional) ---------- */
+  --success:        #2E7D4F;
+  --success-soft:   #E7F0EB;
+  --warning:        #C6860A;
+  --warning-soft:   #FDF5E6;
+  --error:          #C43025;
+  --error-soft:     #FCEAE8;
+  --info:           #2563A8;
+  --info-soft:      #E8F0FA;
 
-  /* ---------- Shadows (very soft) ---------- */
-  --shadow-card:    0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
-  --shadow-hover:   0 2px 4px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.06);
-  --shadow-pop:     0 4px 16px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.08);
-  --ring:           0 0 0 4px rgba(45, 106, 79, 0.16);
+  /* ---------- Shadows (Mercury: barely-there) ---------- */
+  --shadow-card:    0 1px 2px rgba(0,0,0,0.03), 0 1px 6px rgba(0,0,0,0.02);
+  --shadow-hover:   0 1px 3px rgba(0,0,0,0.04), 0 3px 10px rgba(0,0,0,0.03);
+  --shadow-pop:     0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.05);
+  --ring:           0 0 0 3px rgba(43, 107, 79, 0.12);
 
-  /* ---------- Radius ---------- */
-  --r-sm: 6px;
-  --r:    8px;
-  --r-md: 10px;
-  --r-lg: 12px;
-  --r-xl: 16px;
-  --r-2xl: 20px;
+  /* ---------- Radius (Mercury: restrained) ---------- */
+  --r-sm: 4px;
+  --r:    6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-xl: 12px;
+  --r-2xl: 16px;
   --r-full: 9999px;
 
   /* ---------- Motion ---------- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --t-color: 200ms ease;
-  --t-transform: 300ms var(--ease-out);
+  --t-color: 150ms ease;
+  --t-transform: 250ms var(--ease-out);
 
-  /* ---------- Typography ---------- */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  /* ---------- Typography (Mercury: Inter, tight tracking) ---------- */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  --font-mono: 'Berkeley Mono', 'SF Mono', ui-monospace, Menlo, monospace;
 
   /* ---------- Layout ---------- */
-  --sidebar-w: 260px;
-  --topbar-h:  64px;
-  --content-max: 1200px;
+  --sidebar-w: 248px;
+  --topbar-h:  56px;
+  --content-max: 1120px;
 
   /* ---------- Legacy aliases (kept so inline styles in pages still resolve) ---------- */
   --forest:        var(--accent);
@@ -106,15 +106,15 @@ html { -webkit-text-size-adjust: 100%; }
 
 html, body {
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: -0.02em;
+  line-height: 1.55;
+  letter-spacing: -0.011em;
   color: var(--text-primary);
   background: var(--bg-page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11', 'ss01';
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
 #root { min-height: 100vh; }
@@ -130,15 +130,18 @@ button {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
+  font-weight: 550;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
 }
 
 ::selection { background: var(--accent-soft); color: var(--accent); }
 
-/* Scrollbars — minimal */
+/* Mercury-style subtle page divider */
+hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0; }
+
+/* Scrollbars â€” minimal */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -162,11 +165,11 @@ h1, h2, h3, h4, h5, h6 {
 .topbar {
   height: var(--topbar-h);
   background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--divider);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 20px;
   position: sticky;
   top: 0;
   z-index: 30;
@@ -176,34 +179,34 @@ h1, h2, h3, h4, h5, h6 {
 .topbar-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .topbar-org { min-width: 0; }
 .topbar-org-name {
-  font-weight: 600;
-  font-size: 15px;
+  font-weight: 550;
+  font-size: 14px;
   color: var(--text-primary);
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 220px;
+  max-width: 200px;
 }
 .topbar-org-sub {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
-  margin-top: 2px;
-  letter-spacing: -0.01em;
+  margin-top: 1px;
+  letter-spacing: 0;
 }
 
 .brand-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
   background: var(--accent);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 550;
+  font-size: 12px;
   letter-spacing: -0.02em;
   flex-shrink: 0;
 }
@@ -432,7 +435,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ===== Cases pipeline strip ========================================
-   Visual funnel: Intake → Active → Suspended → Closed. Each stage is a
+   Visual funnel: Intake â†’ Active â†’ Suspended â†’ Closed. Each stage is a
    click-to-filter card. The arrows make the workflow direction obvious. */
 .pipeline-strip {
   display: flex;
@@ -554,7 +557,7 @@ h1, h2, h3, h4, h5, h6 {
 /* ===== Next-action banner (CaseDetail) ============================
    The "what to do next" prompt at the top of each case. Three tones:
      - action: bright, action ready (assign / schedule / activate)
-     - attention: gentler — pointer to existing UI on the page
+     - attention: gentler â€” pointer to existing UI on the page
      - soft: contextual reminder (e.g. signatures pending) */
 .next-action-banner {
   display: flex;
@@ -614,7 +617,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===== Onboarding checklist (owner dashboard) =====================
    Replaces the "0 0 0 0" priority cards for fresh agencies and walks
-   the owner through Monitor → Intake → Visit → Report end-to-end. */
+   the owner through Monitor â†’ Intake â†’ Visit â†’ Report end-to-end. */
 .onboard-card {
   background: linear-gradient(135deg, var(--accent-faint) 0%, var(--bg-card) 100%);
   border: 1px solid var(--accent-soft);
@@ -818,14 +821,14 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 0;
 }
 
-/* Sidebar — clean light */
+/* Sidebar â€” Mercury: restrained, warm, spacious */
 .shell-sidebar {
   width: var(--sidebar-w);
   background: var(--bg-card);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--divider);
   display: flex;
   flex-direction: column;
-  padding: 16px 0 16px;
+  padding: 12px 0 12px;
   position: sticky;
   top: var(--topbar-h);
   align-self: flex-start;
@@ -834,81 +837,84 @@ h1, h2, h3, h4, h5, h6 {
 
 .sidebar-nav {
   flex: 1;
-  padding: 4px 12px;
+  padding: 4px 10px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   overflow-y: auto;
 }
 
 .sidebar-section-label {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: var(--text-tertiary);
-  padding: 16px 12px 8px;
+  padding: 20px 12px 6px;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  height: 36px;
-  padding: 0 12px;
+  gap: 10px;
+  height: 34px;
+  padding: 0 10px;
   border-radius: var(--r);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.015em;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 450;
+  letter-spacing: -0.01em;
   transition: background var(--t-color), color var(--t-color);
 }
 .nav-link .nav-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   transition: color var(--t-color);
   flex-shrink: 0;
+  font-size: 16px;
 }
 .nav-link:hover {
   background: var(--bg-hover);
+  color: var(--text-primary);
 }
+.nav-link:hover .nav-icon { color: var(--text-secondary); }
 .nav-link.active {
-  background: var(--accent);
-  color: #fff;
-  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
 }
-.nav-link.active .nav-icon { color: #fff; }
+.nav-link.active .nav-icon { color: var(--accent); }
 
 .sidebar-footer {
-  padding: 16px 16px 0;
-  margin: 8px 12px 0;
+  padding: 12px 14px 0;
+  margin: 4px 10px 0;
   border-top: 1px solid var(--divider);
 }
 
 .footer-link {
   display: block;
-  font-size: 13px;
-  color: var(--text-secondary);
-  padding: 6px 0;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: 5px 0;
+  font-weight: 450;
+  letter-spacing: 0;
   transition: color var(--t-color);
 }
 .footer-link:hover { color: var(--accent); }
 
 .footer-meta {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
-  margin-top: 6px;
+  margin-top: 4px;
   font-variant-numeric: tabular-nums;
 }
 
 .shell-main {
   flex: 1;
   min-width: 0;
-  padding: 32px;
+  padding: 28px 32px;
   background: var(--bg-page);
 }
 
@@ -926,7 +932,7 @@ h1, h2, h3, h4, h5, h6 {
   animation: fadeIn 160ms var(--ease-out);
 }
 
-/* Legacy classes kept for compat — minimal */
+/* Legacy classes kept for compat â€” minimal */
 .app-layout { display: flex; min-height: 100vh; }
 .sidebar {
   width: var(--sidebar-w);
@@ -968,33 +974,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .page-title {
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 550;
   color: var(--text-primary);
-  line-height: 1.2;
-  letter-spacing: -0.03em;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
 }
 
 .page-subtitle {
-  font-size: 15px;
-  color: var(--text-secondary);
-  margin-top: 6px;
-  letter-spacing: -0.02em;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  letter-spacing: -0.005em;
 }
 
 /* ============================================================
-   Cards
+   Cards â€” Mercury: minimal border, barely-there shadow
    ============================================================ */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 
 .card-header {
-  padding: 20px 24px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--divider);
   display: flex;
   align-items: center;
@@ -1004,13 +1011,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card-title {
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 550;
   color: var(--text-primary);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.015em;
 }
 
-.card-body { padding: 24px; }
+.card-body { padding: 20px; }
 .card-body-flush { padding: 0; }
 
 /* ============================================================
@@ -1027,12 +1034,12 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  padding: 24px;
+  padding: 20px;
   position: relative;
-  transition: transform var(--t-transform), box-shadow var(--t-transform);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--t-color);
 }
 .stat-card:hover {
-  transform: translateY(-1px);
   box-shadow: var(--shadow-hover);
 }
 
@@ -1069,11 +1076,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .stat-value {
-  font-size: 36px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 550;
   color: var(--text-primary);
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1157,15 +1164,15 @@ h1, h2, h3, h4, h5, h6 {
 .form-select,
 .form-textarea {
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: var(--r);
-  font-size: 15px;
+  font-size: 13px;
   font-family: inherit;
   background: var(--bg-card);
   color: var(--text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.005em;
   transition: border-color var(--t-color), box-shadow var(--t-color), background var(--t-color);
 }
 
@@ -1299,17 +1306,17 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  height: 36px;
-  padding: 0 16px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: var(--r);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   border: 1px solid transparent;
-  transition: background var(--t-color), border-color var(--t-color), color var(--t-color), transform 150ms var(--ease-out), box-shadow var(--t-color);
+  transition: background var(--t-color), border-color var(--t-color), color var(--t-color), box-shadow var(--t-color);
   text-decoration: none;
   white-space: nowrap;
   font-family: inherit;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.005em;
   user-select: none;
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -1355,8 +1362,8 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--error);
 }
 
-.btn-sm { height: 30px; padding: 0 12px; font-size: 13px; }
-.btn-lg { height: 44px; padding: 0 20px; font-size: 16px; }
+.btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+.btn-lg { height: 40px; padding: 0 18px; font-size: 14px; }
 
 .btn-group {
   display: flex;
@@ -1397,7 +1404,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================================
-   Tables (Apple data-style — no cell borders, alt rows)
+   Tables (Apple data-style â€” no cell borders, alt rows)
    ============================================================ */
 .data-table {
   width: 100%;
@@ -1406,42 +1413,43 @@ h1, h2, h3, h4, h5, h6 {
 
 .data-table th {
   text-align: left;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--text-tertiary);
-  padding: 14px 20px;
+  padding: 10px 16px;
   background: transparent;
-  border-bottom: 1px solid var(--divider);
-  height: 44px;
+  border-bottom: 1px solid var(--border);
+  height: 36px;
 }
 
 .data-table td {
-  padding: 0 20px;
-  font-size: 14px;
+  padding: 0 16px;
+  font-size: 13px;
   color: var(--text-primary);
   vertical-align: middle;
-  letter-spacing: -0.015em;
-  height: 48px;
+  letter-spacing: -0.005em;
+  height: 44px;
   border: none;
+  border-bottom: 1px solid var(--divider);
 }
 
 .data-table tbody tr {
   transition: background var(--t-color);
 }
-.data-table tbody tr:nth-child(even) {
-  background: var(--bg-subtle);
+.data-table tbody tr:last-child td {
+  border-bottom: none;
 }
 .data-table tbody tr:hover {
-  background: var(--bg-hover);
+  background: var(--bg-subtle);
 }
 
-.cell-strong { font-weight: 600; color: var(--text-primary); letter-spacing: -0.02em; }
-.cell-mono   { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
-.cell-muted  { color: var(--text-tertiary); font-size: 14px; }
-.cell-link   { color: var(--accent); font-weight: 600; transition: color var(--t-color); }
-.cell-link:hover { color: var(--accent-hover); text-decoration: underline; }
+.cell-strong { font-weight: 550; color: var(--text-primary); letter-spacing: -0.015em; }
+.cell-mono   { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+.cell-muted  { color: var(--text-tertiary); font-size: 13px; }
+.cell-link   { color: var(--accent); font-weight: 500; transition: color var(--t-color); }
+.cell-link:hover { color: var(--accent-hover); }
 
 /* ============================================================
    Status dots (replaces pills/badges)
@@ -1449,10 +1457,10 @@ h1, h2, h3, h4, h5, h6 {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 450;
+  letter-spacing: 0;
   color: var(--text-primary);
   background: transparent;
   padding: 0;
@@ -1461,8 +1469,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 .badge::before {
   content: '';
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
   flex-shrink: 0;
@@ -1509,7 +1517,7 @@ h1, h2, h3, h4, h5, h6 {
 .badge.badge-blue::before   { background: var(--info); }
 .badge.badge-gray::before   { background: var(--text-tertiary); }
 
-/* Risk pills — keep as colored pills (small but visually grouped, easier to scan) */
+/* Risk pills â€” keep as colored pills (small but visually grouped, easier to scan) */
 .risk-pill {
   display: inline-flex;
   align-items: center;
@@ -3923,7 +3931,7 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* ============================================================
-   v0.4 — Dashboard command center + Reports CRUD + Monitor portal
+   v0.4 â€” Dashboard command center + Reports CRUD + Monitor portal
    ============================================================ */
 
 /* ----- Priority cards (owner dashboard) ----- */
@@ -4109,7 +4117,7 @@ h1, h2, h3, h4, h5, h6 {
   100% { background-position: -200% 0; }
 }
 
-/* ----- Reports — bulk bar, filters, row checkboxes ----- */
+/* ----- Reports â€” bulk bar, filters, row checkboxes ----- */
 .filters-panel {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -4180,7 +4188,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: 4px;
 }
 
-/* Reports row layout — grid with checkbox column */
+/* Reports row layout â€” grid with checkbox column */
 .rq-list-head {
   padding: 8px 16px;
   border-bottom: 1px solid var(--divider);
@@ -4333,7 +4341,7 @@ h1, h2, h3, h4, h5, h6 {
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* ----- Monitor portal — focused, calmer layout ----- */
+/* ----- Monitor portal â€” focused, calmer layout ----- */
 .shell-monitor .topbar { background: var(--bg-card); }
 .shell-monitor .shell-sidebar {
   background: var(--bg-card);
@@ -4457,7 +4465,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .cta-gray:hover { background: var(--bg-hover); }
 
-/* Monitor stats — minimal */
+/* Monitor stats â€” minimal */
 .monitor-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -4490,7 +4498,7 @@ h1, h2, h3, h4, h5, h6 {
 .monitor-stat.urgent .monitor-stat-n { color: var(--warning); }
 .monitor-stat.urgent { border-color: #FFD699; }
 
-/* ----- Visit list rows (monitor) — keep but improve spacing ----- */
+/* ----- Visit list rows (monitor) â€” keep but improve spacing ----- */
 .monitor-visit-item {
   display: grid;
   grid-template-columns: 100px 1fr auto;
@@ -4587,7 +4595,7 @@ h1, h2, h3, h4, h5, h6 {
   .user-trigger { padding: 6px; }
   .user-trigger .avatar { width: 36px; height: 36px; font-size: 13px; }
 
-  /* Composer Add/Templates buttons sit near a textarea — bump them too */
+  /* Composer Add/Templates buttons sit near a textarea â€” bump them too */
   .vw-composer-actions .btn { min-height: 40px; }
   .vw-cat-pick { min-height: 40px; padding: 8px 14px; font-size: 13px; }
   .vw-sev-btn { min-height: 40px; padding: 8px 12px; font-size: 13px; }
@@ -4596,7 +4604,7 @@ h1, h2, h3, h4, h5, h6 {
   .form-input, .form-select { height: 44px; font-size: 16px; }
   .form-textarea { font-size: 16px; }
 
-  /* Sidebar nav links — comfortable thumb tap */
+  /* Sidebar nav links â€” comfortable thumb tap */
   .nav-link { height: 48px; font-size: 15px; }
 
   /* Sticky composer should clear iOS home indicator */
