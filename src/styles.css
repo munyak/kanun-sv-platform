@@ -4842,3 +4842,94 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   font-weight: 500;
   border-bottom-color: var(--text-primary);
 }
+
+/* Clickable rows */
+.admin-row-clickable {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--divider);
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+.admin-row-clickable:last-child { border-bottom: none; }
+.admin-row-clickable:hover { background: var(--bg-subtle); }
+.admin-row-clickable.selected { background: var(--accent-faint); }
+
+.admin-row-stats {
+  display: flex;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+/* Activity rows */
+.admin-activity-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--divider);
+}
+.admin-activity-row:last-child { border-bottom: none; }
+
+.admin-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.dot-yellow { background: var(--warning); }
+.dot-red { background: var(--error); }
+.dot-green { background: var(--success); }
+.dot-blue { background: var(--info); }
+
+/* Detail panel */
+.admin-detail-panel {
+  position: sticky;
+  top: calc(var(--topbar-h) + 28px);
+  max-height: calc(100vh - var(--topbar-h) - 56px);
+  overflow-y: auto;
+  align-self: flex-start;
+}
+
+.admin-detail-section {
+  border-bottom: 1px solid var(--divider);
+}
+.admin-detail-section:last-child { border-bottom: none; }
+
+.admin-detail-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.admin-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--divider);
+  transition: background 150ms ease;
+}
+.admin-detail-row:last-child { border-bottom: none; }
+.admin-detail-row:hover { background: var(--bg-subtle); }
+
+.admin-kv-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 8px 20px 16px;
+}
+
+.stat-card-clickable:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: var(--border-strong);
+}
