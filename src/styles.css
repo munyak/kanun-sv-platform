@@ -4817,3 +4817,28 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
     .auth-card .form-input { font-size: 16px; }
   }
 }
+
+/* ============================================================
+   Platform Admin
+   ============================================================ */
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.admin-tab {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 450;
+  color: var(--text-tertiary);
+  border-bottom: 2px solid transparent;
+  transition: color 150ms ease, border-color 150ms ease;
+  margin-bottom: -1px;
+}
+.admin-tab:hover { color: var(--text-primary); }
+.admin-tab.active {
+  color: var(--text-primary);
+  font-weight: 500;
+  border-bottom-color: var(--text-primary);
+}
