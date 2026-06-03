@@ -836,12 +836,6 @@ function ActivePhase({ visit, observations, courtConditions, busy, onAddObservat
         />
       </div>
 
-      {/* GPS tracking status */}
-      <GpsStatusBar tracking={gps.tracking} track={gps.track} currentPosition={gps.currentPosition} error={gps.error} />
-
-      {/* Quick incident flags */}
-      <QuickFlags onFlag={onAddObservation} busy={busy} />
-
       {/* Composer with voice input */}
       <ObservationComposer onSubmit={onAddObservation} busy={busy} />
 
@@ -946,7 +940,6 @@ function ObservationComposer({ onSubmit, busy }) {
             ))}
           </div>
           <div className="vw-composer-actions">
-            <VoiceRecorder onTranscript={(t) => setText((prev) => prev ? prev + ' ' + t : t)} disabled={busy} />
             <button
               type="button"
               className="btn btn-secondary btn-sm"
