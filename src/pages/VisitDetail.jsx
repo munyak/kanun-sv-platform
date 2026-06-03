@@ -949,6 +949,7 @@ function ObservationComposer({ onSubmit, busy }) {
             ))}
           </div>
           <div className="vw-composer-actions">
+            <VoiceRecorder onTranscript={(t) => setText((prev) => prev ? prev + ' ' + t : t)} disabled={busy} />
             <button
               type="button"
               className="btn btn-secondary btn-sm"
