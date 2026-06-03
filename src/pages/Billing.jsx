@@ -20,9 +20,10 @@ function fmtMoney(cents) {
   if (cents == null) return '$0.00'
   return `$${(cents / 100).toFixed(2)}`
 }
-function daysOld(dateStr) {
-  if (!dateStr) return 0
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
+const daysOld = (dateStr) => {
+  if (!dateStr) return 0;
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+};
 }
 
 export default function Billing() {
