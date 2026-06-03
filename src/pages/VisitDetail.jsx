@@ -174,11 +174,11 @@ export default function VisitDetail() {
     try {
       const [vRes, oRes, rRes] = await Promise.all([
         supabase.from('sv_visits').select(`*,
-          case:case_id(*,
+          case:case_id!fk_visits_case(*,
             custodial:custodial_party_id(first_name, last_name, phone, email),
             noncustodial:noncustodial_party_id(first_name, last_name, phone, email),
             children:sv_case_children(child:child_id(id, first_name, last_name, date_of_birth))),
-          monitor:monitor_id(id, first_name, last_name)`)
+          monitor:monitor_id!fk_visits_monitor(id, first_name, last_name)`)
           .eq('id', id).eq('org_id', activeOrgId).maybeSingle(),
         supabase.from('sv_visit_observations').select('*')
           .eq('visit_id', id).order('observed_at', { ascending: true }),
