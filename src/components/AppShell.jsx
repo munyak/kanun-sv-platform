@@ -115,6 +115,7 @@ const NAV_BY_ROLE = {
     { to: '/', label: 'Dashboard', icon: I.dashboard, exact: true },
     { to: '/cases', label: 'Cases', icon: I.folder },
     { to: '/intake', label: 'New Intake', icon: I.plus },
+    { to: '/billing', label: 'Billing', icon: I.briefcase },
     { to: '/visits', label: 'Schedule', icon: I.calendar },
     { to: '/monitors', label: 'Monitors', icon: I.monitors },
     { to: '/reports', label: 'Reports', icon: I.shield },
