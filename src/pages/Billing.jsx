@@ -24,7 +24,6 @@ const daysOld = (dateStr) => {
   if (!dateStr) return 0;
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 };
-}
 
 export default function Billing() {
   const { activeOrgId } = useAuth()
@@ -387,9 +386,4 @@ function InvoiceTable({ invoices, onStatusChange, onRecordPayment, busy, showAge
 function InvoiceStatusBadge({ status }) {
   const map = { draft: 'gray', issued: 'blue', paid: 'green', void: 'red' }
   return <span className={`badge badge-${map[status] || 'gray'}`}>{(status || '—').replace(/_/g, ' ')}</span>
-}
-
-function daysOld(dateStr) {
-  if (!dateStr) return 0
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
 }
