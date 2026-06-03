@@ -3,14 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { RequireAuth, RequireOrg, RequireRole, OWNER_ROLES } from './auth/ProtectedRoute'
 import AppShell from './components/AppShell'
-
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import AuthCallback from './pages/AuthCallback'
 import Onboarding from './pages/Onboarding'
-
 import Dashboard from './pages/Dashboard'
 import Cases from './pages/Cases'
 import CaseDetail from './pages/CaseDetail'
@@ -20,16 +18,14 @@ import VisitDetail from './pages/VisitDetail'
 import VisitReport from './pages/VisitReport'
 import Monitors from './pages/Monitors'
 import MonitorDetail from './pages/MonitorDetail'
+import PlatformAdmin from './pages/PlatformAdmin'
 import MonitorProfile from './pages/MonitorProfile'
 import Reports from './pages/Reports'
 import Team from './pages/Team'
 import Settings from './pages/Settings'
-
 import ParentPortal from './pages/ParentPortal'
 import AttorneyPortal from './pages/AttorneyPortal'
-
 const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
-
 export default function App() {
   return (
     <AuthProvider>
