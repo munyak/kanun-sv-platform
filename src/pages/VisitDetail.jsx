@@ -724,7 +724,6 @@ function PartyArrivalRow({ label, name, arrivalTime, onArrived, onUndo, disabled
 function ActivePhase({ visit, observations, courtConditions, busy, onAddObservation, onSaveCompliance, onCheckOut, orgId, userId, onPhotoError }) {
   const startedAt = visit.actual_start_time || visit.checked_in_at
   const [now, setNow] = useState(Date.now())
-  }, [])
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
