@@ -1,6 +1,6 @@
 /* ============================================================
-   KaNun Wellness â€” Design System
-   Mercury Ã— Institutional Trust Â· Warm Neutral Palette
+   KaNun Wellness — Design System
+   Mercury × Institutional Trust · Warm Neutral Palette
    ============================================================ */
 
 :root {
@@ -23,7 +23,7 @@
   --divider:        #EDE9E3;
 
   /* ---------- Color: Brand (Mercury: dark warm slate) ---------- */
-  --accent:         #1F2937;   /* dark charcoal â€” CTAs, primary actions */
+  --accent:         #1F2937;   /* dark charcoal — CTAs, primary actions */
   --accent-hover:   #374151;   /* lighter slate on hover */
   --accent-soft:    #F0EFED;   /* warm tinted bg for active nav */
   --accent-faint:   #F6F5F3;
@@ -141,7 +141,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Mercury-style subtle page divider */
 hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0; }
 
-/* Scrollbars â€” minimal */
+/* Scrollbars — minimal */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -435,7 +435,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 }
 
 /* ===== Cases pipeline strip ========================================
-   Visual funnel: Intake â†’ Active â†’ Suspended â†’ Closed. Each stage is a
+   Visual funnel: Intake → Active → Suspended → Closed. Each stage is a
    click-to-filter card. The arrows make the workflow direction obvious. */
 .pipeline-strip {
   display: flex;
@@ -557,7 +557,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 /* ===== Next-action banner (CaseDetail) ============================
    The "what to do next" prompt at the top of each case. Three tones:
      - action: bright, action ready (assign / schedule / activate)
-     - attention: gentler â€” pointer to existing UI on the page
+     - attention: gentler — pointer to existing UI on the page
      - soft: contextual reminder (e.g. signatures pending) */
 .next-action-banner {
   display: flex;
@@ -617,7 +617,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 
 /* ===== Onboarding checklist (owner dashboard) =====================
    Replaces the "0 0 0 0" priority cards for fresh agencies and walks
-   the owner through Monitor â†’ Intake â†’ Visit â†’ Report end-to-end. */
+   the owner through Monitor → Intake → Visit → Report end-to-end. */
 .onboard-card {
   background: linear-gradient(135deg, var(--accent-faint) 0%, var(--bg-card) 100%);
   border: 1px solid var(--accent-soft);
@@ -821,7 +821,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   min-height: 0;
 }
 
-/* Sidebar â€” Mercury: restrained, warm, spacious */
+/* Sidebar — Mercury: restrained, warm, spacious */
 .shell-sidebar {
   width: var(--sidebar-w);
   background: var(--bg-card);
@@ -932,7 +932,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   animation: fadeIn 160ms var(--ease-out);
 }
 
-/* Legacy classes kept for compat â€” minimal */
+/* Legacy classes kept for compat — minimal */
 .app-layout { display: flex; min-height: 100vh; }
 .sidebar {
   width: var(--sidebar-w);
@@ -989,7 +989,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 }
 
 /* ============================================================
-   Cards â€” Mercury: minimal border, barely-there shadow
+   Cards — Mercury: minimal border, barely-there shadow
    ============================================================ */
 .card {
   background: var(--bg-card);
@@ -1404,7 +1404,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 }
 
 /* ============================================================
-   Tables (Apple data-style â€” no cell borders, alt rows)
+   Tables (Apple data-style — no cell borders, alt rows)
    ============================================================ */
 .data-table {
   width: 100%;
@@ -1517,7 +1517,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 .badge.badge-blue::before   { background: var(--info); }
 .badge.badge-gray::before   { background: var(--text-tertiary); }
 
-/* Risk pills â€” keep as colored pills (small but visually grouped, easier to scan) */
+/* Risk pills — keep as colored pills (small but visually grouped, easier to scan) */
 .risk-pill {
   display: inline-flex;
   align-items: center;
@@ -1634,7 +1634,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 }
 
 /* ============================================================
-   Auth pages â€” Mercury split-screen
+   Auth pages — Mercury split-screen
    ============================================================ */
 .auth-page {
   min-height: 100vh;
@@ -4129,7 +4129,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 
 
 /* ============================================================
-   v0.4 â€” Dashboard command center + Reports CRUD + Monitor portal
+   v0.4 — Dashboard command center + Reports CRUD + Monitor portal
    ============================================================ */
 
 /* ----- Priority cards (owner dashboard) ----- */
@@ -4315,7 +4315,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   100% { background-position: -200% 0; }
 }
 
-/* ----- Reports â€” bulk bar, filters, row checkboxes ----- */
+/* ----- Reports — bulk bar, filters, row checkboxes ----- */
 .filters-panel {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -4386,7 +4386,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   margin-left: 4px;
 }
 
-/* Reports row layout â€” grid with checkbox column */
+/* Reports row layout — grid with checkbox column */
 .rq-list-head {
   padding: 8px 16px;
   border-bottom: 1px solid var(--divider);
@@ -4539,7 +4539,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* ----- Monitor portal â€” focused, calmer layout ----- */
+/* ----- Monitor portal — focused, calmer layout ----- */
 .shell-monitor .topbar { background: var(--bg-card); }
 .shell-monitor .shell-sidebar {
   background: var(--bg-card);
@@ -4663,7 +4663,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 }
 .cta-gray:hover { background: var(--bg-hover); }
 
-/* Monitor stats â€” minimal */
+/* Monitor stats — minimal */
 .monitor-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -4696,7 +4696,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
 .monitor-stat.urgent .monitor-stat-n { color: var(--warning); }
 .monitor-stat.urgent { border-color: #FFD699; }
 
-/* ----- Visit list rows (monitor) â€” keep but improve spacing ----- */
+/* ----- Visit list rows (monitor) — keep but improve spacing ----- */
 .monitor-visit-item {
   display: grid;
   grid-template-columns: 100px 1fr auto;
@@ -4793,7 +4793,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   .user-trigger { padding: 6px; }
   .user-trigger .avatar { width: 36px; height: 36px; font-size: 13px; }
 
-  /* Composer Add/Templates buttons sit near a textarea â€” bump them too */
+  /* Composer Add/Templates buttons sit near a textarea — bump them too */
   .vw-composer-actions .btn { min-height: 40px; }
   .vw-cat-pick { min-height: 40px; padding: 8px 14px; font-size: 13px; }
   .vw-sev-btn { min-height: 40px; padding: 8px 12px; font-size: 13px; }
@@ -4802,7 +4802,7 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   .form-input, .form-select { height: 44px; font-size: 16px; }
   .form-textarea { font-size: 16px; }
 
-  /* Sidebar nav links â€” comfortable thumb tap */
+  /* Sidebar nav links — comfortable thumb tap */
   .nav-link { height: 48px; font-size: 15px; }
 
   /* Sticky composer should clear iOS home indicator */
