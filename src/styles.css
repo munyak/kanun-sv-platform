@@ -1839,6 +1839,8 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   justify-content: center;
   padding: 48px;
   background: var(--bg-card);
+  overflow-y: auto;
+  max-height: 100vh;
 }
 
 .auth-card {
