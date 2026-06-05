@@ -68,10 +68,21 @@ export function AuthProvider({ children }) {
     setBootstrapping(true)
     const { data: roleRows, error: rolesErr } = await supabase
       .from('sv_user_roles')
-      .select('id, org_id, role, sv_organizations(id, name, logo_url)')
+      .select('id, org_id, role')
       .eq('user_id', uid)
     if (rolesErr) console.error('loadMemberships roles error:', rolesErr)
     const rows = roleRows || []
+    // Fetch org details separately to avoid PostgREST nested embed issues
+    for (const row of rows) {
+      if (row.org_id) {
+        const { data: org } = await supabase
+          .from('sv_organizations')
+          .select('id, name, logo_url')
+          .eq('id', row.org_id)
+          .maybeSingle()
+        row.sv_organizations = org
+      }
+    }
     setMemberships(rows)
 
     const { data: onb, error: onbErr } = await supabase
