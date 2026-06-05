@@ -1640,11 +1640,14 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   min-height: 100vh;
   display: flex;
   background: var(--bg-card);
+  overflow: hidden;
+  max-width: 100vw;
 }
 
 /* --- Left hero panel --- */
 .auth-hero {
   flex: 1;
+  min-width: 0;
   background: #111827;
   display: flex;
   align-items: center;
