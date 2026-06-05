@@ -49,8 +49,10 @@ export function AuthProvider({ children }) {
       if (mountedRef.current) setLoading(false)
     })
 
-    const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!mountedRef.current) return
+      // Don't clear user on transient events (token refresh can emit null briefly)
+      if (!newSession && event !== 'SIGNED_OUT') return
       setSession(newSession ?? null)
       setUser(newSession?.user ?? null)
     })
