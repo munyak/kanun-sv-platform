@@ -4,6 +4,10 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import VisitPhotos from '../components/VisitPhotos'
 import { readGeolocation } from '../lib/visitPhotos'
+import VoiceRecorder from '../components/VoiceRecorder'
+import { useGpsTracker, GpsStatusBar } from '../components/GpsTracker'
+import QuickFlags from '../components/QuickFlags'
+import '../components/visitTools.css'
 
 /* ============================================================
    Guided monitor visit workflow
@@ -730,6 +734,15 @@ function ActivePhase({ visit, observations, courtConditions, busy, onAddObservat
   }, [])
   const elapsedMs = startedAt ? now - new Date(startedAt).getTime() : 0
 
+  // Continuous GPS breadcrumb tracking while the visit is active (display-only;
+  // not persisted to avoid depending on an unverified column).
+  const gps = useGpsTracker(30000)
+  useEffect(() => {
+    gps.startTracking()
+    return () => gps.stopTracking()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const [showCompliance, setShowCompliance] = useState(false)
   const compliance = visit.court_compliance || {}
   function setComplianceFor(id, status) {
@@ -749,6 +762,8 @@ function ActivePhase({ visit, observations, courtConditions, busy, onAddObservat
           Started {fmtClock(startedAt)} · {observations.length} observation{observations.length === 1 ? '' : 's'}
         </div>
       </div>
+
+      <GpsStatusBar tracking={gps.tracking} track={gps.track} currentPosition={gps.currentPosition} error={gps.error} />
 
       {/* Court order compliance (collapsible) */}
       {courtConditions.length > 0 && (
@@ -829,6 +844,9 @@ function ActivePhase({ visit, observations, courtConditions, busy, onAddObservat
           onError={onPhotoError}
         />
       </div>
+
+      {/* Rapid incident flags — Standard 5.20 violation categories */}
+      <QuickFlags onFlag={onAddObservation} busy={busy} />
 
       {/* Composer with voice input */}
       <ObservationComposer onSubmit={onAddObservation} busy={busy} />
@@ -934,6 +952,7 @@ function ObservationComposer({ onSubmit, busy }) {
             ))}
           </div>
           <div className="vw-composer-actions">
+            <VoiceRecorder onTranscript={(t) => setText((prev) => (prev ? prev + ' ' + t : t))} disabled={busy} />
             <button
               type="button"
               className="btn btn-secondary btn-sm"
