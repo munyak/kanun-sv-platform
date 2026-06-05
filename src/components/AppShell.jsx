@@ -93,6 +93,12 @@ const I = {
       <path d="M13.73 21a2 2 0 01-3.46 0" />
     </Icon>
   ),
+  billing: (
+    <Icon>
+      <path d="M5 3h14a1 1 0 011 1v17l-3-2-3 2-3-2-3 2V4a1 1 0 011-1z" />
+      <path d="M9 8h6M9 12h6" />
+    </Icon>
+  ),
 }
 
 /* ----- Role-aware navigation with icons ----- */
@@ -104,6 +110,7 @@ const NAV_BY_ROLE = {
     { to: '/visits', label: 'Schedule', icon: I.calendar },
     { to: '/monitors', label: 'Monitors', icon: I.monitors },
     { to: '/reports', label: 'Reports', icon: I.shield },
+    { to: '/billing', label: 'Billing', icon: I.billing },
     { to: '/team', label: 'Team', icon: I.team },
     { to: '/settings', label: 'Settings', icon: I.settings },
     { to: '/admin', label: 'Platform', icon: I.shield },
@@ -115,6 +122,7 @@ const NAV_BY_ROLE = {
     { to: '/visits', label: 'Schedule', icon: I.calendar },
     { to: '/monitors', label: 'Monitors', icon: I.monitors },
     { to: '/reports', label: 'Reports', icon: I.shield },
+    { to: '/billing', label: 'Billing', icon: I.billing },
     { to: '/team', label: 'Team', icon: I.team },
     { to: '/settings', label: 'Settings', icon: I.settings },
   ],
@@ -125,6 +133,7 @@ const NAV_BY_ROLE = {
     { to: '/visits', label: 'Schedule', icon: I.calendar },
     { to: '/monitors', label: 'Monitors', icon: I.monitors },
     { to: '/reports', label: 'Reports', icon: I.shield },
+    { to: '/billing', label: 'Billing', icon: I.billing },
     { to: '/team', label: 'Team', icon: I.team },
   ],
   monitor: [

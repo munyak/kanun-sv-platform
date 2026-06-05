@@ -357,7 +357,7 @@ export default function PlatformAdmin() {
                       {(orgDetail.cases || []).map((c, i) => (
                         <div key={i} className="admin-detail-row">
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 13, fontWeight: 500, fontFamily: 'var(--font-mono)', fontSize: 12 }}>{c.case_number}</div>
+                            <div style={{ fontSize: 12, fontWeight: 500, fontFamily: 'var(--font-mono)' }}>{c.case_number}</div>
                             <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{c.court_name || '—'}</div>
                           </div>
                           <span className={`badge badge-${statusDot(c.status)}`}>{(c.status || '—').replace(/_/g, ' ')}</span>

@@ -25,6 +25,7 @@ import Team from './pages/Team'
 import Settings from './pages/Settings'
 import ParentPortal from './pages/ParentPortal'
 import AttorneyPortal from './pages/AttorneyPortal'
+import Billing from './pages/Billing'
 const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
 export default function App() {
   return (
@@ -87,6 +88,10 @@ export default function App() {
           <Route
             path="/admin"
             element={<RequireRole allow={['platform_admin']} redirect><PlatformAdmin /></RequireRole>}
+          />
+          <Route
+            path="/billing"
+            element={<RequireRole allow={OWNER_ROLES} redirect><Billing /></RequireRole>}
           />
 
           {/* Monitor-only */}
