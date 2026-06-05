@@ -4933,3 +4933,218 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   box-shadow: var(--shadow-hover);
   border-color: var(--border-strong);
 }
+
+/* ============================================================
+   Voice Recorder
+   ============================================================ */
+.voice-recorder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 450;
+  transition: all 150ms ease;
+}
+.voice-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+.voice-btn.active {
+  background: var(--error-soft);
+  border-color: var(--error);
+  color: var(--error);
+}
+.voice-btn:disabled { opacity: 0.5; }
+.voice-btn-label { white-space: nowrap; }
+
+.voice-pulse {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  height: 20px;
+}
+.voice-pulse span {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--error);
+  animation: voicePulse 0.8s ease-in-out infinite;
+}
+.voice-pulse span:nth-child(1) { height: 8px; animation-delay: 0s; }
+.voice-pulse span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+.voice-pulse span:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+@keyframes voicePulse {
+  0%, 100% { transform: scaleY(0.6); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
+}
+
+.voice-interim {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.voice-error {
+  font-size: 12px;
+  color: var(--error);
+}
+
+/* ============================================================
+   GPS Tracker Bar
+   ============================================================ */
+.gps-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--r);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.gps-bar-left { display: flex; align-items: center; gap: 8px; }
+.gps-bar-status { color: var(--text-secondary); }
+.gps-bar-accuracy { color: var(--text-tertiary); font-family: var(--font-mono); font-size: 11px; }
+.gps-bar-error { color: var(--error); }
+
+.gps-pulse {
+  width: 10px;
+  height: 10px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gps-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: gpsBlink 2s ease-in-out infinite;
+}
+@keyframes gpsBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============================================================
+   Quick Flags
+   ============================================================ */
+.quick-flags {
+  margin: 12px 0;
+}
+.quick-flags-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.quick-flags-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.quick-flags-toggle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.quick-flags-toggle:hover { color: var(--text-secondary); }
+
+.quick-flags-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+@media (max-width: 640px) {
+  .quick-flags-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.quick-flag-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 4px;
+  border-radius: var(--r);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: all 150ms ease;
+}
+.quick-flag-btn:hover { border-color: var(--border-strong); background: var(--bg-subtle); }
+.quick-flag-btn.concern:hover { border-color: var(--warning); background: var(--warning-soft); }
+.quick-flag-btn.critical:hover { border-color: var(--error); background: var(--error-soft); }
+.quick-flag-btn:disabled { opacity: 0.5; }
+
+.quick-flag-icon { font-size: 18px; line-height: 1; }
+.quick-flag-label { font-size: 11px; color: var(--text-secondary); text-align: center; line-height: 1.2; }
+
+.quick-flag-confirm {
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-card);
+  overflow: hidden;
+}
+.quick-flag-confirm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--divider);
+}
+.quick-flag-severity {
+  font-size: 12px;
+  font-weight: 500;
+}
+.quick-flag-severity.critical { color: var(--error); }
+.quick-flag-severity.concern { color: var(--warning); }
+.quick-flag-close { color: var(--text-tertiary); font-size: 16px; }
+
+.quick-flag-confirm-body { padding: 12px 14px; }
+.quick-flag-confirm-desc {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.quick-flag-notes {
+  width: 100%;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  resize: none;
+}
+.quick-flag-notes:focus { outline: none; border-color: var(--text-tertiary); }
+
+.quick-flag-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--divider);
+}
+
+.btn-danger {
+  background: var(--error);
+  color: #fff;
+  border-color: var(--error);
+}
+.btn-danger:hover:not(:disabled) { background: #A3281F; }

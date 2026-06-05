@@ -173,20 +173,33 @@ export default function VisitDetail() {
     setLoading(true)
     try {
       const [vRes, oRes, rRes] = await Promise.all([
-        supabase.from('sv_visits').select(`*,
-          case:case_id(*,
-            custodial:custodial_party_id(first_name, last_name, phone, email),
-            noncustodial:noncustodial_party_id(first_name, last_name, phone, email),
-            children:sv_case_children(child:child_id(id, first_name, last_name, date_of_birth))),
-          monitor:monitor_id(id, first_name, last_name)`)
-          .eq('id', id).eq('org_id', activeOrgId).maybeSingle(),
-        supabase.from('sv_visit_observations').select('*')
-          .eq('visit_id', id).order('observed_at', { ascending: true }),
-        supabase.from('sv_reports').select('*')
-          .eq('visit_id', id).maybeSingle(),
+        supabase.from('sv_visits').select('*').eq('id', id).eq('org_id', activeOrgId).maybeSingle(),
+        supabase.from('sv_visit_observations').select('*').eq('visit_id', id).order('observed_at', { ascending: true }),
+        supabase.from('sv_reports').select('*').eq('visit_id', id).maybeSingle(),
       ])
       if (vRes.error) throw vRes.error
-      setVisit(vRes.data)
+      const visit = vRes.data
+      if (visit && visit.case_id) {
+        const { data: caseData } = await supabase.from('sv_cases').select('*').eq('id', visit.case_id).maybeSingle()
+        if (caseData) {
+          const [cpRes, npRes, chRes, monRes] = await Promise.all([
+            caseData.custodial_party_id ? supabase.from('sv_parties').select('first_name, last_name, phone, email').eq('id', caseData.custodial_party_id).maybeSingle() : { data: null },
+            caseData.noncustodial_party_id ? supabase.from('sv_parties').select('first_name, last_name, phone, email').eq('id', caseData.noncustodial_party_id).maybeSingle() : { data: null },
+            supabase.from('sv_case_children').select('child_id').eq('case_id', caseData.id),
+            visit.monitor_id ? supabase.from('sv_monitors').select('id, first_name, last_name').eq('id', visit.monitor_id).maybeSingle() : { data: null },
+          ])
+          caseData.custodial = cpRes.data
+          caseData.noncustodial = npRes.data
+          const childIds = (chRes.data || []).map(c => c.child_id).filter(Boolean)
+          if (childIds.length) {
+            const { data: kids } = await supabase.from('sv_children').select('id, first_name, last_name, date_of_birth').in('id', childIds)
+            caseData.children = (kids || []).map(k => ({ child: k }))
+          } else { caseData.children = [] }
+          visit.case = caseData
+          visit.monitor = monRes.data
+        }
+      }
+      setVisit(visit)
       setObservations(oRes.data || [])
       setReport(rRes.data || null)
     } catch (e) {

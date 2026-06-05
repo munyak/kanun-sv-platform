@@ -1,6 +1,7 @@
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
+import Billing from './pages/Billing'
 import { RequireAuth, RequireOrg, RequireRole, OWNER_ROLES } from './auth/ProtectedRoute'
 import AppShell from './components/AppShell'
 import Login from './pages/Login'
@@ -83,6 +84,10 @@ export default function App() {
           <Route
             path="/settings"
             element={<RequireRole allow={OWNER_ROLES} redirect><Settings /></RequireRole>}
+          />
+          <Route
+            path="/billing"
+            element={<RequireRole allow={OWNER_ROLES} redirect><Billing /></RequireRole>}
           />
           <Route
             path="/admin"
