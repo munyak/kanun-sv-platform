@@ -1,0 +1,77 @@
+/* IntroTour — first-login walkthrough overlay (self-contained; does not
+   modify global styles.css) */
+
+.tour-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 32, 0.55);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.tour-card {
+  background: var(--surface, #fff);
+  border-radius: 16px;
+  padding: 28px 24px 20px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  text-align: center;
+  animation: tour-pop 0.18s ease-out;
+}
+
+@keyframes tour-pop {
+  from { transform: scale(0.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.tour-icon { font-size: 40px; line-height: 1; margin-bottom: 12px; }
+
+.tour-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary, #14202b);
+}
+
+.tour-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary, #4a5a68);
+  min-height: 66px;
+}
+
+.tour-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.tour-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border, #d7dee5);
+  transition: background 0.15s;
+}
+
+.tour-dot.active { background: var(--primary, #2d6a4f); }
+
+.tour-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.tour-actions-right { display: flex; gap: 8px; }
+
+@media (max-width: 480px) {
+  .tour-card { padding: 22px 18px 16px; }
+  .tour-body { min-height: 80px; }
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth, roleLabel } from '../auth/AuthContext'
+import IntroTour from './IntroTour'
 
 /* ----- Lucide-style icons (inline SVG, stroke-current) ----- */
 const Icon = ({ d, children, size = 20 }) => (
@@ -309,6 +310,8 @@ export default function AppShell() {
           <Outlet />
         </main>
       </div>
+
+      <IntroTour />
 
       {sidebarOpen && <div className="shell-backdrop" onClick={() => setSidebarOpen(false)} />}
     </div>

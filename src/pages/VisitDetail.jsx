@@ -1086,7 +1086,7 @@ function CloseoutPhase({ visit, observations, busy, onSaveChecklist, onPartyDepa
       <div className="vw-card">
         <div className="vw-card-head">
           <div className="vw-card-title">Quick departure summary</div>
-          <div className="vw-card-sub">One-line takeaway (optional)</div>
+          <div className="vw-card-sub">One-line takeaway (optional) — type or dictate</div>
         </div>
         <textarea
           className="form-textarea vw-textarea"
@@ -1095,6 +1095,12 @@ function CloseoutPhase({ visit, observations, busy, onSaveChecklist, onPartyDepa
           onChange={(e) => saveNotes(e.target.value)}
           placeholder="Overall impression of how the visit went…"
         />
+        <div style={{ marginTop: 8 }}>
+          <VoiceRecorder
+            onTranscript={(t) => saveNotes(notes ? notes + ' ' + t : t)}
+            disabled={busy}
+          />
+        </div>
       </div>
 
       <div className="vw-card">
