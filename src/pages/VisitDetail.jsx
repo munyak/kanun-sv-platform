@@ -343,7 +343,7 @@ export default function VisitDetail() {
             } catch (e) { showToast(e.message, 'error'); return false }
           }}
           onSaveCompliance={(c) => patchVisit({ court_compliance: c })}
-          onCheckOut={async () => {
+          onCheckOut={async (gpsTrack) => {
             const pos = await tryGetPosition()
             const now = new Date()
             const start = visit.actual_start_time
@@ -359,7 +359,18 @@ export default function VisitDetail() {
               checkout_accuracy_m: pos?.accuracy ?? null,
               actual_duration_minutes: minutes,
             })
-            if (ok) showToast('Visit ended · time to wrap up')
+            if (ok) {
+              showToast('Visit ended · time to wrap up')
+              // Persist GPS breadcrumb trail as a separate, non-blocking write so a
+              // missing gps_track column can never break check-out.
+              if (Array.isArray(gpsTrack) && gpsTrack.length) {
+                const { error: gpsErr } = await supabase
+                  .from('sv_visits')
+                  .update({ gps_track: gpsTrack })
+                  .eq('id', visit.id)
+                if (gpsErr) console.warn('GPS track not saved (gps_track column may not exist yet):', gpsErr.message)
+              }
+            }
           }}
         />
       )}
@@ -852,7 +863,7 @@ function ActivePhase({ visit, observations, courtConditions, busy, onAddObservat
       <ObservationComposer onSubmit={onAddObservation} busy={busy} />
 
       <StickyAction>
-        <button className="btn btn-danger btn-xl vw-end-btn" onClick={onCheckOut} disabled={busy}>
+        <button className="btn btn-danger btn-xl vw-end-btn" onClick={() => onCheckOut(gps.stopTracking())} disabled={busy}>
           End visit
         </button>
       </StickyAction>
