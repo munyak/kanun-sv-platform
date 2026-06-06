@@ -173,8 +173,11 @@ export default function VisitDetail() {
 
   function showToast(m, kind = 'success') { setToast({ m, kind }); setTimeout(() => setToast(null), 3000) }
 
-  async function load() {
-    setLoading(true)
+  async function load(background = false) {
+    // background=true refreshes data WITHOUT unmounting the page. A full
+    // setLoading(true) swap destroys the observation composer mid-typing,
+    // closing the mobile keyboard and forcing the monitor to scroll back.
+    if (!background) setLoading(true)
     try {
       const [vRes, oRes, rRes] = await Promise.all([
         supabase.from('sv_visits').select('*').eq('id', id).eq('org_id', activeOrgId).maybeSingle(),
@@ -216,7 +219,7 @@ export default function VisitDetail() {
     try {
       const { error } = await supabase.from('sv_visits').update(patch).eq('id', visit.id)
       if (error) throw error
-      await load()
+      await load(true)
       return true
     } catch (e) { showToast(e.message, 'error'); return false }
     finally { setBusy(false) }
@@ -337,7 +340,7 @@ export default function VisitDetail() {
                 ...entry,
               })
               if (error) throw error
-              await load()
+              await load(true)
               if (entry.severity === 'critical') showToast('⚠ Critical incident logged', 'error')
               return true
             } catch (e) { showToast(e.message, 'error'); return false }

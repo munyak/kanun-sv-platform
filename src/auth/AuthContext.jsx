@@ -73,7 +73,20 @@ export function AuthProvider({ children }) {
       .select('id, org_id, role')
       .eq('user_id', uid)
     if (rolesErr) console.error('loadMemberships roles error:', rolesErr)
-    const rows = roleRows || []
+    let rows = roleRows || []
+    // No memberships? They may have a pending invitation created after their
+    // account existed (the signup trigger only fires on auth user creation).
+    if (rows.length === 0) {
+      const { data: accepted, error: accErr } = await supabase.rpc('accept_pending_invitations')
+      if (accErr) console.warn('accept_pending_invitations:', accErr.message)
+      if (accepted > 0) {
+        const retry = await supabase
+          .from('sv_user_roles')
+          .select('id, org_id, role')
+          .eq('user_id', uid)
+        rows = retry.data || []
+      }
+    }
     // Fetch org details separately to avoid PostgREST nested embed issues
     for (const row of rows) {
       if (row.org_id) {

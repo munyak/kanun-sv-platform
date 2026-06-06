@@ -18,6 +18,10 @@ const SpeechRecognition = typeof window !== 'undefined'
   ? window.SpeechRecognition || window.webkitSpeechRecognition
   : null
 
+const IS_IOS = typeof navigator !== 'undefined' &&
+  (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+
 export default function VoiceRecorder({ onTranscript, onStatusChange, disabled }) {
   const [listening, setListening] = useState(false)
   const [interim, setInterim] = useState('')
@@ -25,6 +29,19 @@ export default function VoiceRecorder({ onTranscript, onStatusChange, disabled }
   const [error, setError] = useState(null)
   const recognitionRef = useRef(null)
   const restartRef = useRef(false)
+  const restartTimerRef = useRef(null)
+  const lastStartRef = useRef(0)
+
+  // Keep latest callbacks in refs so the recognition instance is created
+  // exactly once and NEVER torn down by parent re-renders (the previous
+  // version rebuilt recognition on every keystroke because onTranscript
+  // was an inline arrow prop — mic appeared to "start then stop itself").
+  const onTranscriptRef = useRef(onTranscript)
+  const onStatusChangeRef = useRef(onStatusChange)
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript
+    onStatusChangeRef.current = onStatusChange
+  })
 
   useEffect(() => {
     if (!SpeechRecognition) {
@@ -33,7 +50,10 @@ export default function VoiceRecorder({ onTranscript, onStatusChange, disabled }
     }
 
     const recognition = new SpeechRecognition()
-    recognition.continuous = true
+    // iOS Safari does not honor continuous mode — it ends recognition after
+    // every utterance/pause regardless. Use short sessions + delayed
+    // auto-restart on iOS; true continuous elsewhere.
+    recognition.continuous = !IS_IOS
     recognition.interimResults = true
     recognition.lang = 'en-US'
     recognition.maxAlternatives = 1
@@ -41,18 +61,13 @@ export default function VoiceRecorder({ onTranscript, onStatusChange, disabled }
     recognition.onresult = (event) => {
       let interimText = ''
       let finalText = ''
-
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
-        if (event.results[i].isFinal) {
-          finalText += transcript
-        } else {
-          interimText += transcript
-        }
+        if (event.results[i].isFinal) finalText += transcript
+        else interimText += transcript
       }
-
       if (finalText) {
-        onTranscript?.(finalText.trim())
+        onTranscriptRef.current?.(finalText.trim())
         setInterim('')
       } else {
         setInterim(interimText)
@@ -60,34 +75,52 @@ export default function VoiceRecorder({ onTranscript, onStatusChange, disabled }
     }
 
     recognition.onstart = () => {
+      lastStartRef.current = Date.now()
       setListening(true)
       setError(null)
-      onStatusChange?.('listening')
+      onStatusChangeRef.current?.('listening')
     }
 
     recognition.onend = () => {
-      setListening(false)
       setInterim('')
-      // Auto-restart if still in recording mode (handles Chrome's ~60s timeout)
       if (restartRef.current) {
-        try {
-          recognition.start()
-        } catch (_) {
+        // If sessions are dying instantly (<500ms), something is wrong —
+        // don't spin in a start/stop loop.
+        const lived = Date.now() - lastStartRef.current
+        if (lived < 500) {
           restartRef.current = false
-          onStatusChange?.('stopped')
+          setListening(false)
+          onStatusChangeRef.current?.('stopped')
+          return
         }
+        // Delayed restart: calling start() synchronously inside onend
+        // throws/fails on iOS Safari. A short delay makes restart reliable
+        // on both iOS and Chrome (~60s session timeout).
+        clearTimeout(restartTimerRef.current)
+        restartTimerRef.current = setTimeout(() => {
+          if (!restartRef.current) return
+          try {
+            recognition.start()
+          } catch (_) {
+            restartRef.current = false
+            setListening(false)
+            onStatusChangeRef.current?.('stopped')
+          }
+        }, IS_IOS ? 350 : 150)
+        // Keep UI in "listening" state across the micro-gap
       } else {
-        onStatusChange?.('stopped')
+        setListening(false)
+        onStatusChangeRef.current?.('stopped')
       }
     }
 
     recognition.onerror = (event) => {
-      if (event.error === 'no-speech') {
-        // Silence — just restart
+      if (event.error === 'no-speech' || event.error === 'aborted') {
+        // Silence or programmatic stop — onend handles restart
         return
       }
-      if (event.error === 'not-allowed') {
-        setError('Microphone access denied. Check your browser permissions.')
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setError('Microphone access denied. Check Settings → Safari → Microphone.')
         setSupported(false)
       } else if (event.error === 'network') {
         setError('Network error — speech recognition requires internet.')
@@ -96,16 +129,17 @@ export default function VoiceRecorder({ onTranscript, onStatusChange, disabled }
       }
       setListening(false)
       restartRef.current = false
-      onStatusChange?.('error')
+      onStatusChangeRef.current?.('error')
     }
 
     recognitionRef.current = recognition
 
     return () => {
       restartRef.current = false
+      clearTimeout(restartTimerRef.current)
       try { recognition.stop() } catch (_) {}
     }
-  }, [onTranscript, onStatusChange])
+  }, [])
 
   const toggleListening = useCallback(() => {
     if (!recognitionRef.current) return
