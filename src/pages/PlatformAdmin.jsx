@@ -58,6 +58,11 @@ export default function PlatformAdmin() {
   const [orderCheckMonitor, setOrderCheckMonitor] = useState(null)
   const [orderBusy, setOrderBusy] = useState(false)
 
+  // Usage analytics
+  const [analytics, setAnalytics] = useState(null)
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const [analyticsDays, setAnalyticsDays] = useState(30)
+
   // Detail panels
   const [selectedOrg, setSelectedOrg] = useState(null)
   const [orgDetail, setOrgDetail] = useState(null)
@@ -150,6 +155,23 @@ export default function PlatformAdmin() {
     finally { setResetBusy(null) }
   }
 
+  async function loadAnalytics(days = analyticsDays) {
+    setAnalyticsLoading(true)
+    try {
+      const { data, error } = await supabase.rpc('platform_admin_usage_analytics', { p_days: days })
+      if (error) throw error
+      setAnalytics(data)
+    } catch (e) {
+      console.error('Analytics load:', e)
+      showToast(e.message || 'Failed to load analytics', 'error')
+    } finally { setAnalyticsLoading(false) }
+  }
+
+  // Load analytics when tab switches to it
+  useEffect(() => {
+    if (tab === 'analytics' && !analytics && !analyticsLoading) loadAnalytics()
+  }, [tab])
+
   if (role !== 'platform_admin') {
     return <div className="empty-state" style={{ marginTop: 64 }}><div className="empty-state-title">Not authorized</div></div>
   }
@@ -185,6 +207,7 @@ export default function PlatformAdmin() {
           { key: 'users', label: `Users (${users.length})` },
           { key: 'attention', label: `Needs attention${attentionCount ? ` (${attentionCount})` : ''}` },
           { key: 'background_checks', label: `Background checks (${bgChecks.length})` },
+          { key: 'analytics', label: 'Analytics' },
         ].map(t => (
           <button key={t.key} className={`admin-tab ${tab === t.key ? 'active' : ''}`} onClick={() => { setTab(t.key); setSelectedOrg(null); setSelectedUser(null) }}>{t.label}</button>
         ))}
@@ -640,6 +663,194 @@ export default function PlatformAdmin() {
         </div>
       )}
 
+      {/* ============ ANALYTICS TAB ============ */}
+      {tab === 'analytics' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Period selector */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Period:</span>
+            {[7, 30, 60, 90].map(d => (
+              <button key={d} className={`btn btn-sm ${analyticsDays === d ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => { setAnalyticsDays(d); loadAnalytics(d) }}>
+                {d}d
+              </button>
+            ))}
+            <div style={{ flex: 1 }} />
+            <button className="btn btn-sm btn-secondary" onClick={() => loadAnalytics(analyticsDays)} disabled={analyticsLoading}>
+              {analyticsLoading ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+
+          {analyticsLoading && !analytics ? (
+            <div className="loading" style={{ padding: 48 }}>Loading analytics...</div>
+          ) : analytics ? (
+            <>
+              {/* ── KPI Cards ── */}
+              <div className="stats-grid">
+                <StatCard label="Visits" value={analytics.visits_summary?.total || 0}
+                  sub={`${analytics.visits_summary?.completed || 0} completed · ${analytics.visits_summary?.completion_rate || 0}% rate`} />
+                <StatCard label="Observations" value={analytics.observations_summary?.total || 0}
+                  sub={`${analytics.observations_summary?.avg_per_visit || 0} avg per visit`} />
+                <StatCard label="Reports" value={analytics.reports_summary?.total || 0}
+                  sub={`${analytics.reports_summary?.approved || 0} approved · ${analytics.reports_summary?.draft || 0} draft`} />
+                <StatCard label="Active users (30d)" value={analytics.active_users?.active_last_30d || 0}
+                  sub={`${analytics.active_users?.active_last_7d || 0} in last 7 days`} />
+                <StatCard label="GPS check-ins" value={analytics.feature_adoption?.gps_checkins || 0}
+                  sub={`${analytics.feature_adoption?.photo_count || 0} photos captured`} />
+              </div>
+
+              {/* ── Visit Trend Chart (simple bar) ── */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">Visit volume — last {analyticsDays} days</div>
+                </div>
+                <div className="card-body" style={{ padding: '16px 20px' }}>
+                  <VisitTrendChart data={analytics.daily_visits || []} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                {/* ── Feature Adoption ── */}
+                <div className="card">
+                  <div className="card-header">
+                    <div className="card-title">Feature adoption</div>
+                  </div>
+                  <div className="card-body" style={{ padding: 0 }}>
+                    <FeatureRow label="GPS check-in" value={analytics.feature_adoption?.gps_checkins || 0} icon="📍" />
+                    <FeatureRow label="GPS check-out" value={analytics.feature_adoption?.gps_checkouts || 0} icon="🏁" />
+                    <FeatureRow label="Quick flags" value={analytics.feature_adoption?.quick_flags || 0} icon="🚩" />
+                    <FeatureRow label="Photo evidence" value={analytics.feature_adoption?.photo_count || 0} icon="📸" />
+                    <FeatureRow label="Total observations" value={analytics.feature_adoption?.total_observations || 0} icon="📝" />
+                  </div>
+                </div>
+
+                {/* ── Observation Breakdown ── */}
+                <div className="card">
+                  <div className="card-header">
+                    <div className="card-title">Observation breakdown</div>
+                  </div>
+                  <div className="card-body" style={{ padding: 0 }}>
+                    <FeatureRow label="Normal observations" value={analytics.observations_summary?.normal || 0} icon="✅" />
+                    <FeatureRow label="Concerns flagged" value={analytics.observations_summary?.concerns || 0} icon="⚠️" />
+                    <FeatureRow label="Critical incidents" value={analytics.observations_summary?.critical || 0} icon="🔴" />
+                    <FeatureRow label="Avg per visit" value={analytics.observations_summary?.avg_per_visit || 0} icon="📊" />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Monitor Leaderboard ── */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">Monitor activity</div>
+                  <span className="badge badge-blue">{(analytics.monitor_activity || []).length} monitors</span>
+                </div>
+                <div className="card-body-flush">
+                  {(analytics.monitor_activity || []).length === 0 ? (
+                    <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>No monitor activity in this period</div>
+                  ) : (
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Monitor</th>
+                          <th>Organization</th>
+                          <th style={{ textAlign: 'right' }}>Visits</th>
+                          <th style={{ textAlign: 'right' }}>Completed</th>
+                          <th style={{ textAlign: 'right' }}>Observations</th>
+                          <th>GPS</th>
+                          <th>Last active</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(analytics.monitor_activity || []).map((m, i) => (
+                          <tr key={i}>
+                            <td className="cell-strong">{m.first_name} {m.last_name}</td>
+                            <td>{m.org_name}</td>
+                            <td style={{ textAlign: 'right' }}>{m.visit_count}</td>
+                            <td style={{ textAlign: 'right' }}>{m.completed_visits}</td>
+                            <td style={{ textAlign: 'right' }}>{m.observation_count}</td>
+                            <td>{m.used_gps ? <span style={{ color: 'var(--success)' }}>✓</span> : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}</td>
+                            <td className="cell-muted">{fmtRelative(m.last_active_date)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+
+              {/* ── Org Usage Breakdown ── */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">Usage by organization</div>
+                </div>
+                <div className="card-body-flush">
+                  {(analytics.org_usage || []).length === 0 ? (
+                    <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>No organization data</div>
+                  ) : (
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Organization</th>
+                          <th style={{ textAlign: 'right' }}>Active monitors</th>
+                          <th style={{ textAlign: 'right' }}>Total users</th>
+                          <th style={{ textAlign: 'right' }}>Visits</th>
+                          <th style={{ textAlign: 'right' }}>Completed</th>
+                          <th>Last visit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(analytics.org_usage || []).map((o, i) => (
+                          <tr key={i}>
+                            <td className="cell-strong">{o.org_name}</td>
+                            <td style={{ textAlign: 'right' }}>{o.active_monitors}</td>
+                            <td style={{ textAlign: 'right' }}>{o.total_users}</td>
+                            <td style={{ textAlign: 'right' }}>{o.visit_count}</td>
+                            <td style={{ textAlign: 'right' }}>{o.completed_visits}</td>
+                            <td className="cell-muted">{fmtRelative(o.last_visit_date)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+
+              {/* ── Active Users ── */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">User engagement</div>
+                </div>
+                <div className="card-body">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-primary)' }}>{analytics.active_users?.total_users || 0}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>Total users</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--success)' }}>{analytics.active_users?.active_last_7d || 0}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>Active (7d)</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--accent)' }}>{analytics.active_users?.active_last_30d || 0}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>Active (30d)</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--error)' }}>{analytics.active_users?.never_logged_in || 0}</div>
+                      <div style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 2 }}>Never logged in</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ padding: 48, textAlign: 'center', color: 'var(--text-tertiary)' }}>
+              <div style={{ fontSize: 14, marginBottom: 8 }}>Click to load usage analytics</div>
+              <button className="btn btn-primary" onClick={() => loadAnalytics()}>Load analytics</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Order check modal */}
       {orderCheckMonitor && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setOrderCheckMonitor(null)}>
@@ -735,4 +946,55 @@ function BgResultBadge({ result }) {
   const map = { clear: 'green', CLEAR: 'green', review: 'yellow', REVIEW: 'yellow', fail: 'red', FAIL: 'red' }
   const color = map[result] || 'gray'
   return <span className={`badge badge-${color}`}>{result}</span>
+}
+
+/* ---- Analytics chart components ---- */
+
+function VisitTrendChart({ data }) {
+  if (!data || data.length === 0) {
+    return <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>No visit data in this period</div>
+  }
+  const maxVal = Math.max(...data.map(d => d.total), 1)
+  // Show at most last 30 data points
+  const displayData = data.slice(-30)
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 120, overflow: 'hidden' }}>
+      {displayData.map((d, i) => {
+        const height = Math.max((d.total / maxVal) * 100, 2)
+        const completedH = d.total > 0 ? (d.completed / d.total) * height : 0
+        const cancelledH = d.total > 0 ? (d.cancelled / d.total) * height : 0
+        const otherH = height - completedH - cancelledH
+        const dayLabel = new Date(d.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        return (
+          <div key={i} style={{ flex: 1, minWidth: 8, maxWidth: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}
+            title={`${dayLabel}: ${d.total} visits (${d.completed} completed)`}>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {otherH > 0 && <div style={{ height: otherH, background: 'var(--accent-soft)', borderRadius: '2px 2px 0 0' }} />}
+              {cancelledH > 0 && <div style={{ height: cancelledH, background: 'var(--error-soft)' }} />}
+              {completedH > 0 && <div style={{ height: completedH, background: 'var(--success)', borderRadius: completedH === height ? '2px 2px 2px 2px' : '0 0 2px 2px', opacity: 0.7 }} />}
+            </div>
+            {displayData.length <= 14 && (
+              <div style={{ fontSize: 9, color: 'var(--text-tertiary)', whiteSpace: 'nowrap', transform: 'rotate(-45deg)', transformOrigin: 'top center', marginTop: 4 }}>
+                {new Date(d.day).getDate()}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function FeatureRow({ label, value, icon }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12,
+      padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)',
+      fontSize: 13,
+    }}>
+      <span style={{ fontSize: 16, width: 24, textAlign: 'center' }}>{icon}</span>
+      <span style={{ flex: 1, color: 'var(--text-secondary)' }}>{label}</span>
+      <span style={{ fontWeight: 550, fontVariantNumeric: 'tabular-nums', color: 'var(--text-primary)' }}>{value}</span>
+    </div>
+  )
 }

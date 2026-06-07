@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import MonitorOnboarding from '../components/MonitorOnboarding'
 
 /* ----- Lucide-style icon helpers ----- */
 const Svg = ({ size = 18, children }) => (
@@ -685,6 +686,7 @@ function nextActionForVisit(v) {
 
 function MonitorDashboard({ user }) {
   const { activeOrgId } = useAuth()
+  const nav = useNavigate()
   const [loading, setLoading] = useState(true)
   const [today, setToday] = useState([])
   const [upcoming, setUpcoming] = useState([])
@@ -798,6 +800,9 @@ function MonitorDashboard({ user }) {
           <div className="page-subtitle">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
         </div>
       </div>
+
+      {/* Onboarding checklist — shows until all steps complete or dismissed */}
+      <MonitorOnboarding monitorId={monitorId} onNavigateProfile={() => nav('/my-profile')} />
 
       {!monitorId && (
         <div className="confidential-banner">
