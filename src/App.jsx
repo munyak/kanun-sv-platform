@@ -1,6 +1,8 @@
-import React from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
+import { initAnalytics, trackPageView } from './lib/analytics'
+import Landing from './pages/Landing'
 import { RequireAuth, RequireOrg, RequireRole, OWNER_ROLES } from './auth/ProtectedRoute'
 import AppShell from './components/AppShell'
 import Login from './pages/Login'
@@ -27,10 +29,22 @@ import ParentPortal from './pages/ParentPortal'
 import AttorneyPortal from './pages/AttorneyPortal'
 import Billing from './pages/Billing'
 const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
+
+/* GA4: init once + page_view on every SPA route change (no-op unless
+   VITE_GA_MEASUREMENT_ID is configured) */
+function AnalyticsTracker() {
+  const location = useLocation()
+  useEffect(() => { initAnalytics() }, [])
+  useEffect(() => { trackPageView(location.pathname) }, [location.pathname])
+  return null
+}
+
 export default function App() {
   return (
     <AuthProvider>
+      <AnalyticsTracker />
       <Routes>
+        <Route path="/welcome" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

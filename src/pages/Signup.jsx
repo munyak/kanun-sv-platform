@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../supabase'
+import { trackEvent } from '../lib/analytics'
 import AuthShell from '../components/AuthShell'
 
 export default function Signup() {
@@ -27,6 +28,7 @@ export default function Signup() {
         },
       })
       if (error) throw error
+      trackEvent('sign_up', { method: 'password' })
       if (data.session) {
         nav('/onboarding', { replace: true })
       } else {
