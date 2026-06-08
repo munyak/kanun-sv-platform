@@ -7,7 +7,7 @@ Prepared: May 24, 2026
 
 ## Executive Summary
 
-The current deployed MVP (kanun-monitoring.netlify.app) is an internal case management tool — single-user, no auth, no multi-tenancy, no onboarding. To compete at SimplePractice's maturity level and surpass VisitProof, the platform needs a ground-up architecture redesign covering multi-tenant organization management, role-based access, self-service onboarding, client-facing portals, mobile-first monitor tooling, and court/attorney read-only access.
+The current deployed MVP (kanunmonitoring.com — hosted on Netlify) is an internal case management tool — single-user, no auth, no multi-tenancy, no onboarding. To compete at SimplePractice's maturity level and surpass VisitProof, the platform needs a ground-up architecture redesign covering multi-tenant organization management, role-based access, self-service onboarding, client-facing portals, mobile-first monitor tooling, and court/attorney read-only access.
 
 This document defines the target architecture, feature set, user roles, and phased build plan.
 
