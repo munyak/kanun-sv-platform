@@ -8,6 +8,8 @@ export default function Signup() {
   const nav = useNavigate()
   const [searchParams] = useSearchParams()
   const prefilledEmail = searchParams.get('email') || ''
+  // If the URL has ?email=, this person was invited — they're joining, not creating an agency.
+  const isInvited = !!prefilledEmail
   const [name, setName] = useState('')
   const [email, setEmail] = useState(prefilledEmail)
   const [password, setPassword] = useState('')
@@ -30,7 +32,17 @@ export default function Signup() {
       if (error) throw error
       trackEvent('sign_up', { method: 'password' })
       if (data.session) {
-        nav('/onboarding', { replace: true })
+        // Check if this user has a pending invitation (i.e. they were invited
+        // as a monitor, attorney, etc.). If so, accept the invitation and go
+        // straight to the dashboard — skip the agency-owner onboarding.
+        const { data: accepted } = await supabase.rpc('accept_pending_invitations')
+        if (accepted && accepted > 0) {
+          // Invitation accepted — they now have a role + org. Go to dashboard.
+          nav('/', { replace: true })
+        } else {
+          // No invitation — new agency owner. Run the onboarding wizard.
+          nav('/onboarding', { replace: true })
+        }
       } else {
         setMsg('Check your email to confirm your account, then sign in.')
       }
@@ -42,7 +54,12 @@ export default function Signup() {
   }
 
   return (
-    <AuthShell title="Create your account" subtitle="Get your agency set up in minutes.">
+    <AuthShell
+      title={isInvited ? 'Join your team' : 'Create your account'}
+      subtitle={isInvited
+        ? 'Your agency has invited you. Create your login to get started.'
+        : 'Get your agency set up in minutes.'}
+    >
       <form onSubmit={submit} className="auth-form">
         <div className="form-group">
           <label className="form-label">Your name</label>
@@ -51,7 +68,9 @@ export default function Signup() {
         <div className="form-group">
           <label className="form-label">Email</label>
           <input type="email" required className="form-input" value={email}
-            onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+            onChange={(e) => setEmail(e.target.value)} autoComplete="email"
+            readOnly={isInvited} style={isInvited ? { background: 'var(--bg-subtle)', cursor: 'not-allowed' } : undefined} />
+          {isInvited && <span className="form-help">This email matches your invitation — don't change it.</span>}
         </div>
         <div className="form-group">
           <label className="form-label">Password</label>
@@ -64,7 +83,7 @@ export default function Signup() {
         {msg && <div className="auth-success">{msg}</div>}
 
         <button className="btn btn-primary auth-submit" disabled={busy}>
-          {busy ? 'Creating…' : 'Create account'}
+          {busy ? 'Creating…' : isInvited ? 'Join team' : 'Create account'}
         </button>
 
         <div className="auth-footer">

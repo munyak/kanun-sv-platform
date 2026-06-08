@@ -70,6 +70,27 @@ export default function Onboarding() {
     let cancelled = false
     async function init() {
       if (!user) return
+
+      // If the user already has a role (e.g. they were an invited monitor who
+      // accepted via accept_pending_invitations), skip onboarding entirely —
+      // they don't need to create an org.
+      if (hasOrg && activeOrgId) {
+        const { data: roles } = await supabase
+          .from('sv_user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+        if (cancelled) return
+        const isOwnerTier = roles?.some(r =>
+          ['platform_admin', 'agency_owner', 'agency_manager'].includes(r.role)
+        )
+        // Non-owner roles (monitors, attorneys, etc.) should never see
+        // the agency-creation onboarding wizard — send them to dashboard.
+        if (!isOwnerTier) {
+          nav('/', { replace: true })
+          return
+        }
+      }
+
       const { data: row } = await supabase
         .from('sv_onboarding_progress')
         .select('*')
