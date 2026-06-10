@@ -89,6 +89,9 @@ export default function Signup() {
         <div className="auth-footer">
           Already have an account? <Link to="/login">Sign in</Link>
         </div>
+        <div className="auth-footer" style={{ marginTop: 4, fontSize: 11, opacity: 0.6 }}>
+          By signing up you agree to our <Link to="/terms">Terms</Link> and <Link to="/privacy">Privacy Policy</Link>
+        </div>
       </form>
     </AuthShell>
   )

@@ -79,6 +79,9 @@ export default function Login() {
         <div className="auth-footer">
           New here? <Link to="/signup">Create an account</Link>
         </div>
+        <div className="auth-footer" style={{ marginTop: 4, fontSize: 11, opacity: 0.6 }}>
+          <Link to="/terms">Terms of Service</Link> · <Link to="/privacy">Privacy Policy</Link>
+        </div>
       </form>
     </AuthShell>
   )

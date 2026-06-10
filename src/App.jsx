@@ -28,6 +28,8 @@ import Settings from './pages/Settings'
 import ParentPortal from './pages/ParentPortal'
 import AttorneyPortal from './pages/AttorneyPortal'
 import Billing from './pages/Billing'
+import TermsOfService from './pages/TermsOfService'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
 
 /* GA4: init once + page_view on every SPA route change (no-op unless
@@ -50,6 +52,8 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Public portals — accessed via token, no Supabase auth required */}
         <Route path="/portal/parent/:token" element={<ParentPortal />} />

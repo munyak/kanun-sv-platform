@@ -57,6 +57,10 @@ export default function PlatformAdmin() {
   const [bgChecks, setBgChecks] = useState([])
   const [orderCheckMonitor, setOrderCheckMonitor] = useState(null)
   const [orderBusy, setOrderBusy] = useState(false)
+  const [checkForm, setCheckForm] = useState({
+    date_of_birth: '', address: '', city: '', province_state: '',
+    county: '', postal_code: '', sin_ssn: '', check_type: 'us_criminal_tier1',
+  })
 
   // Usage analytics
   const [analytics, setAnalytics] = useState(null)
@@ -122,6 +126,10 @@ export default function PlatformAdmin() {
   }
 
   async function handleOrderCheck(monitor) {
+    if (!checkForm.address || !checkForm.city || !checkForm.province_state || !checkForm.county || !checkForm.postal_code || !checkForm.sin_ssn || !checkForm.date_of_birth) {
+      showToast('Please fill in all required fields', 'error')
+      return
+    }
     setOrderBusy(true)
     try {
       const { data, error } = await supabase.functions.invoke('certn-proxy', {
@@ -132,13 +140,22 @@ export default function PlatformAdmin() {
           first_name: monitor.first_name,
           last_name: monitor.last_name,
           email: monitor.email,
-          check_type: 'criminal_record',
+          date_of_birth: checkForm.date_of_birth,
+          check_type: checkForm.check_type,
+          address: checkForm.address,
+          city: checkForm.city,
+          province_state: checkForm.province_state,
+          county: checkForm.county,
+          postal_code: checkForm.postal_code,
+          country: 'US',
+          sin_ssn: checkForm.sin_ssn.replace(/[^0-9]/g, ''),
         },
       })
       if (error) throw error
       if (data?.error) throw new Error(data.error)
       showToast(`Background check ordered for ${monitor.first_name} ${monitor.last_name}`)
       setOrderCheckMonitor(null)
+      setCheckForm({ date_of_birth: '', address: '', city: '', province_state: '', county: '', postal_code: '', sin_ssn: '', check_type: 'us_criminal_tier1' })
       load()
     } catch (e) {
       showToast(e.message || 'Failed to order check', 'error')
@@ -651,10 +668,10 @@ export default function PlatformAdmin() {
             </div>
             <div className="card-body">
               <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
-                <p style={{ marginBottom: 12 }}>To activate background checks, you need a Certn API key. Sign up at <a href="https://certn.co" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>certn.co</a> and add your API key to the Supabase Edge Function environment variables:</p>
+                <p style={{ marginBottom: 12 }}>Background checks are powered by Certn. To order a check, navigate to an organization, select a monitor, and click "Order background check". You will need the monitor's address, date of birth, and SSN.</p>
                 <div style={{ background: 'var(--bg-subtle)', padding: '12px 16px', borderRadius: 'var(--r)', fontFamily: 'var(--font-mono)', fontSize: 12, marginBottom: 12 }}>
-                  CERTN_API_KEY=your_api_key_here<br/>
-                  CERTN_BASE_URL=https://api.ca.certn.co
+                  Status: Connected to Certn API<br/>
+                  Check types: US Criminal Tier 1-3, International
                 </div>
                 <p>Checks include: criminal record (CA DOJ + FBI), sex offender registry, identity verification, and global watchlist/sanctions screening. Results typically return in 1-3 business days.</p>
               </div>
@@ -853,20 +870,82 @@ export default function PlatformAdmin() {
 
       {/* Order check modal */}
       {orderCheckMonitor && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setOrderCheckMonitor(null)}>
-          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--r-lg)', padding: 24, maxWidth: 420, width: '90%', boxShadow: 'var(--shadow-pop)' }} onClick={e => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', overflowY: 'auto', padding: '24px 0' }} onClick={() => setOrderCheckMonitor(null)}>
+          <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--r-lg)', padding: 24, maxWidth: 520, width: '92%', boxShadow: 'var(--shadow-pop)', margin: 'auto' }} onClick={e => e.stopPropagation()}>
             <h3 style={{ fontSize: 16, fontWeight: 550, marginBottom: 4 }}>Order background check</h3>
             <p style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: 16 }}>
-              This will order a criminal record check, identity verification, and watchlist screening for {orderCheckMonitor.first_name} {orderCheckMonitor.last_name} via Certn.
+              Submit details for {orderCheckMonitor.first_name} {orderCheckMonitor.last_name} to run a US criminal record check via Certn.
             </p>
-            <div className="admin-kv-grid" style={{ marginBottom: 16 }}>
-              <KV label="Name" value={`${orderCheckMonitor.first_name} ${orderCheckMonitor.last_name}`} />
-              <KV label="Email" value={orderCheckMonitor.email || '—'} />
+
+            {/* Check type */}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Check type</label>
+              <select value={checkForm.check_type} onChange={e => setCheckForm(f => ({ ...f, check_type: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }}>
+                <option value="us_criminal_tier1">US Criminal - Tier 1 (National)</option>
+                <option value="us_criminal_tier2">US Criminal - Tier 2 (County)</option>
+                <option value="us_criminal_tier3">US Criminal - Tier 3 (Federal)</option>
+                <option value="international_criminal">International Criminal</option>
+              </select>
             </div>
+
+            {/* Personal info row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Date of birth *</label>
+                <input type="date" value={checkForm.date_of_birth} onChange={e => setCheckForm(f => ({ ...f, date_of_birth: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>SSN *</label>
+                <input type="text" placeholder="XXX-XX-XXXX" maxLength={11} value={checkForm.sin_ssn} onChange={e => setCheckForm(f => ({ ...f, sin_ssn: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }} />
+              </div>
+            </div>
+
+            {/* Address */}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>Street address *</label>
+              <input type="text" placeholder="123 Main St" value={checkForm.address} onChange={e => setCheckForm(f => ({ ...f, address: e.target.value }))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }} />
+            </div>
+
+            {/* City + State */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>City *</label>
+                <input type="text" placeholder="Los Angeles" value={checkForm.city} onChange={e => setCheckForm(f => ({ ...f, city: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>State *</label>
+                <input type="text" placeholder="CA" maxLength={2} value={checkForm.province_state} onChange={e => setCheckForm(f => ({ ...f, province_state: e.target.value.toUpperCase() }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }} />
+              </div>
+            </div>
+
+            {/* County + Zip */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>County *</label>
+                <input type="text" placeholder="Los Angeles" value={checkForm.county} onChange={e => setCheckForm(f => ({ ...f, county: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)', display: 'block', marginBottom: 4 }}>ZIP code *</label>
+                <input type="text" placeholder="90001" maxLength={10} value={checkForm.postal_code} onChange={e => setCheckForm(f => ({ ...f, postal_code: e.target.value }))}
+                  style={{ width: '100%', padding: '8px 10px', borderRadius: 'var(--r)', border: '1px solid var(--border)', background: 'var(--bg-page)', color: 'var(--text-primary)', fontSize: 13 }} />
+              </div>
+            </div>
+
+            <div style={{ padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--r)', marginBottom: 16, fontSize: 12, color: 'var(--text-tertiary)', lineHeight: 1.5 }}>
+              SSN and personal data are sent directly to Certn via encrypted connection and are not stored in KaNun Monitoring.
+            </div>
+
             <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary" onClick={() => setOrderCheckMonitor(null)}>Cancel</button>
+              <button className="btn btn-secondary" onClick={() => { setOrderCheckMonitor(null); setCheckForm({ date_of_birth: '', address: '', city: '', province_state: '', county: '', postal_code: '', sin_ssn: '', check_type: 'us_criminal_tier1' }) }}>Cancel</button>
               <button className="btn btn-primary" onClick={() => handleOrderCheck(orderCheckMonitor)} disabled={orderBusy}>
-                {orderBusy ? 'Ordering...' : 'Order check ($13.99)'}
+                {orderBusy ? 'Ordering...' : 'Order check'}
               </button>
             </div>
           </div>

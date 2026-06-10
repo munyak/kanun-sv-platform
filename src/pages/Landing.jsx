@@ -132,7 +132,9 @@ export default function Landing() {
 
         <footer className="lp-footer">
           <div>© {new Date().getFullYear()} KaNun Digital · Supervised Visitation Platform</div>
-          <div>
+          <div style={{ display: 'flex', gap: 16 }}>
+            <Link to="/terms" style={{ color: 'inherit' }}>Terms</Link>
+            <Link to="/privacy" style={{ color: 'inherit' }}>Privacy</Link>
             <a href="mailto:mkanaventi@gmail.com" onClick={cta('cta_contact_click')}>Contact</a>
           </div>
         </footer>
