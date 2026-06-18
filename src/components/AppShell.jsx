@@ -100,6 +100,15 @@ const I = {
       <path d="M9 8h6M9 12h6" />
     </Icon>
   ),
+  academy: (
+    <Icon>
+      <path d="M12 3l10 5v2H2V8l10-5z" />
+      <rect x="4" y="10" width="3" height="8" />
+      <rect x="10.5" y="10" width="3" height="8" />
+      <rect x="17" y="10" width="3" height="8" />
+      <path d="M2 18h20v3H2z" />
+    </Icon>
+  ),
 }
 
 /* ----- Role-aware navigation with icons ----- */
@@ -114,6 +123,7 @@ const NAV_BY_ROLE = {
     { to: '/billing', label: 'Billing', icon: I.billing },
     { to: '/team', label: 'Team', icon: I.team },
     { to: '/settings', label: 'Settings', icon: I.settings },
+    { to: '/academy', label: 'Academy', icon: I.academy },
     { to: '/admin', label: 'Platform', icon: I.shield },
   ],
   agency_owner: [
@@ -126,6 +136,7 @@ const NAV_BY_ROLE = {
     { to: '/billing', label: 'Billing', icon: I.billing },
     { to: '/team', label: 'Team', icon: I.team },
     { to: '/settings', label: 'Settings', icon: I.settings },
+    { to: '/academy', label: 'Academy', icon: I.academy },
   ],
   agency_manager: [
     { to: '/', label: 'Dashboard', icon: I.dashboard, exact: true },
@@ -136,12 +147,14 @@ const NAV_BY_ROLE = {
     { to: '/reports', label: 'Reports', icon: I.shield },
     { to: '/billing', label: 'Billing', icon: I.billing },
     { to: '/team', label: 'Team', icon: I.team },
+    { to: '/academy', label: 'Academy', icon: I.academy },
   ],
   monitor: [
     { to: '/', label: 'My Day', icon: I.sun, exact: true },
     { to: '/visits', label: 'My Visits', icon: I.calendar },
     { to: '/cases', label: 'My Cases', icon: I.folder },
     { to: '/my-profile', label: 'My Profile', icon: I.team },
+    { to: '/academy', label: 'Academy', icon: I.academy },
   ],
   parent: [{ to: '/', label: 'My Visits', icon: I.calendar, exact: true }],
   attorney: [

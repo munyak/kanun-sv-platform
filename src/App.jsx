@@ -28,6 +28,10 @@ import Settings from './pages/Settings'
 import ParentPortal from './pages/ParentPortal'
 import AttorneyPortal from './pages/AttorneyPortal'
 import Billing from './pages/Billing'
+import Academy from './pages/Academy'
+import AcademyScenario from './pages/AcademyScenario'
+import AcademyTutor from './pages/AcademyTutor'
+import AcademyQuiz from './pages/AcademyQuiz'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
@@ -116,6 +120,24 @@ export default function App() {
           <Route
             path="/my-profile"
             element={<RequireRole allow={['monitor']} redirect><MonitorProfile /></RequireRole>}
+          />
+
+          {/* Academy — accessible to monitors + owners */}
+          <Route
+            path="/academy"
+            element={<RequireRole allow={OWNER_OR_MONITOR} redirect><Academy /></RequireRole>}
+          />
+          <Route
+            path="/academy/scenario"
+            element={<RequireRole allow={OWNER_OR_MONITOR} redirect><AcademyScenario /></RequireRole>}
+          />
+          <Route
+            path="/academy/tutor"
+            element={<RequireRole allow={OWNER_OR_MONITOR} redirect><AcademyTutor /></RequireRole>}
+          />
+          <Route
+            path="/academy/quiz"
+            element={<RequireRole allow={OWNER_OR_MONITOR} redirect><AcademyQuiz /></RequireRole>}
           />
         </Route>
 
