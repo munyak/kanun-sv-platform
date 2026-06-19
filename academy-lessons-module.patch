@@ -1,0 +1,1490 @@
+diff --git a/db/migrations/0010_academy_lesson_feedback.sql b/db/migrations/0010_academy_lesson_feedback.sql
+new file mode 100644
+index 0000000..fec2482
+--- /dev/null
++++ b/db/migrations/0010_academy_lesson_feedback.sql
+@@ -0,0 +1,45 @@
++-- ============================================================
++-- KaNun Academy — Lesson Feedback & Cache Tables
++-- Migration 0010
++-- ============================================================
++
++-- Lesson content cache — stores generated lessons for consistency
++CREATE TABLE IF NOT EXISTS academy_lesson_cache (
++  id            uuid DEFAULT gen_random_uuid() PRIMARY KEY,
++  org_id        uuid REFERENCES organizations(id) ON DELETE CASCADE,
++  domain_id     int NOT NULL,
++  topic_index   int NOT NULL,
++  topic_name    text NOT NULL,
++  content_json  jsonb NOT NULL,         -- full lesson JSON from LLM
++  version       int DEFAULT 1,
++  generated_at  timestamptz DEFAULT now(),
++  UNIQUE(org_id, domain_id, topic_index)
++);
++ALTER TABLE academy_lesson_cache ENABLE ROW LEVEL SECURITY;
++CREATE POLICY "org members can read lessons"
++  ON academy_lesson_cache FOR SELECT
++  USING (org_id IN (SELECT org_id FROM profiles WHERE id = auth.uid()));
++
++-- Lesson feedback — reviewer ratings and comments per section
++CREATE TABLE IF NOT EXISTS academy_lesson_feedback (
++  id            uuid DEFAULT gen_random_uuid() PRIMARY KEY,
++  user_id       uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
++  org_id        uuid REFERENCES organizations(id) ON DELETE CASCADE,
++  lesson_cache_id uuid REFERENCES academy_lesson_cache(id) ON DELETE CASCADE,
++  domain_id     int NOT NULL,
++  topic_index   int NOT NULL,
++  section_id    text NOT NULL,
++  rating        int CHECK (rating BETWEEN 1 AND 4),
++  comment       text,
++  status        text DEFAULT 'pending' CHECK (status IN ('pending','reviewed','applied')),
++  created_at    timestamptz DEFAULT now()
++);
++ALTER TABLE academy_lesson_feedback ENABLE ROW LEVEL SECURITY;
++CREATE POLICY "users can manage own feedback"
++  ON academy_lesson_feedback FOR ALL
++  USING (user_id = auth.uid());
++
++-- Indexes
++CREATE INDEX idx_lesson_cache_org_domain ON academy_lesson_cache(org_id, domain_id);
++CREATE INDEX idx_lesson_feedback_user ON academy_lesson_feedback(user_id, domain_id);
++CREATE INDEX idx_lesson_feedback_lesson ON academy_lesson_feedback(lesson_cache_id);
+diff --git a/netlify/functions/llm.js b/netlify/functions/llm.js
+index 19e69cc..7ea7b13 100644
+--- a/netlify/functions/llm.js
++++ b/netlify/functions/llm.js
+@@ -1,21 +1,95 @@
+ /**
+  * KaNun Academy — LLM Proxy (Netlify Serverless Function)
+  * Proxies requests to Anthropic Claude API for:
++ *   - Lesson content generation
+  *   - Scenario generation & evaluation
+  *   - Socratic tutoring
+  *   - Practice quiz generation
+  *   - Report review
+  *
+  * Set ANTHROPIC_API_KEY in Netlify env vars.
+- * Optionally set LLM_MODEL (default: claude-sonnet-4-20250514)
++ * Optionally set LLM_MODEL (default: claude-sonnet-4-6)
+  */
+ 
+ const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
+-const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
++const DEFAULT_MODEL = 'claude-sonnet-4-6';
+ 
+ // ─── System prompts per mode ───
+ 
+ const SYSTEM_PROMPTS = {
++  lesson: `You are the KaNun Academy Curriculum Engine — you generate structured, comprehensive lesson content for supervised visitation monitor certification training.
++
++Your role: Create professional, evidence-based lesson content that trains monitors to handle real-world supervised visitation situations competently and safely.
++
++CONTENT STANDARDS:
++- Write at a professional training level — this is continuing education for working professionals
++- Ground everything in real standards: California Standard 5.20, CASVSP/SVN best practices, trauma-informed care principles
++- Use concrete, realistic examples from supervised visitation contexts
++- Include case studies that present realistic (not graphic) scenarios monitors will encounter
++- Be specific — vague generalities don't train competent monitors
++- Use trauma-informed, culturally sensitive language throughout
++- Cite applicable laws, standards, and frameworks by name where relevant
++
++OUTPUT FORMAT — Return a JSON object with this exact structure:
++{
++  "title": "Lesson title",
++  "domain": "Domain name",
++  "topic": "Specific topic",
++  "estimatedMinutes": 25,
++  "sections": [
++    {
++      "id": "section-1",
++      "type": "overview",
++      "title": "Section title",
++      "content": "Rich text content with paragraphs. Use \\n\\n for paragraph breaks.",
++      "keyPoints": ["Key point 1", "Key point 2"]
++    },
++    {
++      "id": "section-2",
++      "type": "concepts",
++      "title": "Core Concepts",
++      "content": "Detailed concept explanation...",
++      "keyPoints": ["Concept 1", "Concept 2"]
++    },
++    {
++      "id": "section-3",
++      "type": "examples",
++      "title": "Real-World Examples",
++      "content": "Practical examples...",
++      "keyPoints": []
++    },
++    {
++      "id": "section-4",
++      "type": "case_study",
++      "title": "Case Study",
++      "content": "Detailed case study scenario...",
++      "discussion": ["Discussion question 1", "Discussion question 2"]
++    },
++    {
++      "id": "section-5",
++      "type": "best_practices",
++      "title": "Best Practices & Standards",
++      "content": "Standards and best practices...",
++      "keyPoints": ["Practice 1", "Practice 2"]
++    },
++    {
++      "id": "section-6",
++      "type": "reflection",
++      "title": "Reflection & Self-Assessment",
++      "questions": ["Reflection question 1", "Reflection question 2", "Reflection question 3"]
++    }
++  ],
++  "summary": "2-3 sentence lesson summary",
++  "prerequisites": ["Any prerequisite topics"],
++  "nextTopics": ["Suggested next topics to study"]
++}
++
++IMPORTANT:
++- Generate 5-7 sections per lesson with substantial content (each section should be 150-300 words)
++- Case studies should be detailed enough to feel real but never gratuitously violent or traumatic
++- Reflection questions should prompt genuine self-examination, not yes/no answers
++- Return ONLY the JSON object, no other text`,
++
+   scenario: `You are the KaNun Academy AI Scenario Simulator — a training tool for supervised visitation monitors.
+ 
+ Your role: Present realistic supervised visitation scenarios and evaluate monitor responses.
+@@ -109,7 +183,7 @@ export async function handler(event) {
+     return respond(400, { error: 'Invalid JSON body' });
+   }
+ 
+-  const { mode, messages, domain, difficulty, count, bloomsLevel } = body;
++  const { mode, messages, domain, difficulty, count, bloomsLevel, topic } = body;
+ 
+   if (!mode || !SYSTEM_PROMPTS[mode]) {
+     return respond(400, { error: `Invalid mode. Use: ${Object.keys(SYSTEM_PROMPTS).join(', ')}` });
+@@ -119,7 +193,19 @@ export async function handler(event) {
+   const systemPrompt = SYSTEM_PROMPTS[mode];
+   let userMessages = [];
+ 
+-  if (mode === 'quiz') {
++  if (mode === 'lesson') {
++    // Lesson generation mode
++    const domainName = domainNames[domain] || 'the specified domain';
++    const topicName = topic || 'the first topic in this domain';
++    userMessages = [{
++      role: 'user',
++      content: `Generate a comprehensive lesson for Domain ${domain || '1'}: ${domainName}, Topic: "${topicName}". 
++
++Create detailed, professional training content suitable for supervised visitation monitor certification. The lesson should be thorough enough that a monitor could learn this topic from scratch and be competent to apply it in the field.
++
++Return ONLY the JSON object, no other text.`
++    }];
++  } else if (mode === 'quiz') {
+     // Quiz mode: generate questions
+     const n = Math.min(count || 5, 10);
+     const domainName = domainNames[domain] || 'all domains';
+@@ -146,6 +232,7 @@ export async function handler(event) {
+ 
+   try {
+     const model = process.env.LLM_MODEL || DEFAULT_MODEL;
++    const maxTokens = mode === 'lesson' ? 8192 : 4096;
+     const resp = await fetch(ANTHROPIC_URL, {
+       method: 'POST',
+       headers: {
+@@ -155,7 +242,7 @@ export async function handler(event) {
+       },
+       body: JSON.stringify({
+         model,
+-        max_tokens: 4096,
++        max_tokens: maxTokens,
+         system: systemPrompt,
+         messages: userMessages,
+       }),
+diff --git a/src/App.jsx b/src/App.jsx
+index d465337..1c502c3 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -32,6 +32,7 @@ import Academy from './pages/Academy'
+ import AcademyScenario from './pages/AcademyScenario'
+ import AcademyTutor from './pages/AcademyTutor'
+ import AcademyQuiz from './pages/AcademyQuiz'
++import AcademyLesson from './pages/AcademyLesson'
+ import TermsOfService from './pages/TermsOfService'
+ import PrivacyPolicy from './pages/PrivacyPolicy'
+ const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
+@@ -139,6 +140,10 @@ export default function App() {
+             path="/academy/quiz"
+             element={<RequireRole allow={OWNER_OR_MONITOR} redirect><AcademyQuiz /></RequireRole>}
+           />
++          <Route
++            path="/academy/lesson"
++            element={<RequireRole allow={OWNER_OR_MONITOR} redirect><AcademyLesson /></RequireRole>}
++          />
+         </Route>
+ 
+         <Route path="*" element={<Navigate to="/" replace />} />
+diff --git a/src/components/academy.css b/src/components/academy.css
+index e68c4d4..717cf45 100644
+--- a/src/components/academy.css
++++ b/src/components/academy.css
+@@ -48,7 +48,18 @@
+   gap: 28px;
+ }
+ .academy-hero-content { flex: 1; }
++.academy-hero-badge {
++  font-size: 12px;
++  font-weight: 600;
++  text-transform: uppercase;
++  letter-spacing: 0.06em;
++  color: var(--text-on-accent);
++  opacity: 0.75;
++  margin-bottom: 4px;
++}
++.academy-hero h1,
+ .academy-hero h2 {
++  color: var(--text-on-accent);
+   font-size: 20px;
+   font-weight: 650;
+   letter-spacing: -0.02em;
+@@ -904,3 +915,602 @@
+   .score-axes { grid-template-columns: 1fr; }
+   .tool-grid { grid-template-columns: 1fr; }
+ }
++
++/* ============================================================
++   Lesson Viewer Styles
++   ============================================================ */
++
++/* ---------- Lesson loading ---------- */
++.lesson-loading {
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  justify-content: center;
++  min-height: 400px;
++  text-align: center;
++  gap: 12px;
++}
++.lesson-loading h2 {
++  font-size: 18px;
++  font-weight: 600;
++  color: var(--text-primary);
++}
++.lesson-loading p {
++  font-size: 14px;
++  color: var(--text-secondary);
++}
++.lesson-loading-sub { opacity: 0.6; font-size: 13px !important; }
++.lesson-loading-spinner {
++  width: 40px; height: 40px;
++  border: 3px solid var(--border-default);
++  border-top-color: var(--accent);
++  border-radius: 50%;
++  animation: spin 0.8s linear infinite;
++}
++@keyframes spin { to { transform: rotate(360deg); } }
++
++.lesson-error {
++  text-align: center;
++  padding: 60px 20px;
++}
++.lesson-error h2 { color: var(--text-primary); margin-bottom: 8px; }
++.lesson-error p { color: var(--text-secondary); margin-bottom: 16px; }
++
++/* ---------- Lesson header ---------- */
++.lesson-header {
++  border-left: 4px solid var(--accent);
++  padding: 20px 24px;
++  margin-bottom: 24px;
++  background: var(--surface-primary);
++  border-radius: 0 var(--r-lg) var(--r-lg) 0;
++}
++.lesson-header-meta {
++  display: flex;
++  align-items: center;
++  gap: 10px;
++  margin-bottom: 8px;
++}
++.lesson-domain-badge {
++  font-size: 11px;
++  font-weight: 600;
++  color: #fff;
++  padding: 3px 10px;
++  border-radius: 12px;
++  text-transform: uppercase;
++  letter-spacing: 0.04em;
++}
++.lesson-time {
++  font-size: 12px;
++  color: var(--text-secondary);
++}
++.lesson-complete-badge {
++  font-size: 12px;
++  font-weight: 600;
++  color: #16a34a;
++  background: #f0fdf4;
++  padding: 2px 10px;
++  border-radius: 12px;
++}
++.lesson-header h1 {
++  font-size: 22px;
++  font-weight: 650;
++  color: var(--text-primary);
++  margin-bottom: 6px;
++  letter-spacing: -0.02em;
++}
++.lesson-summary {
++  font-size: 14px;
++  color: var(--text-secondary);
++  line-height: 1.5;
++}
++
++/* ---------- Lesson layout ---------- */
++.lesson-layout {
++  display: flex;
++  gap: 24px;
++  margin-bottom: 32px;
++}
++.lesson-sidebar {
++  width: 220px;
++  flex-shrink: 0;
++  position: sticky;
++  top: 20px;
++  align-self: flex-start;
++}
++.lesson-sidebar-title {
++  font-size: 11px;
++  font-weight: 600;
++  text-transform: uppercase;
++  letter-spacing: 0.06em;
++  color: var(--text-secondary);
++  margin-bottom: 8px;
++  padding-left: 12px;
++}
++.lesson-nav-item {
++  all: unset;
++  cursor: pointer;
++  display: flex;
++  align-items: center;
++  gap: 10px;
++  padding: 8px 12px;
++  border-radius: var(--r-md);
++  font-size: 13px;
++  color: var(--text-secondary);
++  width: 100%;
++  box-sizing: border-box;
++  transition: all 0.15s ease;
++}
++.lesson-nav-item:hover { background: var(--surface-secondary); }
++.lesson-nav-item.active {
++  background: var(--accent-soft);
++  color: var(--accent);
++  font-weight: 600;
++}
++.lesson-nav-num {
++  width: 22px;
++  height: 22px;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  border-radius: 50%;
++  background: var(--border-default);
++  font-size: 11px;
++  font-weight: 600;
++  flex-shrink: 0;
++}
++.lesson-nav-item.active .lesson-nav-num {
++  background: var(--accent);
++  color: #fff;
++}
++.lesson-nav-label {
++  overflow: hidden;
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++/* ---------- Lesson content ---------- */
++.lesson-content {
++  flex: 1;
++  min-width: 0;
++}
++.lesson-section {
++  background: var(--surface-primary);
++  border-radius: var(--r-lg);
++  padding: 28px 32px;
++  border: 1px solid var(--border-default);
++}
++.lesson-section-header {
++  margin-bottom: 20px;
++  padding-bottom: 16px;
++  border-bottom: 1px solid var(--border-default);
++}
++.lesson-section-type {
++  font-size: 11px;
++  font-weight: 600;
++  text-transform: uppercase;
++  letter-spacing: 0.06em;
++  color: var(--text-secondary);
++  margin-bottom: 4px;
++  display: block;
++}
++.lesson-section-header h2 {
++  font-size: 18px;
++  font-weight: 650;
++  color: var(--text-primary);
++  letter-spacing: -0.01em;
++}
++.lesson-section-body p {
++  font-size: 14px;
++  line-height: 1.7;
++  color: var(--text-primary);
++  margin-bottom: 14px;
++}
++.lesson-section-body p:last-child { margin-bottom: 0; }
++
++/* Key points */
++.lesson-key-points,
++.lesson-discussion,
++.lesson-reflection {
++  margin-top: 20px;
++  padding: 16px 20px;
++  background: var(--surface-secondary);
++  border-radius: var(--r-md);
++  border: 1px solid var(--border-default);
++}
++.lesson-key-points h3,
++.lesson-discussion h3,
++.lesson-reflection h3 {
++  font-size: 13px;
++  font-weight: 650;
++  text-transform: uppercase;
++  letter-spacing: 0.04em;
++  color: var(--text-secondary);
++  margin-bottom: 10px;
++}
++.lesson-key-points ul,
++.lesson-discussion ol,
++.lesson-reflection ol {
++  padding-left: 20px;
++}
++.lesson-key-points li,
++.lesson-discussion li,
++.lesson-reflection li {
++  font-size: 14px;
++  line-height: 1.6;
++  color: var(--text-primary);
++  margin-bottom: 6px;
++}
++
++/* ---------- Section navigation ---------- */
++.lesson-section-nav {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  margin-top: 24px;
++  padding-top: 20px;
++  border-top: 1px solid var(--border-default);
++}
++.lesson-section-counter {
++  font-size: 13px;
++  color: var(--text-secondary);
++}
++.lesson-done-actions {
++  display: flex;
++  gap: 10px;
++}
++
++/* ---------- Topic nav footer ---------- */
++.lesson-topic-nav {
++  margin-top: 28px;
++  padding: 20px 24px;
++  background: var(--surface-primary);
++  border-radius: var(--r-lg);
++  border: 1px solid var(--border-default);
++}
++.lesson-topic-nav h3 {
++  font-size: 13px;
++  font-weight: 650;
++  text-transform: uppercase;
++  letter-spacing: 0.04em;
++  color: var(--text-secondary);
++  margin-bottom: 12px;
++}
++.lesson-topic-list {
++  display: flex;
++  flex-wrap: wrap;
++  gap: 8px;
++}
++.lesson-topic-pill {
++  all: unset;
++  cursor: pointer;
++  font-size: 13px;
++  padding: 6px 14px;
++  border-radius: 20px;
++  background: var(--surface-secondary);
++  color: var(--text-secondary);
++  border: 1px solid var(--border-default);
++  transition: all 0.15s ease;
++  text-decoration: none;
++}
++.lesson-topic-pill:hover { border-color: var(--accent); color: var(--accent); }
++.lesson-topic-pill.current {
++  background: var(--accent);
++  color: #fff;
++  border-color: var(--accent);
++}
++.lesson-topic-pill.done { color: #16a34a; border-color: #bbf7d0; background: #f0fdf4; }
++.topic-check { margin-right: 4px; }
++
++/* ---------- Feedback zone ---------- */
++.lesson-feedback-zone {
++  margin-top: 20px;
++  padding-top: 16px;
++  border-top: 1px dashed var(--border-default);
++}
++.feedback-trigger {
++  font-size: 12px !important;
++}
++.feedback-form {
++  background: var(--surface-secondary);
++  border-radius: var(--r-md);
++  padding: 16px 20px;
++  border: 1px solid var(--border-default);
++}
++.feedback-form h4 {
++  font-size: 14px;
++  font-weight: 650;
++  margin-bottom: 4px;
++}
++.feedback-hint {
++  font-size: 12px;
++  color: var(--text-secondary);
++  margin-bottom: 12px;
++}
++.feedback-rating {
++  display: flex;
++  gap: 6px;
++  margin-bottom: 12px;
++  flex-wrap: wrap;
++}
++.feedback-rating-btn {
++  all: unset;
++  cursor: pointer;
++  font-size: 12px;
++  padding: 5px 12px;
++  border-radius: var(--r-md);
++  border: 1px solid var(--border-default);
++  background: var(--surface-primary);
++  color: var(--text-secondary);
++  transition: all 0.15s ease;
++}
++.feedback-rating-btn:hover { border-color: var(--accent); }
++.feedback-rating-btn.active {
++  background: var(--accent);
++  color: #fff;
++  border-color: var(--accent);
++}
++.feedback-textarea {
++  width: 100%;
++  padding: 10px 12px;
++  border: 1px solid var(--border-default);
++  border-radius: var(--r-md);
++  font-size: 13px;
++  font-family: inherit;
++  resize: vertical;
++  margin-bottom: 10px;
++  box-sizing: border-box;
++}
++.feedback-textarea:focus { outline: none; border-color: var(--accent); }
++.feedback-actions {
++  display: flex;
++  gap: 8px;
++  justify-content: flex-end;
++}
++.feedback-submitted {
++  font-size: 13px;
++  color: #16a34a;
++  font-weight: 500;
++}
++
++/* ============================================================
++   Enrollment & Progress Dashboard
++   ============================================================ */
++.enrollment-banner {
++  background: linear-gradient(135deg, var(--surface-primary), var(--surface-secondary));
++  border: 2px dashed var(--border-default);
++  border-radius: var(--r-xl);
++  padding: 28px 32px;
++  margin-bottom: 24px;
++  text-align: center;
++}
++.enrollment-text h2 {
++  font-size: 18px;
++  font-weight: 650;
++  color: var(--text-primary);
++  margin-bottom: 6px;
++}
++.enrollment-text p {
++  font-size: 14px;
++  color: var(--text-secondary);
++  margin-bottom: 20px;
++  max-width: 520px;
++  margin-left: auto;
++  margin-right: auto;
++}
++.enrollment-tiers {
++  display: flex;
++  gap: 12px;
++  justify-content: center;
++  flex-wrap: wrap;
++}
++.enroll-tier-btn {
++  all: unset;
++  cursor: pointer;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  gap: 6px;
++  padding: 16px 24px;
++  border: 2px solid var(--border-default);
++  border-radius: var(--r-lg);
++  background: var(--surface-primary);
++  transition: all 0.2s ease;
++  min-width: 180px;
++}
++.enroll-tier-btn:hover {
++  border-color: var(--tier-color);
++  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
++}
++.enroll-tier-badge {
++  font-size: 14px;
++  font-weight: 700;
++  color: #fff;
++  padding: 4px 14px;
++  border-radius: 14px;
++}
++.enroll-tier-name {
++  font-size: 13px;
++  color: var(--text-primary);
++  font-weight: 500;
++}
++.enroll-cta {
++  font-size: 12px;
++  color: var(--text-secondary);
++  font-weight: 600;
++}
++
++/* Progress dashboard */
++.progress-dashboard {
++  margin-bottom: 20px;
++}
++.progress-bar-overall {
++  display: flex;
++  align-items: center;
++  gap: 14px;
++}
++.progress-bar-track {
++  flex: 1;
++  height: 8px;
++  background: var(--border-default);
++  border-radius: 4px;
++  overflow: hidden;
++}
++.progress-bar-fill {
++  height: 100%;
++  background: var(--accent);
++  border-radius: 4px;
++  transition: width 0.5s ease;
++}
++.progress-bar-label {
++  font-size: 13px;
++  color: var(--text-secondary);
++  white-space: nowrap;
++}
++
++/* Learning path */
++.learning-path {
++  display: flex;
++  flex-direction: column;
++  gap: 16px;
++}
++.domain-learn-card {
++  background: var(--surface-primary);
++  border: 1px solid var(--border-default);
++  border-left: 4px solid var(--domain-color);
++  border-radius: var(--r-lg);
++  padding: 20px 24px;
++}
++.domain-learn-header {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  margin-bottom: 16px;
++}
++.domain-learn-title {
++  display: flex;
++  align-items: center;
++  gap: 12px;
++}
++.domain-learn-title .domain-icon { font-size: 24px; }
++.domain-learn-title h3 {
++  font-size: 16px;
++  font-weight: 650;
++  color: var(--text-primary);
++  margin-bottom: 2px;
++}
++.domain-meta {
++  font-size: 12px;
++  color: var(--text-secondary);
++}
++.domain-learn-progress {
++  display: flex;
++  align-items: center;
++  gap: 8px;
++}
++.domain-pct {
++  font-size: 16px;
++  font-weight: 700;
++  color: var(--text-primary);
++}
++.domain-progress-ring {
++  width: 40px;
++  height: 40px;
++}
++.domain-progress-ring svg {
++  transform: rotate(-90deg);
++  width: 100%;
++  height: 100%;
++}
++
++/* Topic lesson links */
++.domain-topic-list {
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++  margin-bottom: 16px;
++}
++.topic-lesson-link {
++  display: flex;
++  align-items: center;
++  gap: 12px;
++  padding: 10px 14px;
++  border-radius: var(--r-md);
++  text-decoration: none;
++  color: var(--text-primary);
++  font-size: 14px;
++  transition: background 0.15s ease;
++}
++.topic-lesson-link:hover { background: var(--surface-secondary); }
++.topic-status {
++  width: 24px;
++  height: 24px;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  border-radius: 50%;
++  background: var(--border-default);
++  font-size: 12px;
++  font-weight: 600;
++  color: var(--text-secondary);
++  flex-shrink: 0;
++}
++.topic-lesson-link.done .topic-status {
++  background: #dcfce7;
++  color: #16a34a;
++}
++.topic-name { flex: 1; }
++.topic-action {
++  font-size: 12px;
++  color: var(--text-secondary);
++  font-weight: 500;
++  opacity: 0;
++  transition: opacity 0.15s ease;
++}
++.topic-lesson-link:hover .topic-action { opacity: 1; }
++
++/* Domain footer */
++.domain-learn-footer {
++  display: flex;
++  gap: 8px;
++  padding-top: 12px;
++  border-top: 1px solid var(--border-default);
++}
++
++/* Tier enrolled state */
++.tier-enrolled {
++  font-size: 13px;
++  font-weight: 600;
++  color: #16a34a;
++  margin-top: 12px;
++}
++
++/* ---------- Responsive ---------- */
++@media (max-width: 768px) {
++  .lesson-layout {
++    flex-direction: column;
++  }
++  .lesson-sidebar {
++    width: 100%;
++    position: static;
++    display: flex;
++    gap: 4px;
++    overflow-x: auto;
++    padding-bottom: 8px;
++  }
++  .lesson-sidebar-title { display: none; }
++  .lesson-nav-item {
++    white-space: nowrap;
++    flex-shrink: 0;
++  }
++  .lesson-section {
++    padding: 20px 16px;
++  }
++  .enrollment-tiers {
++    flex-direction: column;
++    align-items: stretch;
++  }
++  .enroll-tier-btn {
++    flex-direction: row;
++    justify-content: space-between;
++  }
++}
+diff --git a/src/lib/academy.js b/src/lib/academy.js
+index 099a6c6..4a34f3d 100644
+--- a/src/lib/academy.js
++++ b/src/lib/academy.js
+@@ -7,11 +7,11 @@ const LLM_ENDPOINT = '/.netlify/functions/llm';
+ /**
+  * Call the LLM proxy with a given mode and payload.
+  */
+-export async function callLLM({ mode, messages, domain, difficulty, count, bloomsLevel }) {
++export async function callLLM({ mode, messages, domain, difficulty, count, bloomsLevel, topic }) {
+   const resp = await fetch(LLM_ENDPOINT, {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+-    body: JSON.stringify({ mode, messages, domain, difficulty, count, bloomsLevel }),
++    body: JSON.stringify({ mode, messages, domain, difficulty, count, bloomsLevel, topic }),
+   });
+   if (!resp.ok) {
+     const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
+@@ -124,6 +124,28 @@ export const DOMAINS = [
+ 
+ export const TOTAL_HOURS = DOMAINS.reduce((s, d) => s + d.hours, 0); // 40
+ 
++/**
++ * Flatten all topics with domain references for lesson navigation.
++ */
++export function getAllTopics() {
++  const topics = [];
++  DOMAINS.forEach((d) => {
++    d.topics.forEach((t, idx) => {
++      topics.push({
++        id: `${d.id}-${idx}`,
++        domainId: d.id,
++        domainName: d.name,
++        domainShort: d.short,
++        domainIcon: d.icon,
++        domainColor: d.color,
++        topicName: t,
++        topicIndex: idx,
++      });
++    });
++  });
++  return topics;
++}
++
+ /**
+  * Certification tiers.
+  */
+diff --git a/src/pages/Academy.jsx b/src/pages/Academy.jsx
+index 3e76910..b46557a 100644
+--- a/src/pages/Academy.jsx
++++ b/src/pages/Academy.jsx
+@@ -1,16 +1,39 @@
+-import React, { useState } from 'react'
+-import { useNavigate } from 'react-router-dom'
+-import { DOMAINS, TOTAL_HOURS, TIERS } from '../lib/academy'
++import React, { useState, useEffect } from 'react'
++import { useNavigate, Link } from 'react-router-dom'
++import { DOMAINS, TOTAL_HOURS, TIERS, getAllTopics } from '../lib/academy'
+ import '../components/academy.css'
+ 
+ /**
+  * KaNun Academy — Main dashboard
+- * Shows the 5 competency domains, progress overview, and entry points
+- * to Scenario Simulator, AI Tutor, and Practice Quizzes.
++ * Shows enrollment, progress tracking, competency domains with lessons,
++ * and entry points to AI tools (Scenario, Tutor, Quiz).
+  */
+ export default function Academy() {
+   const nav = useNavigate()
+-  const [activeTab, setActiveTab] = useState('domains')
++  const [activeTab, setActiveTab] = useState('learn')
++  const [enrolled, setEnrolled] = useState(() => localStorage.getItem('academy_enrolled') || null)
++  const [progress, setProgress] = useState({})
++
++  // Calculate progress from localStorage
++  useEffect(() => {
++    const p = {};
++    DOMAINS.forEach((d) => {
++      const completed = d.topics.filter(
++        (_, i) => localStorage.getItem(`lesson_${d.id}_${i}`) === 'done'
++      ).length;
++      p[d.id] = { completed, total: d.topics.length, pct: Math.round((completed / d.topics.length) * 100) };
++    });
++    setProgress(p);
++  }, []);
++
++  const totalLessonsCompleted = Object.values(progress).reduce((s, p) => s + p.completed, 0);
++  const totalLessons = Object.values(progress).reduce((s, p) => s + p.total, 0);
++  const overallPct = totalLessons > 0 ? Math.round((totalLessonsCompleted / totalLessons) * 100) : 0;
++
++  function handleEnroll(tierKey) {
++    localStorage.setItem('academy_enrolled', tierKey);
++    setEnrolled(tierKey);
++  }
+ 
+   return (
+     <div className="academy-page">
+@@ -24,76 +47,154 @@ export default function Academy() {
+             Master five competency domains through interactive scenarios,
+             Socratic tutoring, and rigorous practice assessments.
+           </p>
+-          <div className="academy-hero-stats">
+-            <div className="stat-pill"><span className="stat-num">{DOMAINS.length}</span> Domains</div>
+-            <div className="stat-pill"><span className="stat-num">{TOTAL_HOURS}</span> Hours</div>
+-            <div className="stat-pill"><span className="stat-num">3</span> Certification Tiers</div>
+-          </div>
++          {enrolled ? (
++            <div className="academy-hero-stats">
++              <div className="stat-pill enrolled-stat">
++                <span className="stat-num">{overallPct}%</span> Complete
++              </div>
++              <div className="stat-pill">
++                <span className="stat-num">{totalLessonsCompleted}/{totalLessons}</span> Lessons
++              </div>
++              <div className="stat-pill enrolled-tier">
++                <span className="stat-num">{enrolled}</span> Track
++              </div>
++            </div>
++          ) : (
++            <div className="academy-hero-stats">
++              <div className="stat-pill"><span className="stat-num">{DOMAINS.length}</span> Domains</div>
++              <div className="stat-pill"><span className="stat-num">{TOTAL_HOURS}</span> Hours</div>
++              <div className="stat-pill"><span className="stat-num">3</span> Certification Tiers</div>
++            </div>
++          )}
+         </div>
+       </div>
+ 
+-      {/* Quick-launch tools */}
+-      <div className="academy-tools">
+-        <button className="tool-card tool-scenario" onClick={() => nav('/academy/scenario')}>
+-          <div className="tool-icon">🎭</div>
+-          <div className="tool-info">
+-            <h3>AI Scenario Simulator</h3>
+-            <p>Practice real-world supervised visitation scenarios with AI evaluation</p>
++      {/* Enrollment banner if not enrolled */}
++      {!enrolled && (
++        <div className="enrollment-banner">
++          <div className="enrollment-text">
++            <h2>Start Your Certification Journey</h2>
++            <p>Choose a certification tier to begin your structured learning path with AI-generated lessons, practice scenarios, and assessments.</p>
+           </div>
+-          <span className="tool-arrow">→</span>
+-        </button>
+-        <button className="tool-card tool-tutor" onClick={() => nav('/academy/tutor')}>
+-          <div className="tool-icon">🧠</div>
+-          <div className="tool-info">
+-            <h3>AI Tutor</h3>
+-            <p>Ask questions and learn through Socratic guidance</p>
++          <div className="enrollment-tiers">
++            {TIERS.map((t) => (
++              <button key={t.key} className="enroll-tier-btn" style={{ '--tier-color': t.color }} onClick={() => handleEnroll(t.key)}>
++                <span className="enroll-tier-badge" style={{ background: t.color }}>{t.key}</span>
++                <span className="enroll-tier-name">{t.name}</span>
++                <span className="enroll-cta">Enroll →</span>
++              </button>
++            ))}
+           </div>
+-          <span className="tool-arrow">→</span>
+-        </button>
+-        <button className="tool-card tool-quiz" onClick={() => nav('/academy/quiz')}>
+-          <div className="tool-icon">📝</div>
+-          <div className="tool-info">
+-            <h3>Practice Assessment</h3>
+-            <p>Test your knowledge with adaptive practice questions</p>
++        </div>
++      )}
++
++      {/* Progress dashboard (when enrolled) */}
++      {enrolled && (
++        <div className="progress-dashboard">
++          <div className="progress-bar-overall">
++            <div className="progress-bar-track">
++              <div className="progress-bar-fill" style={{ width: `${overallPct}%` }} />
++            </div>
++            <span className="progress-bar-label">{overallPct}% of lessons completed</span>
+           </div>
+-          <span className="tool-arrow">→</span>
+-        </button>
+-      </div>
++        </div>
++      )}
+ 
+       {/* Tab navigation */}
+       <div className="academy-tabs">
+-        <button className={`tab-btn ${activeTab === 'domains' ? 'active' : ''}`} onClick={() => setActiveTab('domains')}>
+-          Competency Domains
++        <button className={`tab-btn ${activeTab === 'learn' ? 'active' : ''}`} onClick={() => setActiveTab('learn')}>
++          Learning Path
++        </button>
++        <button className={`tab-btn ${activeTab === 'practice' ? 'active' : ''}`} onClick={() => setActiveTab('practice')}>
++          Practice Tools
+         </button>
+         <button className={`tab-btn ${activeTab === 'tiers' ? 'active' : ''}`} onClick={() => setActiveTab('tiers')}>
+           Certification Tiers
+         </button>
+       </div>
+ 
+-      {/* Domain cards */}
+-      {activeTab === 'domains' && (
+-        <div className="domain-grid">
+-          {DOMAINS.map(d => (
+-            <div key={d.id} className="domain-card" style={{ '--domain-color': d.color }}>
+-              <div className="domain-header">
+-                <span className="domain-icon">{d.icon}</span>
+-                <span className="domain-weight">{d.weight}</span>
+-              </div>
+-              <h3 className="domain-name">{d.name}</h3>
+-              <div className="domain-hours">{d.hours} hours</div>
+-              <ul className="domain-topics">
+-                {d.topics.map((t, i) => <li key={i}>{t}</li>)}
+-              </ul>
+-              <div className="domain-actions">
+-                <button className="btn-sm" onClick={() => nav(`/academy/scenario?domain=${d.id}`)}>
+-                  Practice Scenario
+-                </button>
+-                <button className="btn-sm btn-outline" onClick={() => nav(`/academy/quiz?domain=${d.id}`)}>
+-                  Take Quiz
+-                </button>
++      {/* Learning Path — domain cards with lesson links */}
++      {activeTab === 'learn' && (
++        <div className="learning-path">
++          {DOMAINS.map((d) => {
++            const dp = progress[d.id] || { completed: 0, total: d.topics.length, pct: 0 };
++            return (
++              <div key={d.id} className="domain-learn-card" style={{ '--domain-color': d.color }}>
++                <div className="domain-learn-header">
++                  <div className="domain-learn-title">
++                    <span className="domain-icon">{d.icon}</span>
++                    <div>
++                      <h3>{d.name}</h3>
++                      <span className="domain-meta">{d.hours} hours · {d.weight} of exam</span>
++                    </div>
++                  </div>
++                  <div className="domain-learn-progress">
++                    <span className="domain-pct">{dp.pct}%</span>
++                    <div className="domain-progress-ring">
++                      <svg viewBox="0 0 36 36">
++                        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#eee" strokeWidth="3" />
++                        <circle cx="18" cy="18" r="15.9" fill="none" stroke={d.color} strokeWidth="3"
++                          strokeDasharray={`${dp.pct} ${100 - dp.pct}`} strokeDashoffset="25"
++                          strokeLinecap="round" />
++                      </svg>
++                    </div>
++                  </div>
++                </div>
++                <div className="domain-topic-list">
++                  {d.topics.map((t, i) => {
++                    const isDone = localStorage.getItem(`lesson_${d.id}_${i}`) === 'done';
++                    return (
++                      <Link
++                        key={i}
++                        to={`/academy/lesson?domain=${d.id}&topic=${i}`}
++                        className={`topic-lesson-link ${isDone ? 'done' : ''}`}
++                      >
++                        <span className="topic-status">
++                          {isDone ? '✓' : (i + 1)}
++                        </span>
++                        <span className="topic-name">{t}</span>
++                        <span className="topic-action">{isDone ? 'Review' : 'Start Lesson'} →</span>
++                      </Link>
++                    );
++                  })}
++                </div>
++                <div className="domain-learn-footer">
++                  <Link className="btn-sm" to={`/academy/quiz?domain=${d.id}`}>Take Domain Quiz</Link>
++                  <Link className="btn-sm btn-outline" to={`/academy/scenario?domain=${d.id}`}>Practice Scenario</Link>
++                </div>
+               </div>
++            );
++          })}
++        </div>
++      )}
++
++      {/* Practice Tools */}
++      {activeTab === 'practice' && (
++        <div className="academy-tools">
++          <button className="tool-card tool-scenario" onClick={() => nav('/academy/scenario')}>
++            <div className="tool-icon">🎭</div>
++            <div className="tool-info">
++              <h3>AI Scenario Simulator</h3>
++              <p>Practice real-world supervised visitation scenarios with AI evaluation</p>
+             </div>
+-          ))}
++            <span className="tool-arrow">→</span>
++          </button>
++          <button className="tool-card tool-tutor" onClick={() => nav('/academy/tutor')}>
++            <div className="tool-icon">🧠</div>
++            <div className="tool-info">
++              <h3>AI Tutor</h3>
++              <p>Ask questions and learn through Socratic guidance</p>
++            </div>
++            <span className="tool-arrow">→</span>
++          </button>
++          <button className="tool-card tool-quiz" onClick={() => nav('/academy/quiz')}>
++            <div className="tool-icon">📝</div>
++            <div className="tool-info">
++              <h3>Practice Assessment</h3>
++              <p>Test your knowledge with adaptive practice questions</p>
++            </div>
++            <span className="tool-arrow">→</span>
++          </button>
+         </div>
+       )}
+ 
+@@ -110,6 +211,13 @@ export default function Academy() {
+                 {t.key === 'KACM' && '20 additional advanced hours. Requires 2 years / 500+ hours experience + active KCM.'}
+                 {t.key === 'KMM' && '30 additional hours. Master-level credential for program directors and lead monitors.'}
+               </div>
++              {enrolled === t.key ? (
++                <div className="tier-enrolled">✓ Currently Enrolled</div>
++              ) : (
++                <button className="btn-sm" onClick={() => handleEnroll(t.key)}>
++                  {enrolled ? 'Switch to This Tier' : 'Enroll'}
++                </button>
++              )}
+             </div>
+           ))}
+         </div>
+diff --git a/src/pages/AcademyLesson.jsx b/src/pages/AcademyLesson.jsx
+new file mode 100644
+index 0000000..5080d7c
+--- /dev/null
++++ b/src/pages/AcademyLesson.jsx
+@@ -0,0 +1,316 @@
++import { useState, useEffect } from 'react';
++import { useSearchParams, useNavigate, Link } from 'react-router-dom';
++import { callLLM, parseLLMJson, DOMAINS } from '../lib/academy';
++import '../components/academy.css';
++
++export default function AcademyLesson() {
++  const [params] = useSearchParams();
++  const navigate = useNavigate();
++  const domainId = Number(params.get('domain')) || 1;
++  const topicIdx = Number(params.get('topic')) || 0;
++
++  const domain = DOMAINS.find((d) => d.id === domainId) || DOMAINS[0];
++  const topicName = domain.topics[topicIdx] || domain.topics[0];
++
++  const [lesson, setLesson] = useState(null);
++  const [loading, setLoading] = useState(true);
++  const [error, setError] = useState(null);
++  const [activeSection, setActiveSection] = useState(0);
++  const [completed, setCompleted] = useState(() => {
++    const key = `lesson_${domainId}_${topicIdx}`;
++    return localStorage.getItem(key) === 'done';
++  });
++
++  // Feedback state (for reviewers like Jeneve)
++  const [feedbackOpen, setFeedbackOpen] = useState(null); // section id
++  const [feedbackText, setFeedbackText] = useState('');
++  const [feedbackRating, setFeedbackRating] = useState(null);
++  const [submittedFeedback, setSubmittedFeedback] = useState({});
++
++  useEffect(() => {
++    let cancelled = false;
++    setLoading(true);
++    setError(null);
++    setLesson(null);
++    setActiveSection(0);
++
++    callLLM({ mode: 'lesson', domain: domainId, topic: topicName })
++      .then((res) => {
++        if (cancelled) return;
++        const data = parseLLMJson(res.content);
++        setLesson(data);
++      })
++      .catch((err) => {
++        if (cancelled) return;
++        setError(err.message);
++      })
++      .finally(() => {
++        if (!cancelled) setLoading(false);
++      });
++
++    return () => { cancelled = true; };
++  }, [domainId, topicIdx, topicName]);
++
++  function handleComplete() {
++    const key = `lesson_${domainId}_${topicIdx}`;
++    localStorage.setItem(key, 'done');
++    setCompleted(true);
++  }
++
++  function handleFeedbackSubmit(sectionId) {
++    // Store feedback locally (in production this goes to Supabase)
++    const fb = JSON.parse(localStorage.getItem('lesson_feedback') || '{}');
++    const key = `${domainId}_${topicIdx}_${sectionId}`;
++    fb[key] = { rating: feedbackRating, comment: feedbackText, ts: Date.now() };
++    localStorage.setItem('lesson_feedback', JSON.stringify(fb));
++    setSubmittedFeedback((prev) => ({ ...prev, [sectionId]: true }));
++    setFeedbackOpen(null);
++    setFeedbackText('');
++    setFeedbackRating(null);
++  }
++
++  // Navigation helpers
++  const hasNext = topicIdx < domain.topics.length - 1;
++  const hasPrev = topicIdx > 0;
++
++  if (loading) {
++    return (
++      <div className="academy-page">
++        <button className="back-link" onClick={() => navigate('/academy')}>← Academy</button>
++        <div className="lesson-loading">
++          <div className="lesson-loading-spinner" />
++          <h2>Generating lesson content...</h2>
++          <p>Our AI is creating a comprehensive lesson on <strong>{topicName}</strong></p>
++          <p className="lesson-loading-sub">This may take 15-30 seconds</p>
++        </div>
++      </div>
++    );
++  }
++
++  if (error) {
++    return (
++      <div className="academy-page">
++        <button className="back-link" onClick={() => navigate('/academy')}>← Academy</button>
++        <div className="lesson-error">
++          <h2>Could not generate lesson</h2>
++          <p>{error}</p>
++          <button className="btn-primary" onClick={() => window.location.reload()}>Try Again</button>
++        </div>
++      </div>
++    );
++  }
++
++  if (!lesson) return null;
++
++  const sections = lesson.sections || [];
++  const currentSection = sections[activeSection];
++
++  return (
++    <div className="academy-page lesson-page">
++      <button className="back-link" onClick={() => navigate('/academy')}>← Academy</button>
++
++      {/* Lesson header */}
++      <div className="lesson-header" style={{ borderLeftColor: domain.color }}>
++        <div className="lesson-header-meta">
++          <span className="lesson-domain-badge" style={{ background: domain.color }}>
++            {domain.icon} {domain.short}
++          </span>
++          {lesson.estimatedMinutes && (
++            <span className="lesson-time">~{lesson.estimatedMinutes} min</span>
++          )}
++          {completed && <span className="lesson-complete-badge">✓ Completed</span>}
++        </div>
++        <h1>{lesson.title}</h1>
++        <p className="lesson-summary">{lesson.summary}</p>
++      </div>
++
++      {/* Section navigation */}
++      <div className="lesson-layout">
++        <nav className="lesson-sidebar">
++          <div className="lesson-sidebar-title">Sections</div>
++          {sections.map((s, i) => (
++            <button
++              key={s.id}
++              className={`lesson-nav-item ${i === activeSection ? 'active' : ''}`}
++              onClick={() => setActiveSection(i)}
++            >
++              <span className="lesson-nav-num">{i + 1}</span>
++              <span className="lesson-nav-label">{s.title}</span>
++            </button>
++          ))}
++        </nav>
++
++        {/* Section content */}
++        <div className="lesson-content">
++          {currentSection && (
++            <article className="lesson-section">
++              <div className="lesson-section-header">
++                <span className="lesson-section-type">{formatType(currentSection.type)}</span>
++                <h2>{currentSection.title}</h2>
++              </div>
++
++              {/* Main content */}
++              {currentSection.content && (
++                <div className="lesson-section-body">
++                  {currentSection.content.split('\n\n').map((p, i) => (
++                    <p key={i}>{p}</p>
++                  ))}
++                </div>
++              )}
++
++              {/* Key points */}
++              {currentSection.keyPoints && currentSection.keyPoints.length > 0 && (
++                <div className="lesson-key-points">
++                  <h3>Key Takeaways</h3>
++                  <ul>
++                    {currentSection.keyPoints.map((kp, i) => (
++                      <li key={i}>{kp}</li>
++                    ))}
++                  </ul>
++                </div>
++              )}
++
++              {/* Discussion questions (case study) */}
++              {currentSection.discussion && currentSection.discussion.length > 0 && (
++                <div className="lesson-discussion">
++                  <h3>Discussion Questions</h3>
++                  <ol>
++                    {currentSection.discussion.map((q, i) => (
++                      <li key={i}>{q}</li>
++                    ))}
++                  </ol>
++                </div>
++              )}
++
++              {/* Reflection questions */}
++              {currentSection.questions && currentSection.questions.length > 0 && (
++                <div className="lesson-reflection">
++                  <h3>Reflect on These Questions</h3>
++                  <ol>
++                    {currentSection.questions.map((q, i) => (
++                      <li key={i}>{q}</li>
++                    ))}
++                  </ol>
++                </div>
++              )}
++
++              {/* Feedback panel for reviewers */}
++              <div className="lesson-feedback-zone">
++                {submittedFeedback[currentSection.id] ? (
++                  <div className="feedback-submitted">✓ Feedback submitted for this section</div>
++                ) : feedbackOpen === currentSection.id ? (
++                  <div className="feedback-form">
++                    <h4>Content Feedback</h4>
++                    <p className="feedback-hint">Rate and comment on this section to help improve the curriculum.</p>
++                    <div className="feedback-rating">
++                      {['Needs Work', 'Acceptable', 'Good', 'Excellent'].map((label, i) => (
++                        <button
++                          key={i}
++                          className={`feedback-rating-btn ${feedbackRating === i + 1 ? 'active' : ''}`}
++                          onClick={() => setFeedbackRating(i + 1)}
++                        >
++                          {i + 1} — {label}
++                        </button>
++                      ))}
++                    </div>
++                    <textarea
++                      className="feedback-textarea"
++                      rows={3}
++                      placeholder="What should be changed, added, or removed? Be specific..."
++                      value={feedbackText}
++                      onChange={(e) => setFeedbackText(e.target.value)}
++                    />
++                    <div className="feedback-actions">
++                      <button className="btn-outline btn-sm" onClick={() => setFeedbackOpen(null)}>Cancel</button>
++                      <button
++                        className="btn-primary btn-sm"
++                        disabled={!feedbackRating}
++                        onClick={() => handleFeedbackSubmit(currentSection.id)}
++                      >
++                        Submit Feedback
++                      </button>
++                    </div>
++                  </div>
++                ) : (
++                  <button
++                    className="btn-outline btn-sm feedback-trigger"
++                    onClick={() => setFeedbackOpen(currentSection.id)}
++                  >
++                    📝 Leave Feedback on This Section
++                  </button>
++                )}
++              </div>
++
++              {/* Section navigation */}
++              <div className="lesson-section-nav">
++                {activeSection > 0 && (
++                  <button className="btn-outline" onClick={() => setActiveSection(activeSection - 1)}>
++                    ← Previous
++                  </button>
++                )}
++                <div className="lesson-section-counter">
++                  {activeSection + 1} of {sections.length}
++                </div>
++                {activeSection < sections.length - 1 ? (
++                  <button className="btn-primary" onClick={() => setActiveSection(activeSection + 1)}>
++                    Next →
++                  </button>
++                ) : !completed ? (
++                  <button className="btn-primary btn-lg" onClick={handleComplete}>
++                    ✓ Mark Lesson Complete
++                  </button>
++                ) : (
++                  <div className="lesson-done-actions">
++                    {hasNext && (
++                      <Link
++                        className="btn-primary"
++                        to={`/academy/lesson?domain=${domainId}&topic=${topicIdx + 1}`}
++                      >
++                        Next Lesson →
++                      </Link>
++                    )}
++                    <Link className="btn-outline" to={`/academy/quiz?domain=${domainId}`}>
++                      Take Quiz →
++                    </Link>
++                  </div>
++                )}
++              </div>
++            </article>
++          )}
++        </div>
++      </div>
++
++      {/* Topic navigation footer */}
++      <div className="lesson-topic-nav">
++        <h3>Topics in {domain.short}</h3>
++        <div className="lesson-topic-list">
++          {domain.topics.map((t, i) => {
++            const isDone = localStorage.getItem(`lesson_${domainId}_${i}`) === 'done';
++            return (
++              <Link
++                key={i}
++                to={`/academy/lesson?domain=${domainId}&topic=${i}`}
++                className={`lesson-topic-pill ${i === topicIdx ? 'current' : ''} ${isDone ? 'done' : ''}`}
++              >
++                {isDone && <span className="topic-check">✓</span>}
++                {t}
++              </Link>
++            );
++          })}
++        </div>
++      </div>
++    </div>
++  );
++}
++
++function formatType(type) {
++  const map = {
++    overview: 'Overview',
++    concepts: 'Core Concepts',
++    examples: 'Examples',
++    case_study: 'Case Study',
++    best_practices: 'Best Practices',
++    reflection: 'Reflection',
++  };
++  return map[type] || type;
++}
