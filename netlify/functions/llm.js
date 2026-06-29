@@ -1,21 +1,95 @@
 /**
  * KaNun Academy — LLM Proxy (Netlify Serverless Function)
  * Proxies requests to Anthropic Claude API for:
+ *   - Lesson content generation
  *   - Scenario generation & evaluation
  *   - Socratic tutoring
  *   - Practice quiz generation
  *   - Report review
  *
  * Set ANTHROPIC_API_KEY in Netlify env vars.
- * Optionally set LLM_MODEL (default: claude-sonnet-4-20250514)
+ * Optionally set LLM_MODEL (default: claude-sonnet-4-6)
  */
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
 
 // ─── System prompts per mode ───
 
 const SYSTEM_PROMPTS = {
+  lesson: `You are the KaNun Academy Curriculum Engine — you generate structured, comprehensive lesson content for supervised visitation monitor certification training.
+
+Your role: Create professional, evidence-based lesson content that trains monitors to handle real-world supervised visitation situations competently and safely.
+
+CONTENT STANDARDS:
+- Write at a professional training level — this is continuing education for working professionals
+- Ground everything in real standards: California Standard 5.20, CASVSP/SVN best practices, trauma-informed care principles
+- Use concrete, realistic examples from supervised visitation contexts
+- Include case studies that present realistic (not graphic) scenarios monitors will encounter
+- Be specific — vague generalities don't train competent monitors
+- Use trauma-informed, culturally sensitive language throughout
+- Cite applicable laws, standards, and frameworks by name where relevant
+
+OUTPUT FORMAT — Return a JSON object with this exact structure:
+{
+  "title": "Lesson title",
+  "domain": "Domain name",
+  "topic": "Specific topic",
+  "estimatedMinutes": 25,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "title": "Section title",
+      "content": "Rich text content with paragraphs. Use \\n\\n for paragraph breaks.",
+      "keyPoints": ["Key point 1", "Key point 2"]
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "Core Concepts",
+      "content": "Detailed concept explanation...",
+      "keyPoints": ["Concept 1", "Concept 2"]
+    },
+    {
+      "id": "section-3",
+      "type": "examples",
+      "title": "Real-World Examples",
+      "content": "Practical examples...",
+      "keyPoints": []
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study",
+      "content": "Detailed case study scenario...",
+      "discussion": ["Discussion question 1", "Discussion question 2"]
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Best Practices & Standards",
+      "content": "Standards and best practices...",
+      "keyPoints": ["Practice 1", "Practice 2"]
+    },
+    {
+      "id": "section-6",
+      "type": "reflection",
+      "title": "Reflection & Self-Assessment",
+      "questions": ["Reflection question 1", "Reflection question 2", "Reflection question 3"]
+    }
+  ],
+  "summary": "2-3 sentence lesson summary",
+  "prerequisites": ["Any prerequisite topics"],
+  "nextTopics": ["Suggested next topics to study"]
+}
+
+IMPORTANT:
+- Generate 5-7 sections per lesson with substantial content (each section should be 150-300 words)
+- Case studies should be detailed enough to feel real but never gratuitously violent or traumatic
+- Reflection questions should prompt genuine self-examination, not yes/no answers
+- Return ONLY the JSON object, no other text`,
+
   scenario: `You are the KaNun Academy AI Scenario Simulator — a training tool for supervised visitation monitors.
 
 Your role: Present realistic supervised visitation scenarios and evaluate monitor responses.
@@ -109,7 +183,7 @@ export async function handler(event) {
     return respond(400, { error: 'Invalid JSON body' });
   }
 
-  const { mode, messages, domain, difficulty, count, bloomsLevel } = body;
+  const { mode, messages, domain, difficulty, count, bloomsLevel, topic } = body;
 
   if (!mode || !SYSTEM_PROMPTS[mode]) {
     return respond(400, { error: `Invalid mode. Use: ${Object.keys(SYSTEM_PROMPTS).join(', ')}` });
@@ -119,7 +193,19 @@ export async function handler(event) {
   const systemPrompt = SYSTEM_PROMPTS[mode];
   let userMessages = [];
 
-  if (mode === 'quiz') {
+  if (mode === 'lesson') {
+    // Lesson generation mode
+    const domainName = domainNames[domain] || 'the specified domain';
+    const topicName = topic || 'the first topic in this domain';
+    userMessages = [{
+      role: 'user',
+      content: `Generate a comprehensive lesson for Domain ${domain || '1'}: ${domainName}, Topic: "${topicName}". 
+
+Create detailed, professional training content suitable for supervised visitation monitor certification. The lesson should be thorough enough that a monitor could learn this topic from scratch and be competent to apply it in the field.
+
+Return ONLY the JSON object, no other text.`
+    }];
+  } else if (mode === 'quiz') {
     // Quiz mode: generate questions
     const n = Math.min(count || 5, 10);
     const domainName = domainNames[domain] || 'all domains';
@@ -146,6 +232,7 @@ export async function handler(event) {
 
   try {
     const model = process.env.LLM_MODEL || DEFAULT_MODEL;
+    const maxTokens = 4096;
     const resp = await fetch(ANTHROPIC_URL, {
       method: 'POST',
       headers: {
@@ -155,7 +242,7 @@ export async function handler(event) {
       },
       body: JSON.stringify({
         model,
-        max_tokens: 4096,
+        max_tokens: maxTokens,
         system: systemPrompt,
         messages: userMessages,
       }),

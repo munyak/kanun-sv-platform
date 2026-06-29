@@ -7,11 +7,11 @@ const LLM_ENDPOINT = '/.netlify/functions/llm';
 /**
  * Call the LLM proxy with a given mode and payload.
  */
-export async function callLLM({ mode, messages, domain, difficulty, count, bloomsLevel }) {
+export async function callLLM({ mode, messages, domain, difficulty, count, bloomsLevel, topic }) {
   const resp = await fetch(LLM_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mode, messages, domain, difficulty, count, bloomsLevel }),
+    body: JSON.stringify({ mode, messages, domain, difficulty, count, bloomsLevel, topic }),
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({ error: 'Unknown error' }));
@@ -123,6 +123,28 @@ export const DOMAINS = [
 ];
 
 export const TOTAL_HOURS = DOMAINS.reduce((s, d) => s + d.hours, 0); // 40
+
+/**
+ * Flatten all topics with domain references for lesson navigation.
+ */
+export function getAllTopics() {
+  const topics = [];
+  DOMAINS.forEach((d) => {
+    d.topics.forEach((t, idx) => {
+      topics.push({
+        id: `${d.id}-${idx}`,
+        domainId: d.id,
+        domainName: d.name,
+        domainShort: d.short,
+        domainIcon: d.icon,
+        domainColor: d.color,
+        topicName: t,
+        topicIndex: idx,
+      });
+    });
+  });
+  return topics;
+}
 
 /**
  * Certification tiers.

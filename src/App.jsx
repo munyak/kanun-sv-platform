@@ -34,6 +34,7 @@ import Academy from './pages/Academy'
 import AcademyScenario from './pages/AcademyScenario'
 import AcademyTutor from './pages/AcademyTutor'
 import AcademyQuiz from './pages/AcademyQuiz'
+import AcademyLesson from './pages/AcademyLesson'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 const OWNER_OR_MONITOR = [...OWNER_ROLES, 'monitor']
@@ -147,6 +148,10 @@ export default function App() {
           <Route
             path="/academy/quiz"
             element={<RequireRole allow={OWNER_OR_MONITOR} redirect><AcademyQuiz /></RequireRole>}
+          />
+          <Route
+            path="/academy/lesson"
+            element={<RequireRole allow={OWNER_OR_MONITOR} redirect><AcademyLesson /></RequireRole>}
           />
         </Route>
 

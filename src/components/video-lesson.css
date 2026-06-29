@@ -1,0 +1,167 @@
+/* ─── Video Player ─── */
+.vl-player {
+  background: #1A1916;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+}
+.vl-player-header {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .75rem 1.25rem;
+  background: #1F2937;
+}
+.vl-player-icon { font-size: 1rem; }
+.vl-player-title {
+  font-size: .85rem; font-weight: 700; color: #fff;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.vl-video-wrap { position: relative; width: 100%; }
+.vl-video-wrap video {
+  width: 100%; display: block;
+  max-height: 400px; object-fit: contain;
+  background: #000;
+}
+
+/* ─── Generate Zone ─── */
+.vl-generate-zone {
+  margin: 1.5rem 0;
+}
+.vl-generate-btn {
+  width: 100%; padding: .85rem 1.25rem;
+  background: linear-gradient(135deg, #1F2937, #374151);
+  color: #fff; border: 2px dashed #4B5563;
+  border-radius: 12px; font-weight: 600; font-size: .95rem;
+  cursor: pointer; transition: all .2s;
+}
+.vl-generate-btn:hover {
+  border-color: #9CA3AF; background: linear-gradient(135deg, #374151, #4B5563);
+  transform: translateY(-1px);
+}
+
+/* ─── Generating State ─── */
+.vl-generating {
+  display: flex; align-items: center; gap: .75rem;
+  padding: 1rem 1.25rem;
+  background: #fafaf8; border: 2px solid #e5e2dc;
+  border-radius: 12px;
+}
+.vl-spinner {
+  width: 20px; height: 20px;
+  border: 3px solid #e5e2dc;
+  border-top-color: #2563A8;
+  border-radius: 50%;
+  animation: vlSpin 1s linear infinite;
+}
+@keyframes vlSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Error ─── */
+.vl-error {
+  padding: .75rem 1rem; border-radius: 8px;
+  background: #fde8e7; border: 1px solid #fca5a5;
+  color: #991b1b; font-size: .9rem; margin: .5rem 0;
+}
+
+/* ─── Generation Panel ─── */
+.vl-gen-panel {
+  background: #fafaf8; border: 2px solid #e5e2dc;
+  border-radius: 12px; padding: 1.5rem;
+  animation: fadeSlideIn .3s ease;
+}
+.vl-gen-title {
+  font-size: 1rem; font-weight: 700; color: #1A1916;
+  margin-bottom: 1rem;
+}
+.vl-gen-row {
+  margin-bottom: 1rem;
+}
+.vl-gen-row label {
+  display: block; font-size: .8rem; font-weight: 600;
+  color: #555; text-transform: uppercase; letter-spacing: .04em;
+  margin-bottom: .35rem;
+}
+.vl-gen-row select, .vl-gen-row textarea {
+  width: 100%; padding: .6rem .75rem;
+  border: 2px solid #e5e2dc; border-radius: 8px;
+  font-size: .9rem; font-family: inherit;
+  background: #fff; transition: border-color .15s;
+}
+.vl-gen-row select:focus, .vl-gen-row textarea:focus {
+  outline: none; border-color: #2563A8;
+}
+.vl-gen-row textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
+.vl-avatar-preview {
+  margin-bottom: 1rem; text-align: center;
+}
+.vl-avatar-preview img {
+  width: 120px; height: 120px; object-fit: cover;
+  border-radius: 50%; border: 3px solid #e5e2dc;
+}
+.vl-gen-meta {
+  font-size: .85rem; color: #888; margin-bottom: 1rem;
+  padding: .5rem .75rem; background: #f0f0ec; border-radius: 6px;
+}
+.vl-gen-actions {
+  display: flex; justify-content: flex-end; gap: .75rem;
+}
+.vl-btn-primary {
+  padding: .6rem 1.5rem; border-radius: 8px;
+  background: #1F2937; color: #fff; border: none;
+  font-weight: 600; cursor: pointer; transition: background .15s;
+}
+.vl-btn-primary:hover { background: #374151; }
+.vl-btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+.vl-btn-secondary {
+  padding: .6rem 1.25rem; border-radius: 8px;
+  background: #fff; color: #555; border: 2px solid #ddd;
+  font-weight: 600; cursor: pointer; transition: all .15s;
+}
+.vl-btn-secondary:hover { border-color: #999; }
+
+/* ─── Embed wrapper (YouTube / Vimeo) ─── */
+.vl-embed-wrap {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+}
+.vl-embed-wrap iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: none;
+}
+
+/* ─── Coming Soon Placeholder ─── */
+.vl-coming-soon {
+  display: flex; align-items: center; gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  margin: 1.5rem 0;
+  background: linear-gradient(135deg, #f8f7f5 0%, #f0efeb 100%);
+  border: 2px solid #e5e2dc;
+  border-radius: 12px;
+}
+.vl-coming-soon-icon {
+  flex-shrink: 0;
+  color: #9CA3AF;
+}
+.vl-coming-soon-text {
+  display: flex; flex-direction: column; gap: .35rem;
+}
+.vl-coming-soon-text strong {
+  font-size: .95rem; color: #374151;
+  letter-spacing: .02em;
+}
+.vl-coming-soon-text span {
+  font-size: .85rem; color: #6B7280;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .vl-coming-soon {
+    flex-direction: column; text-align: center; gap: .75rem;
+    padding: 1.25rem;
+  }
+}

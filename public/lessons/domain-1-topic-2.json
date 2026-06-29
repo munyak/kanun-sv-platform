@@ -1,0 +1,93 @@
+{
+  "title": "Confidentiality & HIPAA in Supervised Visitation",
+  "domain": "Legal & Ethical Foundations",
+  "topic": "Confidentiality & HIPAA",
+  "estimatedMinutes": 30,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "title": "The Critical Role of Confidentiality in Supervised Visitation",
+      "content": "Confidentiality is one of the most fundamental obligations a supervised visitation monitor carries. Families entering supervised visitation are often in the most vulnerable periods of their lives — navigating custody disputes, domestic violence, substance abuse recovery, or mental health crises. The information disclosed during visits, intake processes, and case management is deeply personal, and mishandling it can cause real harm: jeopardizing a parent's safety, undermining therapeutic progress, or violating legal rights.\n\nAt the same time, supervised visitation exists within a legal system that demands transparency. Courts need accurate visit reports to make custody determinations. Attorneys advocate for their clients using information from visits. Child protective services may require disclosures when child safety is at stake. This creates an inherent tension: monitors must protect privacy while fulfilling their duty to inform the court and protect children.\n\nThe legal foundations for confidentiality in supervised visitation in California draw from multiple sources. California Family Code Section 3200.5 and the Standards of Judicial Administration, Standard 5.20, establish the framework for supervised visitation programs, including confidentiality requirements. The California Information Practices Act (Civil Code Section 1798 et seq.) provides additional privacy protections for personal information held by state agencies and, by extension, shapes best practices for all programs handling sensitive family data. Understanding where these legal obligations intersect — and where they create competing duties — is essential for every monitor.",
+      "keyPoints": [
+        "Confidentiality protects families during their most vulnerable moments and is a core ethical obligation for monitors",
+        "A fundamental tension exists between protecting privacy and meeting court transparency requirements",
+        "California Family Code Section 3200.5 and Standard 5.20 establish the supervised visitation confidentiality framework",
+        "The California Information Practices Act provides additional privacy protections that shape program best practices",
+        "Mishandling confidential information can jeopardize parent safety, undermine therapeutic progress, and violate legal rights"
+      ],
+      "videoId": "6f4bcb1cb25644eeb504ad5dceb169d6"
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "HIPAA, State Privacy Law, and the Boundaries of Confidentiality",
+      "content": "HIPAA — the Health Insurance Portability and Accountability Act — is frequently misunderstood in the supervised visitation context. HIPAA applies to \"covered entities\": health care providers who transmit health information electronically, health plans, and health care clearinghouses. Most standalone supervised visitation programs are not covered entities under HIPAA. However, programs operated within or affiliated with hospitals, mental health clinics, or other health care organizations may fall under HIPAA's umbrella. Even when HIPAA does not technically apply, its principles — particularly the \"minimum necessary\" standard — represent best practices that all programs should adopt.\n\nProtected Health Information (PHI) includes any individually identifiable health information, such as mental health diagnoses, substance abuse treatment status, or medication information disclosed during visits. California's privacy protections often exceed federal HIPAA requirements. The Confidentiality of Medical Information Act (Civil Code Section 56 et seq.) and the Lanterman-Petris-Short Act provide robust protections for mental health and substance abuse records.\n\nCritically, confidentiality is not absolute. Monitors must break confidentiality when mandated reporting obligations arise under the Child Abuse and Neglect Reporting Act (Penal Code Section 11164 et seq.), when a valid court order compels disclosure, or when there is an imminent threat of serious harm. The minimum necessary standard requires that when disclosure is permitted, monitors share only the information strictly necessary to fulfill the specific purpose — nothing more. Information shared with courts should be limited to observed behaviors and factual observations, not clinical interpretations or privileged disclosures made by parents in confidence.",
+      "keyPoints": [
+        "Most standalone SV programs are not HIPAA-covered entities, but programs affiliated with health care organizations may be",
+        "The minimum necessary standard — sharing only what is strictly required — is a best practice for all programs regardless of HIPAA status",
+        "California privacy laws (CMIA, LPS Act) often provide stronger protections than federal HIPAA requirements",
+        "Confidentiality must be broken for mandated reporting, valid court orders, and imminent threats of serious harm",
+        "Visit reports should contain observed behaviors and factual observations, not clinical interpretations or privileged disclosures",
+        "Protected Health Information includes mental health diagnoses, substance abuse treatment, and medication information disclosed during visits"
+      ],
+      "videoId": "f7f47f079e1f4528bdc73c36b899e961"
+    },
+    {
+      "id": "section-3",
+      "type": "examples",
+      "title": "Real-World Confidentiality Scenarios in Supervised Visitation",
+      "content": "Scenario 1 — Address Request: During a monitored exchange, the custodial parent asks the monitor, \"Can you tell me where he is living now? I need to update the court paperwork.\" The monitor must decline. Even seemingly administrative information like a parent's address can be a safety issue, particularly in domestic violence cases. The correct response is to direct the parent to obtain the information through their attorney or the court.\n\nScenario 2 — Therapist Inquiry: A child's therapist calls the program asking for details about the child's behavior during recent visits, stating it would help with treatment planning. While the request seems reasonable, the monitor cannot share visit information without a valid signed release of information from the appropriate party (typically the parent with legal custody or both parents if joint). The therapist's professional status does not override consent requirements.\n\nScenario 3 — Attorney Records Request: The non-custodial parent's attorney sends a letter requesting all visit notes and intake documents. An attorney's representation of a party does not automatically grant access to program records. The monitor should verify whether a valid authorization signed by the client exists, or whether a court order compels the disclosure. Without either, the request must be declined with a written explanation.\n\nScenario 4 — Subpoena for Records: The program receives a subpoena duces tecum for all visit records related to a specific family. A subpoena is not the same as a court order. The program should immediately consult legal counsel, notify the affected parties, and consider filing a motion to quash if the subpoena is overly broad or seeks privileged information. Records should not be released solely on the basis of a subpoena without legal review.",
+      "keyPoints": [],
+      "videoId": "f2551ed988d14b338c56a7eff95ba599"
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study: Navigating Competing Confidentiality Obligations",
+      "content": "Maria is a supervised visitation monitor at a community-based program in Sacramento. She supervises visits between David (non-custodial parent) and his two children, ages 6 and 9. During a recent visit, David became tearful and disclosed to Maria that he has been struggling with severe depression and recently started taking antidepressant medication. He asked Maria not to include this in her report, saying, \"My ex will use it against me to take the kids away permanently.\"\n\nTwo days later, Maria receives a phone call from Jennifer Chen, an attorney representing David's ex-wife, Lisa. Attorney Chen states that she is preparing for an upcoming custody hearing and demands detailed notes from the last three visits, specifically asking whether David has exhibited any signs of emotional instability or mental health issues. She claims Lisa has authorized the request and that the information is needed urgently.\n\nMaria faces several competing obligations. David's mental health disclosure is sensitive personal information protected under California's privacy laws. His request to exclude it from the report is understandable, but Maria must consider whether the disclosure is relevant to child safety. Attorney Chen's request lacks proper written authorization — a phone call claiming client consent is insufficient. Even if Lisa provided written authorization, it would only cover information Lisa is entitled to access, not David's private medical disclosures.\n\nMaria should take the following steps: First, she should not provide any information over the phone to Attorney Chen and should request a written authorization signed by Lisa, along with a specific description of the records requested. Second, regarding David's disclosure, Maria must evaluate whether the information relates to child safety. Depression and medication use alone do not constitute a safety concern — Maria should document only what she directly observed during the visit (David's demeanor, interactions with the children) rather than his private medical disclosures. Third, Maria should consult her program supervisor and, if necessary, the program's legal counsel to determine the appropriate scope of any response. Finally, Maria should document this entire sequence of events — David's request, Attorney Chen's call, and her own decision-making process — in her internal case notes, separate from the visit report provided to the court.",
+      "discussion": [
+        "What factors should Maria weigh when deciding whether David's depression disclosure belongs in a visit report versus internal case notes?",
+        "How would your response change if David had disclosed active suicidal ideation rather than treatment for depression?",
+        "What are the risks of providing information to an attorney over the phone without written authorization, even when the request seems routine?",
+        "If a valid court order later compels disclosure of David's mental health information, how should Maria handle the situation while still protecting David's dignity?"
+      ],
+      "videoId": "09d441008e8a494e9d2e5a45f7b336fa"
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Best Practices for Records Management and Information Security",
+      "content": "Effective confidentiality requires systematic practices, not just good intentions. Begin with robust consent and authorization forms. At intake, every participant should sign a confidentiality acknowledgment that clearly explains what information the program collects, how it will be used, who may receive it, and the circumstances under which confidentiality may be broken (mandated reporting, court orders, imminent danger). Use separate release-of-information forms for each entity authorized to receive records, specifying the exact information covered, the purpose, and an expiration date.\n\nVisit reports should contain factual, behavioral observations — what the monitor saw and heard — and should exclude clinical diagnoses, speculative interpretations, and sensitive disclosures made outside the visit context. Apply the minimum necessary standard consistently: if the court needs to know about a parent's interaction with the child, report the interaction, not the parent's private medical history.\n\nFor records storage, implement physical and digital security measures. Paper files must be stored in locked cabinets in access-controlled areas. Digital records require password protection, encryption, and access controls limiting visibility to authorized staff only. Establish a records retention policy aligned with California requirements — Standard 5.20 programs should retain records for a minimum period consistent with the program's policies and any applicable court orders, typically at least three years after case closure.\n\nHandle verbal disclosures with care. When a parent shares sensitive information during a visit, the monitor should not repeat it to the other parent, to attorneys, or to other staff members beyond what is necessary for supervision and safety. Train all staff — including administrative personnel — on confidentiality obligations, and conduct periodic audits to ensure compliance.",
+      "keyPoints": [
+        "Use comprehensive consent forms at intake that clearly explain the limits of confidentiality, including mandated reporting and court orders",
+        "Require separate, specific release-of-information forms for each entity authorized to receive records, with expiration dates",
+        "Visit reports should contain factual behavioral observations only — exclude clinical diagnoses, speculation, and sensitive private disclosures",
+        "Store paper files in locked cabinets and digital records with encryption, passwords, and role-based access controls",
+        "Establish a records retention policy of at least three years after case closure, consistent with Standard 5.20 and court orders",
+        "Train all staff including administrative personnel on confidentiality obligations and conduct periodic compliance audits",
+        "Never repeat a parent's sensitive verbal disclosure to the other parent, attorneys, or unnecessary staff"
+      ],
+      "videoId": "de7941bbf8a34c05ad8d760f391bae51"
+    },
+    {
+      "id": "section-6",
+      "type": "reflection",
+      "title": "Ethical Tensions in Confidentiality Practice",
+      "questions": [
+        "A parent discloses during a visit that they are using marijuana recreationally in a state where it is legal, but their custody order prohibits substance use. How do you balance confidentiality with your obligation to report relevant information to the court, and what factors determine whether this rises to a reportable safety concern?",
+        "You believe that sharing certain confidential information about a parent's mental health treatment would actually help that parent's custody case by demonstrating their commitment to recovery. The parent has not authorized disclosure. How do you handle the tension between wanting to help and respecting the parent's right to control their own information?",
+        "Your program director asks you to share detailed case information with a local research university conducting a study on supervised visitation outcomes. The study has IRB approval and promises anonymization. What questions do you need answered before agreeing, and what protections must be in place?"
+      ],
+      "videoId": "fd808685ac1e468fa426c94957c8d94a"
+    }
+  ],
+  "summary": "Confidentiality in supervised visitation requires monitors to navigate complex intersections of federal and California state privacy laws, court transparency requirements, and ethical obligations to vulnerable families. While most SV programs are not HIPAA-covered entities, adopting HIPAA principles — particularly the minimum necessary standard — along with California's robust privacy protections ensures that sensitive information is handled appropriately. Effective confidentiality practice combines legal knowledge with systematic records management, clear consent processes, and the professional judgment to know when confidentiality must yield to child safety and legal mandates.",
+  "prerequisites": [
+    "Legal framework overview",
+    "Mandated reporting"
+  ],
+  "nextTopics": [
+    "Professional boundaries"
+  ]
+}

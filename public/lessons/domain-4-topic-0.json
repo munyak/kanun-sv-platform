@@ -1,0 +1,108 @@
+{
+  "title": "Visit Planning and Preparation for Supervised Visitation",
+  "domain": "SV Operations & Documentation",
+  "topic": "Visit planning & preparation",
+  "estimatedMinutes": 30,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "title": "The Foundation of Every Successful Visit",
+      "content": "A supervised visit does not begin when the child walks through the door — it begins hours or even days earlier, with meticulous planning and preparation. The quality of your pre-visit work directly determines the safety, legality, and therapeutic value of every visit you monitor. Inadequate preparation creates risks: missed court-order provisions, unprepared facilities, unsafe transitions, and documentation gaps that undermine the court's reliance on your reports.\n\nCalifornia Standard of Judicial Administration 5.20 establishes minimum operational standards for supervised visitation providers, including requirements for facility safety, intake procedures, orientation of participants, and adherence to court orders. The Supervised Visitation Network (SVN) Standards of Practice further detail operational protocols that represent the field's professional consensus on best practices.\n\nThis lesson covers the complete pre-visit workflow: reviewing and interpreting court orders, conducting intake with all parties, preparing the physical environment, planning for safe arrivals and departures, and establishing the visit parameters. Every step in this process serves a dual purpose — it protects the child and family members while simultaneously building the evidentiary foundation for your visit documentation. Monitors who master visit preparation find that the visits themselves proceed more smoothly, interventions are less frequent, and their reports are more useful to the court.",
+      "keyPoints": [
+        "Visit preparation begins well before the actual visit and determines its quality",
+        "Standard 5.20 establishes minimum operational requirements for providers",
+        "Pre-visit protocols serve both safety and documentation purposes simultaneously",
+        "Thorough preparation reduces the need for interventions during visits",
+        "SVN Standards of Practice represent the field's professional best-practice consensus"
+      ],
+      "videoId": "c344228b82154e51acc95979148497ed"
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "Court Order Review and Intake Procedures",
+      "content": "Every supervised visit is governed by a court order, and the monitor's first operational task is to read, understand, and operationalize that order. Court orders for supervised visitation typically specify: the type of supervision required (professional monitor vs. nonprofessional), visit frequency and duration, location requirements, any specific conditions or restrictions (no discussion of court proceedings, no overnight visits, no corporal punishment, language restrictions, no photography), and whether the order references California Family Code Sections 3100-3102 or a specific restraining order.\n\nCreate a condition checklist from each court order and keep it accessible during every visit. If any provision is ambiguous, consult your program director before the first visit — never interpret ambiguous court orders independently. Common ambiguities include whether \"no contact\" between parents means visual contact or only physical proximity, whether siblings must visit together, and whether the monitor may transport the child.\n\nIntake procedures establish the operational relationship with each party. Conduct separate intake meetings with the custodial parent and the visiting parent. During intake, verify identification, explain facility rules and visit protocols, review prohibited behaviors, obtain emergency contact information, document any known allergies or medical conditions of the child, and have each party sign an agreement acknowledging the rules and the monitor's authority. The intake is also your opportunity to assess each party's demeanor, communication style, and potential risk factors before the first visit.",
+      "keyPoints": [
+        "Create a condition checklist from the court order for reference during every visit",
+        "Never independently interpret ambiguous court orders — consult your program director",
+        "Conduct separate intake meetings with each party before the first visit",
+        "Intake serves dual purposes: operational setup and baseline risk assessment",
+        "Verify identification, obtain emergency contacts, and document medical information"
+      ],
+      "interactive": [
+        {
+          "type": "diagram",
+          "diagramId": "visit-workflow",
+          "title": "Interactive: Visit Workflow Phases"
+        }
+      ],
+      "videoId": "ab936b9eaf5e49e292b4278faaeb6771"
+    },
+    {
+      "id": "section-3",
+      "type": "examples",
+      "title": "Pre-Visit Preparation in Practice",
+      "content": "Monitor Sarah receives a new referral for supervised visitation between a father and his three children, ages 3, 7, and 11. The court order specifies professional supervision, twice-weekly visits of two hours, at an approved facility, with a provision that the father shall not discuss the pending custody proceedings with the children. Sarah's preparation includes the following steps:\n\nShe reads the full court order and creates a checklist noting the specific restrictions. She reviews the case file for any restraining orders, DV allegations, or substance abuse history. She conducts separate intake meetings with each parent, during which the mother discloses that the 3-year-old has a severe peanut allergy. Sarah documents this on the child's intake form and posts an allergen notice in the visit room.\n\nBefore the first visit, Sarah conducts a facility safety scan: she checks that the visit room is clean, age-appropriate toys and activities are available for all three age groups, exits are accessible, sharp objects are secured, windows are intact, the bathroom is clean and stocked, and her observation position allows clear sightlines. She verifies that the facility's emergency contact list is current and that the first aid kit is stocked.\n\nSarah schedules staggered arrival times: the mother arrives with the children at 2:00 PM, the father arrives at 2:15 PM. Departure is reversed: the father departs at 4:15 PM, the mother picks up the children at 4:30 PM. This separation prevents unmonitored contact between the parents.",
+      "keyPoints": [],
+      "videoId": "c44c54f4c5a24b7798e45da2409cb636"
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study: When Preparation Prevents a Crisis",
+      "content": "New monitor James was assigned his first DV-related case. The court order required professional supervision for a mother's visits with her 6-year-old son following a substantiated domestic violence finding against her current partner (the child's stepfather). The order specified that the stepfather was not permitted on the premises during visits and that no third parties could attend without prior court approval.\n\nJames conducted a thorough intake with the mother, during which she was cooperative and expressed eagerness to see her son. He reviewed the restraining order, which included a stay-away provision for the stepfather with respect to the child. James noted the stepfather's physical description and vehicle information in his preparation file.\n\nOn the day of the first visit, James arrived 30 minutes early to prepare the facility. During his exterior safety scan, he noticed a vehicle matching the stepfather's description parked across the street. James immediately contacted his program director, who advised him to document the vehicle's presence and not proceed with the visit until the situation was assessed. When the mother arrived, James informed her that a vehicle matching the restricted party's description was present and that the visit could not proceed until safety was confirmed. The mother became upset but compliant.\n\nLaw enforcement was contacted, confirmed the stepfather's presence, and issued a warning. The visit was rescheduled. James's preparation — specifically, documenting the stepfather's vehicle information during intake and arriving early for an exterior scan — prevented a potentially dangerous situation. His documentation of the incident provided the court with critical information about compliance with the restraining order.",
+      "discussion": [
+        "What specific elements of James's pre-visit preparation enabled him to identify the safety threat?",
+        "How should a monitor handle a situation where the visiting parent becomes angry or refuses to leave after a visit is cancelled for safety reasons?",
+        "What additional information should monitors routinely collect during intake that could help prevent similar situations?"
+      ],
+      "interactive": [
+        {
+          "type": "scenario_reveal",
+          "scenario": "You arrive at the visitation facility 30 minutes early. As you approach, you notice a car matching the description of a restricted party's vehicle parked across the street. The visit is scheduled to start in 25 minutes.",
+          "response": "Do NOT proceed as if nothing is wrong. Document the vehicle (make, model, color, plate if visible, location, time). Contact your supervisor immediately. If the restricted party is confirmed or you feel unsafe, the visit may need to be relocated or rescheduled. Never allow a visit to proceed if a restricted party may be present.",
+          "followUp": "Pre-visit safety scans include the exterior and surrounding area, not just the facility interior. This is why reviewing restricted party information — including vehicle descriptions — during pre-visit preparation is critical."
+        }
+      ],
+      "videoId": "93af0a14f45641f7bea74eca3a271ab9"
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Facility Setup, Safety Scans, and Transition Management",
+      "content": "Facility preparation follows a systematic protocol that should become second nature. Conduct both interior and exterior safety scans before every visit. Exterior scans assess the parking area, building perimeter, entry and exit points, and any unusual vehicles or persons. Interior scans verify that the visit room is clean and appropriate, age-suitable materials are available, hazardous items are secured, bathrooms are accessible and safe, emergency exits are unobstructed, and communication devices (your phone, facility phone) are charged and functional.\n\nGreeting protocols set the tone for the entire visit. Greet each party professionally, calmly, and neutrally. Briefly review the visit rules at the start of each session, even with returning families — this reinforces expectations and documents your diligence. Introduce any new staff. Confirm the visit duration and end time. Ask the visiting parent if they have brought anything for the child and inspect all items before the visit begins, consistent with your program's policies.\n\nManaging arrivals and departures is the highest-risk operational moment. Maintain strict time separation between parties. If parties arrive simultaneously despite staggered scheduling, have one party wait in a separate area. Ensure the child transitions smoothly — avoid rushed handoffs. Document the child's demeanor at arrival and departure, as changes in affect during the visit are significant observational data. After the visit, secure the facility, complete your documentation while observations are fresh, and file your report according to program timelines.",
+      "keyPoints": [
+        "Conduct both interior and exterior safety scans before every visit without exception",
+        "Review visit rules at the start of each session, even with returning families",
+        "Inspect all items brought by the visiting parent before the visit begins",
+        "Arrivals and departures are the highest-risk operational moments — maintain strict time separation",
+        "Document child demeanor at both arrival and departure to capture changes during the visit",
+        "Complete documentation immediately after each visit while observations are fresh"
+      ],
+      "videoId": "581af58d7a344eaaa32dac80cde32f2a"
+    },
+    {
+      "id": "section-6",
+      "type": "reflection",
+      "title": "Reflection & Self-Assessment",
+      "questions": [
+        "Walk through your current pre-visit routine step by step. Are there any gaps in your preparation protocol that this lesson has revealed? What specific changes will you implement?",
+        "Consider a scenario where you discover an ambiguity in a court order 30 minutes before a visit is scheduled to begin. The visiting parent is already en route. What do you do, and how do you balance the urgency of the scheduled visit against the need for clarity?",
+        "How do you manage your own emotional preparation before monitoring a high-conflict or DV-involved visit? What personal protocols help you arrive calm, alert, and professionally ready?"
+      ],
+      "videoId": "4cf0f2a55a944444a082ef5ff784b344"
+    }
+  ],
+  "summary": "This lesson covers the complete pre-visit workflow for supervised visitation monitors, including court order review and interpretation, intake procedures with both parties, facility safety scans, greeting protocols, and the critical management of arrivals and departures. Monitors learn that thorough preparation is the foundation of safe, legally sound visits and accurate documentation.",
+  "prerequisites": [
+    "Completed Domain 1: Foundations of Supervised Visitation",
+    "Completed Domain 2: Child Safety & Developmental Awareness (recommended)",
+    "Completed Domain 3: DV, Substance Abuse & Behavioral Risk (recommended)"
+  ],
+  "nextTopics": [
+    "Real-time observation and documentation techniques",
+    "Report writing for court submission",
+    "Managing complex multi-party visits"
+  ]
+}

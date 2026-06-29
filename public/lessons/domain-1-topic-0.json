@@ -1,0 +1,192 @@
+{
+  "title": "Family Law Fundamentals for Supervised Visitation Monitors",
+  "domain": "Legal Foundations & Ethical Practice",
+  "topic": "Family law fundamentals",
+  "estimatedMinutes": 30,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "videoId": "9662e1938b0b4c33b69ed946b11742c9",
+      "title": "Why Monitors Need Legal Literacy",
+      "content": "Supervised visitation monitors operate at the intersection of family law and child welfare. While you are not an attorney and should never give legal advice, understanding the legal framework that governs your work is essential for three reasons: it keeps you compliant with court orders, it protects the families you serve, and it protects you professionally.\n\nEvery supervised visit exists because a court issued an order. That order is a legally binding document that specifies the conditions, frequency, duration, and restrictions of contact between a parent and child. Your job is to enforce that order exactly as written — not to interpret it, modify it, or make exceptions based on what seems reasonable in the moment.\n\nIn California, supervised visitation is governed primarily by Family Code §3200 and the Uniform Standards of Practice for Providers of Supervised Visitation (Standard 5.20). These standards establish the minimum qualifications, training requirements, and operational protocols that every monitor must follow. Violations can result in personal liability, contempt of court findings, and harm to the children and families you serve.\n\nThis lesson provides the foundational legal knowledge you need to perform your role competently and safely.",
+      "keyPoints": [
+        "Monitors enforce court orders exactly as written — no modifications or exceptions",
+        "California Family Code §3200 and Standard 5.20 govern supervised visitation practice",
+        "Legal literacy protects you, the families you serve, and the integrity of the process",
+        "You are never to provide legal advice or interpretation to any party"
+      ]
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "Types of Court Orders and Custody Arrangements",
+      "content": "Family courts issue several types of orders that directly affect supervised visitation. Understanding these distinctions helps you know the authority behind each visit and the consequences of non-compliance.\n\nTemporary (Ex Parte) Orders are emergency orders issued quickly, often without the other party present. These typically arise when there is an immediate safety concern — allegations of abuse, domestic violence, or substance abuse. They are short-term and usually set strict conditions including supervised visitation. As a monitor, treat these with heightened vigilance because the court has already identified a safety concern.\n\nPendente Lite Orders are issued while the case is pending. These are more formal than ex parte orders and usually follow a hearing where both parties are present. They set the terms for visitation until the final hearing. These orders may be more detailed about visit conditions, including who may be present, where visits occur, and what activities are permitted.\n\nFinal (Permanent) Orders are issued after trial or by stipulation of the parties. Despite the name 'permanent,' they can be modified if circumstances change. Final orders governing supervised visitation typically include a pathway to unsupervised visits if certain conditions are met — such as completing a batterer's intervention program, maintaining sobriety, or demonstrating appropriate parenting behavior.\n\nRegarding custody, courts distinguish between legal custody (decision-making authority over education, health, and welfare) and physical custody (where the child lives). A parent may have joint legal custody but only supervised physical contact. Understanding this distinction matters because a parent with legal custody rights may ask you questions about school or medical decisions during a visit — that is within their rights, even if physical contact is restricted.",
+      "keyPoints": [
+        "Ex parte orders indicate heightened safety concerns — maintain extra vigilance",
+        "Pendente lite orders govern visits while the case is pending",
+        "Final orders may include conditions for transitioning to unsupervised visits",
+        "Legal custody (decisions) and physical custody (residence) are separate concepts",
+        "A parent with supervised physical custody may still have legal custody rights"
+      ],
+      "interactive": [
+        {
+          "type": "diagram",
+          "diagramId": "court-order-types",
+          "title": "Interactive: Types of Court Orders"
+        }
+      ],
+      "videoId": "a49536f185bf47cbaa7d20c77faea60b"
+    },
+    {
+      "id": "section-3",
+      "type": "concepts",
+      "title": "The Monitor's Legal Role and Boundaries",
+      "content": "Your legal role is precisely defined: you are a neutral third party appointed to observe, document, and ensure safety during parent-child contact. You are not a therapist, mediator, judge, or advocate for either party.\n\nNeutrality is your most important legal obligation. California Standard 5.20.2 requires that monitors remain impartial and not favor either party. This means you do not coach parents on what to say to their children, do not express opinions about custody arrangements, and do not take sides when parents disagree. If a parent asks 'Do you think I should get more time with my child?' the correct answer is always a redirect: 'That's a question for your attorney or the court.'\n\nYour scope of authority is limited to the four corners of the court order. If the order says visits occur on Saturdays from 10 AM to 2 PM at a designated facility, you cannot agree to extend the visit by 30 minutes because the child is having fun. You cannot allow a grandparent to attend if the order does not authorize it. You cannot permit phone calls between visits unless the order specifically allows them.\n\nWhen you observe something concerning during a visit, you document it — you do not intervene in the legal process. Your observations become part of the court record. Attorneys and judges rely on your objectivity and precision. If your reports show bias or contain opinions rather than observations, they lose their evidentiary value and you lose your credibility.\n\nThe one exception to passive observation is safety. If a child is in immediate danger, you are legally and ethically obligated to intervene — up to and including terminating the visit. Standard 5.20 gives you this authority explicitly.",
+      "keyPoints": [
+        "You are a neutral observer — never an advocate, therapist, or mediator",
+        "Your authority is limited to what the court order specifies",
+        "Redirect legal questions to attorneys: 'That's a question for your attorney'",
+        "Document observations objectively — opinions destroy credibility",
+        "You must intervene if a child is in immediate danger, including terminating the visit"
+      ],
+      "interactive": [
+        {
+          "type": "knowledge_check",
+          "question": "A parent shows you a text message from their attorney saying the visit can be extended by one hour. What should you do?",
+          "options": [
+            "Allow the extension since the attorney approved it",
+            "Call the attorney to verify before allowing it",
+            "Decline and explain that only a court order modification can change visit terms",
+            "Allow it this one time but document that you made an exception"
+          ],
+          "correctIndex": 2,
+          "explanation": "An attorney's informal communication does not modify a court order. Only a formal court order modification can change visit terms. Your response should always be: 'That would require a modification of the court order. Please discuss it with your attorney.'"
+        },
+        {
+          "type": "scenario_reveal",
+          "scenario": "During a visit, the custodial parent calls and says: 'I just found out my ex has been using drugs again. You need to end the visit immediately.' The visiting parent appears sober and the visit is proceeding normally.",
+          "response": "You should NOT end the visit based solely on the custodial parent's phone call. Your obligation is to the court order and your own direct observations. The visiting parent appears sober and the visit is proceeding normally. Document the call and what you observed. If you observe any signs of impairment, apply your safety protocols. Otherwise, the visit continues as ordered.",
+          "followUp": "Monitors enforce court orders based on direct observation, not reports from either party. Both parents may attempt to influence your decisions — your neutrality and reliance on observable facts is what protects everyone."
+        }
+      ],
+      "videoId": "9bfe7e8a3b48483e9e75843689707088"
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study: The Birthday Exception",
+      "content": "Maria has been monitoring visits between David (non-custodial parent) and his daughter Sophia, age 7, for three months. The court order specifies Saturday visits from 10 AM to 1 PM at the KaNun visitation center. No other parties are authorized to attend.\n\nOn a Saturday that happens to be Sophia's birthday, David arrives with his mother (Sophia's grandmother) and a birthday cake. David explains that Sophia has been asking about Grandma and begs Maria to make an exception: 'It's her birthday. Just this once. My attorney said it would probably be fine.'\n\nSophia sees her grandmother through the window and starts jumping with excitement, calling out 'Grandma! Grandma!' David's mother is in tears, saying she hasn't seen Sophia in four months.\n\nMaria feels the emotional weight of the moment. The grandmother seems harmless, Sophia is clearly happy, and it feels cruel to refuse. But Maria knows several things:\n\n1. The court order does not authorize the grandmother's presence.\n2. An attorney's informal opinion does not modify a court order.\n3. If Maria allows the grandmother in and the custodial parent finds out, it could result in Maria being removed as monitor, a contempt finding, or modification of the visit order in ways that hurt David.\n4. There may be reasons the court did not authorize the grandmother — reasons Maria is not aware of.\n\nMaria handles it professionally: she acknowledges the situation empathetically ('I understand this is hard, and I can see how much Sophia loves her grandmother'), explains that she must follow the court order as written, and suggests David speak with his attorney about requesting a modification to include the grandmother in future visits. She allows David to briefly introduce the cake and wish Sophia a happy birthday without the grandmother present.\n\nAfter the visit, Maria documents the incident factually: who arrived, what was requested, what she observed (Sophia's reaction, David's request, grandmother's presence at the facility), and how it was resolved.",
+      "discussion": [
+        "What risks would Maria have created if she had allowed the grandmother to attend?",
+        "Why is an attorney's informal statement insufficient to modify visit conditions?",
+        "How did Maria balance empathy with compliance? Could she have handled it differently?",
+        "What should Maria include in her written report about this incident?"
+      ],
+      "videoId": "50a89438edf947b7a551317659798f93"
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Working with Court Orders: Operational Standards",
+      "content": "Before your first visit with any family, obtain and read the complete court order. Do not rely on summaries from attorneys, social workers, or the parties themselves. People — even professionals — sometimes misstate or misunderstand order provisions.\n\nCreate a checklist from each order that includes: authorized visit days and times, authorized location(s), who may be present, who may not be present, any specific restrictions (no discussion of the case, no photographing, no gifts over a certain value, etc.), conditions for visit termination, and reporting requirements.\n\nIf any provision of the order is ambiguous, do not guess at the intent. Contact the referring attorney, the court clerk, or your supervisor for clarification before the visit occurs. Document that you sought clarification and what response you received.\n\nDuring visits, enforce all provisions consistently. Selective enforcement — allowing small violations on 'good' days but enforcing strictly on 'bad' days — creates legal exposure and undermines the court's intent. Consistency is both a legal protection and a professional standard.\n\nIf a party requests any modification to the order's terms (different time, different location, additional person present), your answer is the same every time: 'That would require a modification of the court order. Please discuss it with your attorney.' Do not suggest that modifications are easy, likely, or unlikely — that ventures into legal advice.\n\nMaintain your records for at least five years after the last visit, or as required by your jurisdiction and organization. Your notes may be subpoenaed long after a case appears closed.",
+      "keyPoints": [
+        "Always read the actual court order — never rely on secondhand summaries",
+        "Create a per-family checklist from the order before the first visit",
+        "Seek clarification on ambiguous provisions before visits begin",
+        "Enforce all provisions consistently — selective enforcement creates liability",
+        "Redirect all modification requests to the party's attorney",
+        "Retain records for at least five years or as jurisdiction requires"
+      ],
+      "interactive": [
+        {
+          "type": "step_by_step",
+          "title": "Reading a Court Order: Your Pre-Visit Checklist",
+          "steps": [
+            {
+              "title": "Obtain the Original",
+              "content": "Get the complete, signed court order — not a summary from an attorney or party.",
+              "tip": "If you only have a partial order, contact the court clerk for the full document before the first visit."
+            },
+            {
+              "title": "Identify the Parties",
+              "content": "Note all named parties: custodial parent, visiting parent, children, any other authorized or restricted individuals."
+            },
+            {
+              "title": "Map the Schedule",
+              "content": "Document exact days, times, duration, and location. Create calendar entries with buffer time for staggered arrivals.",
+              "tip": "Build in 15 minutes before and after for arrival/departure separation."
+            },
+            {
+              "title": "List Restrictions",
+              "content": "Extract every restriction: no photography, no discussing the case, no gifts, no unapproved visitors, no phone calls between visits."
+            },
+            {
+              "title": "Note Termination Conditions",
+              "content": "Identify what conditions require you to end a visit early: intoxication, threats, inappropriate behavior."
+            },
+            {
+              "title": "Flag Ambiguities",
+              "content": "If anything is unclear, document your questions and contact the referring attorney or court clerk BEFORE the first visit.",
+              "tip": "Never guess at the intent of an ambiguous provision — get clarification in writing."
+            }
+          ]
+        }
+      ],
+      "videoId": "c4c1689bd52040bca32d284645ec6afe"
+    },
+    {
+      "id": "section-6",
+      "type": "concepts",
+      "title": "Mandated Reporting and Legal Obligations",
+      "content": "As a supervised visitation monitor in California, you are a mandated reporter under Penal Code §11165.7. This means you are legally required to report suspected child abuse or neglect to Child Protective Services (CPS) or law enforcement. Failure to report is a misdemeanor punishable by up to six months in jail and a $1,000 fine.\n\nThe standard for reporting is reasonable suspicion — not certainty. You do not need to prove abuse occurred. You do not need to investigate. If you observe something during a visit that gives you a reasonable basis to suspect abuse or neglect, you must report it. The legal threshold is deliberately low because the consequences of failing to report can be catastrophic.\n\nReportable observations during visits include but are not limited to: unexplained injuries on a child, a child's disclosure of abuse, a parent making threats toward a child, a parent appearing to be under the influence during a visit, a child exhibiting extreme fear or avoidance of a parent, and signs of neglect such as malnutrition or inappropriate clothing for weather.\n\nYour reporting obligation exists independently of your monitoring role. Even if your organization has its own internal reporting procedures, the legal duty to report to CPS or law enforcement falls on you personally. You cannot delegate it to a supervisor or assume someone else will make the call.\n\nCalifornia law provides immunity from civil and criminal liability for mandated reporters who make reports in good faith (Penal Code §11172). This protection exists specifically to encourage reporting — the law would rather you report something that turns out to be unfounded than fail to report actual abuse.",
+      "keyPoints": [
+        "Supervised visitation monitors are mandated reporters under Penal Code §11165.7",
+        "The reporting standard is reasonable suspicion — not certainty or proof",
+        "Failure to report is a misdemeanor: up to 6 months jail and $1,000 fine",
+        "The reporting duty is personal — you cannot delegate it to a supervisor",
+        "Good-faith reporters have legal immunity under Penal Code §11172"
+      ],
+      "interactive": [
+        {
+          "type": "knowledge_check",
+          "question": "You observe a small bruise on a child's upper arm during a visit. The visiting parent says 'Oh, she got that at soccer practice.' What is your legal obligation?",
+          "options": [
+            "Accept the explanation and document it in your notes",
+            "Investigate further by asking the child what happened",
+            "Report to CPS based on reasonable suspicion, regardless of the explanation",
+            "Wait to see if you notice more bruises at future visits"
+          ],
+          "correctIndex": 2,
+          "explanation": "As a mandated reporter, the standard is reasonable suspicion — not certainty. An unexplained or questionably explained injury on a child meets this threshold. You are not an investigator — report to CPS and let them determine whether abuse occurred."
+        },
+        {
+          "type": "diagram",
+          "diagramId": "reporting-flow",
+          "title": "Interactive: Mandated Reporting Flow"
+        }
+      ],
+      "videoId": "f27e2210fcde4e5ab4b4b9e26c0b068c"
+    },
+    {
+      "id": "section-7",
+      "type": "reflection",
+      "title": "Self-Assessment: Legal Readiness",
+      "questions": [
+        "A parent shows you a text message from their attorney saying it is fine to extend the visit by one hour. What do you do, and why?",
+        "You notice a small bruise on a child's arm. The visiting parent says the child fell at school. Are you required to report this? Walk through your decision-making process.",
+        "Reflecting on the concept of neutrality, can you identify a situation where you might unconsciously favor one party? How would you guard against that?",
+        "A custodial parent calls you before a visit and asks you to 'keep an eye out' for specific behaviors by the visiting parent. How do you respond, and how does this request interact with your obligation to remain neutral?",
+        "In your own words, explain the difference between documenting an observation and documenting an opinion. Give an example of each."
+      ],
+      "videoId": "32cd5266d5c34293a3869769c6327cb8"
+    }
+  ],
+  "summary": "This lesson establishes the legal foundations every supervised visitation monitor must understand: the types of court orders that govern visits, the monitor's precisely defined legal role and boundaries, mandated reporting obligations, and the operational standards for working with court orders. Mastery of these fundamentals protects the monitor, the families, and the integrity of the supervised visitation process.",
+  "prerequisites": [],
+  "nextTopics": [
+    "Mandated reporting",
+    "Confidentiality & HIPAA",
+    "Professional boundaries"
+  ]
+}

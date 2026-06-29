@@ -1,0 +1,112 @@
+{
+  "title": "Advanced De-Escalation: The CALM Method",
+  "domain": "Crisis Management & Professional Resilience",
+  "topic": "Advanced de-escalation (CALM)",
+  "estimatedMinutes": 30,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "title": "Why De-Escalation Is a Core Monitor Competency",
+      "content": "Supervised visitation occurs at the intersection of court orders, family conflict, emotional pain, and children's wellbeing. Escalation is not a possibility — it is an inevitability that every monitor will face. Parents arrive carrying grief over lost custody, anger at the legal system, resentment toward the other parent, and anxiety about being observed. Children may be frightened, confused, or caught between loyalties. In this pressurized environment, your ability to de-escalate is as important as your ability to document.\n\nCalifornia Standard of Judicial Administration 5.20 requires that supervised visitation providers receive training in crisis intervention and conflict resolution. The Supervised Visitation Network emphasizes that monitors must be equipped with specific, practiced de-escalation techniques — not just general awareness that conflict may occur. CASVSP-aligned training programs consistently identify de-escalation as a top competency for monitor effectiveness and safety.\n\nThe CALM method — Communicate, Assess, Listen, Manage — provides a structured, repeatable framework for responding to escalating situations during supervised visits. Unlike reactive approaches that rely on instinct, CALM gives you a sequential protocol that can be trained, practiced, and refined. This lesson teaches you the method, helps you recognize escalation cues before they become crises, and establishes clear decision points for when a visit must be terminated to protect safety.",
+      "keyPoints": [
+        "Escalation during supervised visits is inevitable, not merely possible",
+        "Standard 5.20 requires training in crisis intervention and conflict resolution",
+        "De-escalation is a practiced skill with specific techniques, not just good intentions",
+        "The CALM method provides a structured, sequential framework for escalation response",
+        "Knowing when to terminate a visit is as important as knowing how to de-escalate"
+      ],
+      "videoId": "17a54191124143a78c0b21e0ec2311c9"
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "The CALM Method: Communicate, Assess, Listen, Manage",
+      "content": "COMMUNICATE: Your voice, tone, and word choice are your primary de-escalation tools. Speak in a calm, low, steady tone — never match an escalating person's volume or intensity. Use the person's name. Use simple, clear language: \"Mr. Torres, I need you to take a breath with me.\" Avoid commands that trigger oppositional responses (\"Calm down\" or \"You need to stop\"). Instead, use collaborative language: \"Let's take a moment\" or \"Help me understand what you need right now.\" Acknowledge the emotion without validating the behavior: \"I can see you're frustrated. Let's find a way to work through this.\"\n\nASSESS: While communicating, simultaneously assess the threat level. Evaluate verbal cues (volume, profanity, threats), physical cues (clenched fists, pacing, invading personal space, positioning near exits), and environmental factors (proximity to the child, objects that could become projectiles, other families present). Use a mental three-tier assessment: Green (frustration but compliant), Yellow (escalating, intervention needed), Red (imminent danger, terminate visit).\n\nLISTEN: Active listening is a de-escalation technique, not just a social skill. Reflect what you hear: \"You're saying you feel the court isn't being fair to you.\" Reflective listening validates the person's experience without agreeing with their conclusions and often reduces emotional intensity significantly.\n\nMANAGE: Based on your assessment, implement the appropriate intervention — redirect the conversation, offer a break, involve your program director by phone, or terminate the visit. Document every step.",
+      "keyPoints": [
+        "Never match an escalating person's volume — use a calm, low, steady tone",
+        "Avoid commands like 'calm down' that trigger oppositional responses",
+        "Continuously assess threat level using a Green/Yellow/Red framework",
+        "Active listening is a de-escalation technique that reduces emotional intensity",
+        "The Manage step requires selecting the intervention matched to the threat level"
+      ],
+      "interactive": [
+        {
+          "type": "diagram",
+          "diagramId": "calm-method",
+          "title": "Interactive: The CALM De-Escalation Method"
+        },
+        {
+          "type": "knowledge_check",
+          "question": "A visiting parent begins raising their voice and pacing after their child says 'I don't want to be here.' What threat level is this, and what is your first response?",
+          "options": [
+            "Red level — immediately terminate the visit",
+            "Yellow level — use active listening and acknowledge the parent's frustration",
+            "Green level — ignore it, raised voices are normal",
+            "Yellow level — tell the parent to calm down or the visit ends"
+          ],
+          "correctIndex": 1,
+          "explanation": "Raised voice and pacing indicate Yellow level (escalating but not immediately dangerous). Your first response should be active listening: 'I can see that was hard to hear. It's natural to feel frustrated.' Telling someone to 'calm down' typically escalates rather than de-escalates. Termination is premature at Yellow level unless the situation worsens."
+        }
+      ],
+      "videoId": "be1913ac6e9e42b68c6c232af737ccf0"
+    },
+    {
+      "id": "section-3",
+      "type": "examples",
+      "title": "CALM in Action: De-Escalation Scenarios",
+      "content": "Scenario 1 — Green Level: During a visit, a father becomes visibly frustrated when his 4-year-old daughter clings to the monitor and refuses to engage with him. He says loudly, \"This is ridiculous. She's been turned against me.\" The monitor applies CALM: Communicate — \"Mr. Davis, I understand this is difficult. Children sometimes need time to warm up.\" Assess — voice raised but no physical escalation cues, child is anxious but safe. Listen — \"It sounds like you're feeling hurt that she's not responding the way you hoped.\" Manage — suggest a low-pressure activity: \"Sometimes sitting on the floor and playing with blocks nearby lets her come to you on her own terms.\" The father accepts the suggestion, and the child gradually engages.\n\nScenario 2 — Yellow Level: A mother becomes increasingly agitated during a visit when her 10-year-old mentions that \"Dad's girlfriend\" helped with homework. The mother stands abruptly, raises her voice, and says, \"No one is replacing me. I am your mother.\" The monitor intervenes: Communicate — \"Ms. Rivera, I can see this is upsetting. Let's take a five-minute break.\" Assess — standing, raised voice, emotional content escalating, child appears distressed. Listen — acknowledge the emotion without engaging the content. Manage — the monitor offers a break, separates the mother briefly, checks on the child, and resumes only when the mother demonstrates readiness.\n\nScenario 3 — Red Level: A visiting parent slams the table and says, \"If I can't see my kids, nobody will.\" The monitor immediately prioritizes child safety, calmly states the visit is ending, and follows termination protocol.",
+      "keyPoints": [],
+      "videoId": "7b7b2a06bebc43f9b6d91373717e84e4"
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study: Escalation, Termination, and Post-Crisis Documentation",
+      "content": "Monitor Angela was supervising a visit between Thomas and his 8-year-old son, Kevin. Thomas had a history of domestic violence and substance abuse, and the court order specified professional supervision with no discussion of the mother or court proceedings. The first 30 minutes proceeded without incident. Thomas and Kevin played a board game and talked about school.\n\nAt approximately the 35-minute mark, Kevin mentioned that his mother was planning a birthday party for him. Thomas's demeanor changed immediately. He leaned forward, lowered his voice, and said, \"Who's going to be at this party? Is she inviting her new boyfriend?\" Angela applied CALM — she communicated a redirect: \"Thomas, let's keep our focus on your time with Kevin today.\" Thomas initially complied but within five minutes returned to the topic: \"Kevin, you tell your mother I have a right to be at your birthday. That's my son.\"\n\nAngela assessed the situation: Thomas was exhibiting escalating verbal intensity, leaning into Kevin's space, and his hands were gripping the table edge. She communicated again: \"Thomas, I understand birthdays are important to you. I need us to stay with topics that are within our visit rules.\" Thomas stood abruptly and said, \"These rules are garbage. You can't keep a father from his son's birthday.\"\n\nAngela assessed this as a Yellow-to-Red transition. She calmly stated: \"Thomas, I'm going to ask us to take a break. Kevin, let's step over here for a moment.\" She positioned herself between Thomas and Kevin and moved toward the door. Thomas did not follow but remained standing and visibly agitated. Angela contacted her program director, who authorized visit termination. Angela documented the visit in detail, including direct quotes, physical behaviors, and the timeline of escalation. Her documentation became critical evidence in the court's subsequent review of the visitation order.",
+      "discussion": [
+        "At what specific moment did Angela's assessment shift from Yellow to Red, and what observable cues supported that transition?",
+        "Evaluate Angela's decision to position herself between Thomas and Kevin. What physical safety principles informed this choice, and what risks did it carry?",
+        "How should Angela's post-crisis documentation differ from a standard visit report? What additional elements must be captured when a visit is terminated?"
+      ],
+      "videoId": "75a4a83663a242a790163ebec2672025"
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Physical Safety, Visit Termination, and Post-Crisis Protocols",
+      "content": "Physical safety positioning is a preventive practice, not a reactive one. At the start of every visit, position yourself with clear access to the exit. Never allow a visiting parent to position between you and the door. Maintain a minimum of arm's length distance from all parties. During moments of escalation, angle your body at 45 degrees rather than facing the person squarely — this presents a less confrontational posture while keeping you balanced and mobile. Keep your hands visible, open, and at waist level.\n\nVisit termination is your authority and responsibility when safety is compromised. Terminate when: a parent makes a direct or veiled threat, physical aggression occurs or appears imminent, a parent is under the influence of substances, a parent violates a court order in a way that endangers the child, or a child is in acute distress that cannot be resolved. Use clear, non-negotiable language: \"This visit is ending now. I will document the reason in my report.\" Do not debate, justify, or engage further.\n\nPost-crisis protocols protect you, the family, and the program. Immediately after a terminated visit, ensure the child is safe and transferred to the appropriate custodial party or emergency contact. Contact your program director. Complete your documentation within one hour while details are fresh — include direct quotes, timestamps, physical descriptions of behavior, your CALM interventions and their outcomes, and the specific reason for termination. Finally, debrief with your supervisor. Crisis events carry secondary trauma for monitors. Professional resilience requires processing these experiences, not suppressing them.",
+      "keyPoints": [
+        "Position yourself with clear exit access at the start of every visit",
+        "Maintain arm's length distance and a 45-degree body angle during escalation",
+        "Terminate visits using clear, non-negotiable language without debate or justification",
+        "Complete crisis documentation within one hour including direct quotes and timestamps",
+        "Debrief with your supervisor after every crisis event — secondary trauma is real",
+        "Visit termination is your authority and responsibility, not a failure"
+      ],
+      "videoId": "15236c922caf4115a7dc751557cef511"
+    },
+    {
+      "id": "section-6",
+      "type": "reflection",
+      "title": "Reflection & Self-Assessment",
+      "questions": [
+        "Walk through a past escalation you have experienced or witnessed (in any professional or personal context). Applying the CALM framework retroactively, at what point would each step — Communicate, Assess, Listen, Manage — have been most effective? What would you do differently?",
+        "What are your personal escalation triggers — situations or behaviors that make it harder for you to remain calm and professional? How can you develop strategies to manage your own stress response so it does not interfere with your de-escalation effectiveness?",
+        "Visit termination is often described by new monitors as feeling like a failure. How do you reframe termination as a professional safety decision rather than a personal shortcoming? What self-talk or mental frameworks support this shift?"
+      ],
+      "videoId": "42ab6ec7abed44efa3294e4194f9ad51"
+    }
+  ],
+  "summary": "This lesson teaches supervised visitation monitors the CALM method (Communicate, Assess, Listen, Manage) for de-escalating conflict during visits. Monitors learn to recognize verbal and physical escalation cues, apply a Green/Yellow/Red threat assessment framework, maintain physical safety positioning, make decisive visit termination decisions, and complete thorough post-crisis documentation. The lesson emphasizes that de-escalation is a trained skill and that professional resilience requires processing crisis events rather than suppressing them.",
+  "prerequisites": [
+    "Completed Domain 1: Foundations of Supervised Visitation",
+    "Completed Domain 3: DV, Substance Abuse & Behavioral Risk",
+    "Completed Domain 4, Topic 1: Visit Planning & Preparation"
+  ],
+  "nextTopics": [
+    "Mandatory reporting obligations and procedures",
+    "Secondary trauma and self-care for monitors",
+    "Emergency protocols and coordination with law enforcement"
+  ]
+}

@@ -100,21 +100,48 @@ export default function PilotApply() {
   return (
     <div className="pa-page">
       <div className="pa-hero">
-        <div className="pa-brand"><span className="pa-brand-mark">KW</span> KaNun Monitoring</div>
-        <h1>Join the supervised-visitation pilot</h1>
-        <p className="pa-sub">
-          We're inviting a small group of parents, monitors, and court professionals to test
-          KaNun Monitoring — guided visit workflows, GPS-verified check-ins, voice notes, and
-          court-ready California Standard 5.20 reports. Tell us a bit about you and request access.
-        </p>
-        <ul className="pa-points">
-          <li>Court-ready reports generated in minutes</li>
-          <li>GPS-verified check-ins &amp; hands-free voice notes</li>
-          <li>Built by a 21-year information-security executive</li>
-        </ul>
+        {/* animated branded backdrop */}
+        <div className="pa-hero-bg" aria-hidden="true">
+          <span className="pa-blob pa-blob-1" />
+          <span className="pa-blob pa-blob-2" />
+          <span className="pa-blob pa-blob-3" />
+          <span className="pa-grid-overlay" />
+        </div>
+
+        <div className="pa-hero-inner">
+          <div className="pa-brand"><span className="pa-brand-mark">KW</span> KaNun Monitoring</div>
+
+          <div className="pa-eyebrow"><span className="pa-dot" /> Private pilot · now onboarding testers</div>
+
+          <h1 className="pa-headline">
+            The supervised-visitation platform,<br />
+            <span className="pa-grad">built for the people who run visits.</span>
+          </h1>
+
+          <p className="pa-sub">
+            We're inviting a small group of parents, monitors, and court professionals to put
+            KaNun Monitoring through its paces — guided visit workflows, GPS-verified check-ins,
+            voice notes, and court-ready California&nbsp;Standard&nbsp;5.20 reports in minutes.
+          </p>
+
+          <div className="pa-hero-ctas">
+            <a href="#apply-form" className="pa-btn pa-btn-primary pa-btn-hero"
+               onClick={(e) => { e.preventDefault(); document.getElementById('apply-form')?.scrollIntoView({ behavior: 'smooth' }) }}>
+              Apply to the pilot →
+            </a>
+            <Link to="/login" className="pa-hero-signin">Already approved? Sign in</Link>
+          </div>
+
+          <div className="pa-chips">
+            <span className="pa-chip">⚖️ Court-ready 5.20 reports</span>
+            <span className="pa-chip">📍 GPS-verified check-ins</span>
+            <span className="pa-chip">🎙️ Hands-free voice notes</span>
+            <span className="pa-chip">🔒 Security-veteran built</span>
+          </div>
+        </div>
       </div>
 
-      <div className="pa-card">
+      <div className="pa-card" id="apply-form">
         <h2>Request pilot access</h2>
         <p className="pa-muted">Takes about a minute. We approve testers individually.</p>
         <form onSubmit={submit} className="pa-form" noValidate>
