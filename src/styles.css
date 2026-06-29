@@ -1924,6 +1924,53 @@ hr, .divider { border: none; height: 1px; background: var(--divider); margin: 0;
   letter-spacing: -0.005em;
 }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-social {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition: background var(--t-color), border-color var(--t-color), box-shadow var(--t-color);
+}
+.btn-social:hover:not(:disabled) {
+  background: var(--bg-subtle);
+  border-color: var(--border-strong, var(--border));
+}
+.btn-social:focus-visible { outline: none; box-shadow: var(--ring); }
+.btn-social:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-social svg { flex-shrink: 0; }
+
 .auth-error {
   font-size: 13px;
   padding: 10px 12px;

@@ -1,12 +1,45 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import PilotApply from '../pages/PilotApply'
+
+// Admin emails allowed to view the pilot approval queue (/admin/pilots).
+// Keep in sync with PILOT_ADMIN_EMAILS in the pilot-review Edge Function.
+export const PILOT_ADMIN_EMAILS = [
+  'mkanaventi@gmail.com',
+  'munya@kanunmonitoring.com',
+  'admin@kanunmonitoring.com',
+  'munya@kanun.digital',
+]
 
 export function RequireAuth({ children }) {
   const { user, loading } = useAuth()
   const loc = useLocation()
   if (loading) return <div className="loading">Loading…</div>
+  // Logged-out visitors to the front door (kanunmonitoring.com/) get the public
+  // pilot-tester splash instead of being bounced to the sign-in screen.
+  if (!user && loc.pathname === '/') return <PilotApply />
   if (!user) return <Navigate to="/login" replace state={{ from: loc }} />
+  return children
+}
+
+// Gate for the pilot approval queue: requires an authenticated, allow-listed
+// admin. Independent of org/role onboarding so Munya can approve testers even
+// without an agency membership.
+export function RequireAdminEmail({ children }) {
+  const { user, loading } = useAuth()
+  const loc = useLocation()
+  if (loading) return <div className="loading">Loading…</div>
+  if (!user) return <Navigate to="/login" replace state={{ from: loc }} />
+  const email = (user.email || '').toLowerCase()
+  if (!PILOT_ADMIN_EMAILS.includes(email)) {
+    return (
+      <div className="empty-state" style={{ marginTop: 48 }}>
+        <div className="empty-state-title">Not authorized</div>
+        <div className="empty-state-desc">This area is limited to KaNun administrators.</div>
+      </div>
+    )
+  }
   return children
 }
 

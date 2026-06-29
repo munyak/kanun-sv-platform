@@ -3,7 +3,9 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { initAnalytics, trackPageView } from './lib/analytics'
 import Landing from './pages/Landing'
-import { RequireAuth, RequireOrg, RequireRole, OWNER_ROLES } from './auth/ProtectedRoute'
+import PilotApply from './pages/PilotApply'
+import PilotAdmin from './pages/PilotAdmin'
+import { RequireAuth, RequireOrg, RequireRole, RequireAdminEmail, OWNER_ROLES } from './auth/ProtectedRoute'
 import AppShell from './components/AppShell'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -51,8 +53,15 @@ export default function App() {
       <AnalyticsTracker />
       <Routes>
         <Route path="/welcome" element={<Landing />} />
+        {/* Public pilot-tester splash + application (also the front door at "/"
+            for logged-out visitors, handled inside RequireAuth). */}
+        <Route path="/apply" element={<PilotApply />} />
+        {/* Munya's pilot approval queue — gated to admin emails. */}
+        <Route path="/admin/pilots" element={<RequireAdminEmail><PilotAdmin /></RequireAdminEmail>} />
         <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        {/* During the gated pilot, all new signups funnel through the
+            pilot application + approval gate instead of open self-serve. */}
+        <Route path="/signup" element={<Navigate to="/apply" replace />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
