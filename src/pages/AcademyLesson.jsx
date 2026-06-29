@@ -170,15 +170,18 @@ export default function AcademyLesson() {
                 <h2>{currentSection.title}</h2>
               </div>
 
-              {/* Training video — shows player if directVideoUrl exists, otherwise coming-soon placeholder */}
-              <VideoSection
-                sectionKey={`d${domainId}-t${topicIdx}-${currentSection.id}`}
-                sectionTitle={currentSection.title}
-                sectionContent={currentSection.content}
-                isAdmin={true}
-                presetVideoId={currentSection.videoId}
-                directVideoUrl={currentSection.directVideoUrl}
-              />
+              {/* Training video — only when the section actually has one, so
+                  text-only lessons don't show a "coming soon" card per section. */}
+              {(currentSection.videoId || currentSection.directVideoUrl) && (
+                <VideoSection
+                  sectionKey={`d${domainId}-t${topicIdx}-${currentSection.id}`}
+                  sectionTitle={currentSection.title}
+                  sectionContent={currentSection.content}
+                  isAdmin={true}
+                  presetVideoId={currentSection.videoId}
+                  directVideoUrl={currentSection.directVideoUrl}
+                />
+              )}
 
               {currentSection.content && (
                 <div className="lesson-section-body">

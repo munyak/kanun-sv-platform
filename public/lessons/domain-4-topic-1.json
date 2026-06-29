@@ -1,0 +1,107 @@
+{
+  "title": "Multi-Party Scheduling for Supervised Visitation",
+  "domain": "SV Operations & Documentation",
+  "topic": "Multi-party scheduling",
+  "estimatedMinutes": 30,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "title": "Why Scheduling Is a Safety Function, Not Just Logistics",
+      "content": "In supervised visitation, scheduling is far more than picking a convenient time on a calendar. Each visit involves at least three parties whose movements must be coordinated with precision: the custodial party who drops off and retrieves the child, the visiting party who has supervised contact, and you, the monitor. Many cases add further complexity — multiple children with different needs, siblings on separate court orders, therapeutic providers, interpreters, transporters, and other approved adults. When you treat scheduling as a safety function rather than mere logistics, you protect everyone involved and preserve the integrity of the court order.\n\nThe central risk in multi-party scheduling is unmonitored or unauthorized contact. If a custodial party and a visiting party are present at the facility at the same time — even briefly in a parking lot — you may have enabled contact the court specifically prohibited, particularly in cases involving domestic violence or active restraining orders. California Standard of Judicial Administration 5.20 and the Supervised Visitation Network (SVN) Standards of Practice both emphasize that providers must structure arrivals, departures, and the physical environment to prevent contact between parties who are not permitted to interact.\n\nThis lesson teaches you how to build conflict-free schedules, stagger arrivals and departures, coordinate multiple children and providers, manage cancellations and no-shows defensibly, and document every scheduling decision so that your records withstand court scrutiny. A monitor who masters scheduling prevents crises before they begin.",
+      "keyPoints": [
+        "Scheduling is a safety function that prevents unauthorized or unmonitored contact",
+        "Every visit coordinates at minimum three parties: custodial party, visiting party, and monitor",
+        "Standard 5.20 and SVN Standards require structuring arrivals/departures to prevent prohibited contact",
+        "Restraining orders and DV findings make scheduling separation legally critical",
+        "Defensible documentation of scheduling decisions protects the monitor and the court record"
+      ]
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "Staggered Arrivals, Departures, and Buffer Time",
+      "content": "The foundational technique of multi-party scheduling is the staggered arrival and reversed departure. The custodial party arrives first with the child and leaves the premises before the visiting party arrives. At the end of the visit, the visiting party departs first and is gone before the custodial party returns. This sequence ensures the parties never occupy the same space at the same time and never see each other's vehicles in the lot.\n\nA practical staggering pattern uses a buffer of fifteen to thirty minutes on each end. For a visit scheduled 10:00 AM to 12:00 PM, the custodial party might arrive at 9:45 AM, the visiting party at 10:00 AM; at the close, the visiting party departs at 12:00 PM and the custodial party returns at 12:15 PM. The buffer absorbs the normal variation in real-world timing — traffic, a child needing the bathroom, a slow goodbye — without collapsing the separation.\n\nThe buffer also serves your documentation. During the gap between parties, you complete arrival notes, reset the visit room, and conduct a brief exterior scan before the next party approaches. Never compress buffers to fit more visits into a day. A back-to-back schedule with no margin is the most common cause of accidental party contact and rushed, incomplete documentation.\n\nWhen back-to-back visits are unavoidable, physical separation supplements time separation: separate entrances, separate waiting areas, and a staff member or second monitor managing the transition. If your facility cannot guarantee separation for a given pairing, the correct response is to space the visits further apart — never to hope the timing works out.",
+      "keyPoints": [
+        "Custodial party arrives first and leaves before the visiting party arrives",
+        "At departure the sequence reverses: visiting party leaves before custodial party returns",
+        "Build 15–30 minute buffers on each end to absorb real-world timing variation",
+        "Use buffer time for documentation, room reset, and exterior safety scans",
+        "When back-to-back visits are unavoidable, add physical separation — never compress the buffer"
+      ],
+      "interactive": [
+        {
+          "type": "knowledge_check",
+          "question": "A visiting parent's session runs 10:00–12:00. The custodial parent texts that she is stuck in traffic and will arrive at 11:55 instead of the scheduled 12:15 pickup. What is the best action?",
+          "options": [
+            "Let the visit end on time and have both parties briefly overlap in the lobby",
+            "Hold the custodial parent in a separate waiting area and do not release the visiting parent until the custodial parent is secured away from the exit path",
+            "End the visit 15 minutes early so everyone can leave together",
+            "Ask the visiting parent to wait in the parking lot until the custodial parent is inside"
+          ],
+          "correctIndex": 1,
+          "explanation": "The separation between parties must be preserved even when timing slips. Holding the early-arriving custodial parent in a separate, sightline-isolated waiting area maintains the staggered structure. Allowing overlap in the lobby or lot — or sending a party to wait outside near the other's path — risks the exact unauthorized contact scheduling is designed to prevent."
+        }
+      ]
+    },
+    {
+      "id": "section-3",
+      "type": "concepts",
+      "title": "Coordinating Siblings, Multiple Orders, and Third-Party Providers",
+      "content": "Complex cases push scheduling beyond a single parent-child pair. Siblings may be subject to the same order and visit together, or they may be on separate orders with different supervision levels, different visiting parents, or different no-contact provisions. Read each child's order independently and build a master schedule that honors every provision simultaneously. Never assume that because two children share a household they share visit terms.\n\nThird parties add further coordination. Court orders sometimes authorize a grandparent, a new partner, a therapist, or a reunification specialist to attend. Each authorized person must be named in the order or approved by the court before you schedule them in. Interpreters and Limited English Proficiency support, when needed, must be booked in advance and confirmed for the exact visit window. Transporters — who bring a child to or from the facility — become an additional movement to stagger and document.\n\nWhen multiple providers converge on one visit, designate a single point of coordination, normally you or your program director, so that no party receives conflicting instructions. Confirm each participant's role, arrival time, and exit time in writing before the visit. A reunification therapist who arrives unannounced, or an interpreter who books the wrong hour, can derail an entire session and compromise the child's experience.\n\nFinally, watch for hidden conflicts across your full caseload. The same custodial parent may have two children with visits on the same afternoon; the same visiting parent may be ordered to two facilities. Maintain a single, authoritative calendar that surfaces these collisions before they reach the day of the visit.",
+      "keyPoints": [
+        "Read each child's court order independently — siblings may have different terms",
+        "Only schedule third parties who are named in the order or court-approved",
+        "Book interpreters, therapists, and transporters in advance and confirm the exact window",
+        "Designate one point of coordination so no participant receives conflicting instructions",
+        "Maintain a single authoritative calendar to surface cross-caseload conflicts early"
+      ]
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study: The Overlapping Sibling Visits",
+      "content": "Monitor Tran manages a sibling group of three children for a divorced couple. The court issued two separate orders: the older two children (ages 9 and 11) visit their father under professional supervision on Saturdays, while the youngest child (age 4) is on a distinct order requiring supervised visits with the mother because of a substantiated neglect finding involving the father's household. The two orders share no overlap in authorized parties, and each contains a no-contact provision between the parents.\n\nA new scheduling coordinator, trying to be efficient, booked the father's visit with the two older children from 10:00 AM to 12:00 PM and the mother's visit with the youngest from 11:30 AM to 1:00 PM on the same Saturday at the same facility. Tran caught the collision while building her weekly master calendar. Had the visits run as booked, the mother would have arrived at roughly 11:15 AM to drop off for her visit while the father was still on premises with the older children — a direct violation of both no-contact provisions, and a potential safety incident.\n\nTran did not silently fix the calendar in a way that hid the problem. She notified her program director, documented the booking error and the specific provisions it would have violated, and rescheduled the mother's visit to a different day. She confirmed the new times in writing with both parties through the facility's communication channel, never relaying messages between the parents. She also flagged the coordinator's booking process for review so the collision-detection step would not be skipped again.\n\nIn her file Tran recorded the original conflicting bookings, the orders and provisions at issue, the corrective action, and the confirmations — a clear, neutral record showing the facility identified and prevented a violation rather than committed one.",
+      "discussion": [
+        "What specific provisions of the two orders made the original booking unsafe, and how did Tran identify the conflict before the day of the visit?",
+        "Why was it important that Tran documented the booking error rather than quietly correcting the calendar?",
+        "How should a facility design its scheduling workflow so that cross-order collisions are caught systematically rather than by luck?",
+        "What is the right way to communicate a schedule change to two parties who have a no-contact order between them?"
+      ]
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Managing Cancellations, No-Shows, and Schedule Changes",
+      "content": "Cancellations and no-shows are inevitable, and how you handle them is both an operational and an evidentiary matter. Establish a clear cancellation policy at intake — typically a required notice window — and apply it consistently to both parties. Inconsistent enforcement, where one party's late cancellations are excused and the other's are penalized, creates the appearance of bias and undermines your neutrality.\n\nDocument every cancellation, no-show, and late arrival with objective facts: the date, the scheduled time, who notified whom, the time of notification, the stated reason if one was given, and the actual outcome. Record what you observed, not why you think it happened. “Visiting parent did not arrive; no notice received by 10:20 AM, twenty minutes past the scheduled start” is documentation. “Visiting parent blew off the visit again” is an opinion that damages your report's credibility.\n\nNever relay messages between parties or negotiate make-up visits on your own authority. Whether a missed visit is made up, and on what terms, is governed by the court order or directed by the court — not by the monitor's discretion. Redirect requests for schedule changes to the appropriate channel: “A change to the visit schedule would need to go through the court or your attorney.”\n\nWhen a party repeatedly cancels or no-shows, your factual record becomes important to the court's understanding of the case. Report patterns neutrally and let the documentation speak. Finally, confirm every schedule change in writing through your facility's official channel, keep both parties informed through separate communications, and update your single authoritative calendar immediately so a stale entry never causes an accidental overlap.",
+      "keyPoints": [
+        "Set a clear cancellation policy at intake and enforce it identically for both parties",
+        "Document every no-show, cancellation, and late arrival with objective, time-stamped facts",
+        "Record what you observed, never your assumptions about a party's motives",
+        "Do not relay messages or arrange make-up visits — those are court matters",
+        "Confirm all changes in writing through official channels and update the master calendar immediately"
+      ]
+    },
+    {
+      "id": "section-6",
+      "type": "reflection",
+      "title": "Reflection & Self-Assessment",
+      "questions": [
+        "Walk through how you would build a staggered schedule for a back-to-back day at a facility with only one entrance and one waiting room. What separation safeguards would you add, and at what point would you decline to schedule the visits back-to-back?",
+        "You discover that two children from the same family are on separate court orders with conflicting no-contact provisions. Describe your process for verifying each order and building a compliant master schedule.",
+        "A visiting parent has now cancelled three visits in a row, each within the notice window. How do you document this pattern objectively, and what is your role — and not your role — regarding make-up visits?",
+        "Reflect on a time pressure that might tempt you to compress buffer time between visits. What are the concrete risks, and how will you hold the line professionally?",
+        "How do you communicate a necessary schedule change to two parties under a mutual no-contact order without ever acting as a go-between?"
+      ]
+    }
+  ],
+  "summary": "This lesson treats multi-party scheduling as a core safety function in supervised visitation, covering staggered arrivals and reversed departures, buffer time, and the coordination of siblings, multiple court orders, and third-party providers. Monitors learn to prevent unauthorized contact, manage cancellations and no-shows neutrally, and document every scheduling decision so the record withstands court scrutiny.",
+  "prerequisites": [
+    "Visit planning & preparation"
+  ],
+  "nextTopics": [
+    "Observation techniques (SOBO)",
+    "Report writing mastery",
+    "GPS & digital documentation"
+  ]
+}

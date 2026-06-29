@@ -1,0 +1,107 @@
+{
+  "title": "Evidence Handling and Chain of Custody for Supervised Visitation Monitors",
+  "domain": "SV Operations & Documentation",
+  "topic": "Evidence handling",
+  "estimatedMinutes": 32,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "title": "Why Monitors Must Think Like Custodians of Evidence",
+      "content": "Although a supervised visitation monitor is not a law enforcement officer, much of what you create and collect can become evidence in a family law proceeding, and sometimes in a criminal one. Your reports, your contemporaneous notes, intake forms, incident reports, GPS records, and any physical items connected to a visit may all be relied upon by a court. The moment a record could matter to a legal decision, it must be handled like evidence — preserved in its original form, protected from alteration, and traceable from creation to courtroom. This lesson teaches you to think like a custodian of evidence so that the truth of what occurred remains intact and credible.\n\nThe governing idea is chain of custody: a documented, unbroken record of who created or collected an item, who has handled it, where it has been stored, and that it has not been altered. A court trusts evidence only when its integrity can be demonstrated. A report or item with gaps in its handling history — or signs of editing — can be challenged, given less weight, or excluded entirely, no matter how truthful it is.\n\nGrounded in California Standard 5.20, the Supervised Visitation Network (SVN) Standards of Practice, and the basic principles of evidence preservation, this lesson covers what counts as evidence in your role, how to preserve records and items, how to maintain chain of custody and proper retention, and how to handle the rare situation in which you encounter physical evidence — all while staying within your boundaries as a neutral observer who documents but does not investigate.",
+      "keyPoints": [
+        "Reports, notes, forms, GPS records, and related items can all become court evidence",
+        "Once a record could matter to a legal decision, handle it like evidence",
+        "Chain of custody is the documented, unbroken history of who handled an item and where it was stored",
+        "Gaps or signs of alteration can cause evidence to be challenged, discounted, or excluded",
+        "Monitors preserve and document evidence but never investigate — neutrality is preserved"
+      ]
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "What Counts as Evidence and the Principle of Chain of Custody",
+      "content": "In the monitor's world, 'evidence' is broader than physical objects. Your documentary evidence includes contemporaneous notes, finalized visit reports, intake and consent forms, incident reports, and electronic records such as GPS check-ins and breadcrumb trails. Occasionally physical evidence arises — a letter or gift a parent attempts to pass to a child in violation of the order, a substance or object that raises a safety concern, or an item a child brings that becomes relevant to an allegation. All of it may be requested by the court.\n\nChain of custody is the discipline that keeps such evidence trustworthy. It answers four questions for any item: who created or collected it, when and where; who has had possession of it since; how and where it has been stored; and whether it remains in its original, unaltered condition. Every transfer from one person's control to another is a link, and every link should be documented with a date, time, the people involved, and a description of the item. An unbroken chain lets a court conclude that the item before it is the same item, unchanged, that the monitor created or collected.\n\nThe practical rules follow directly. Preserve originals: never discard your handwritten notes after typing a report, because the notes may themselves be subpoenaed and they corroborate the report. Never alter a record after the fact; corrections are made through dated amendments that preserve the original entry. Label and date everything at the moment of creation. And minimize handling and transfers of any physical item, documenting each one that does occur. The fewer the hands and the better the record of them, the stronger the chain.",
+      "keyPoints": [
+        "Evidence includes notes, reports, forms, incident reports, and electronic records like GPS data",
+        "Physical evidence occasionally arises, such as a prohibited letter, gift, or concerning object",
+        "Chain of custody documents who created or held an item, when, where, and that it is unaltered",
+        "Preserve originals — never discard notes after typing a report; they may be subpoenaed",
+        "Label and date items at creation, minimize transfers, and document every transfer that occurs"
+      ],
+      "interactive": [
+        {
+          "type": "knowledge_check",
+          "question": "During a visit, a father tries to hand his child a sealed letter, which the court order prohibits. You intercept it before the child reads it. What is the correct handling?",
+          "options": [
+            "Open and read the letter to determine whether its contents are harmful, then decide what to do",
+            "Return the letter to the father quietly so the visit can continue smoothly",
+            "Secure the unopened letter, label it with the date, time, and circumstances, document the incident objectively, and follow program procedure for safekeeping",
+            "Throw the letter away to remove the prohibited item from the situation"
+          ],
+          "correctIndex": 2,
+          "explanation": "The monitor preserves the item in its original (unopened) condition, labels and documents it, and follows program procedure — establishing chain of custody. Opening it would alter potential evidence and exceed the monitor's investigative role; returning or discarding it destroys evidence of an order violation. Secure, label, document, and preserve."
+        }
+      ]
+    },
+    {
+      "id": "section-3",
+      "type": "concepts",
+      "title": "Preserving Records, Securing Items, and Retention",
+      "content": "Preserving documentary evidence begins with creating it correctly and storing it securely. Keep your contemporaneous notes intact and legible, finalize reports promptly, and store all records — paper and electronic — in your program's secure, access-controlled systems rather than personal devices or unsecured locations. Confidentiality and evidence preservation reinforce each other: records that are properly secured are also records whose integrity can be vouched for.\n\nFor electronic records, integrity depends on systems that log changes and prevent silent overwriting. Never edit a submitted report or back-date an entry; rely on system timestamps to show when documentation was created, and preserve original digital files (including any media and its metadata) unaltered. A record that can be shown to be unchanged since creation is a record a court can trust.\n\nWhen a physical item must be secured, handle it minimally, place it in a sealed container or program-designated secure storage, and attach a label noting the date, time, item description, the circumstances of how it came into your possession, and your name. If the item is later transferred — to a supervisor, to law enforcement, or to the court — record the transfer: date, time, who received it, and its condition. This running record is the chain of custody for that item.\n\nRetention closes the loop. Records and evidence must be kept for the period your jurisdiction and program require — often several years after the last visit — because a case that appears closed can reopen, and your documentation may be subpoenaed long afterward. Do not destroy records prematurely, and follow your program's retention schedule and lawful destruction procedures when the time comes. Treat the entire lifecycle — creation, storage, transfer, retention, and eventual disposal — as part of safeguarding the truth of what occurred.",
+      "keyPoints": [
+        "Store all records in secure, access-controlled program systems, not personal devices",
+        "Never edit submitted reports or back-date entries; preserve original digital files and metadata",
+        "Secure physical items minimally handled, sealed, and labeled with date, time, description, and circumstances",
+        "Document every transfer of a physical item with date, time, recipient, and condition",
+        "Retain records for the required period — cases reopen and records may be subpoenaed years later"
+      ]
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study: The Subpoenaed Notes Two Years Later",
+      "content": "Monitor Reyes supervised a brief series of visits between a mother and her son and, as far as anyone could tell, the case concluded quietly. Reyes had finalized clean, behavioral reports for each visit and, following her program's practice, preserved her original handwritten notes in the secure case file rather than discarding them once the reports were typed.\n\nNearly two years later, the case reopened on new allegations, and Reyes received a subpoena for all records relating to the family — reports and underlying notes alike. Because her program retained records on a defined schedule and stored them in an access-controlled system, the complete file was intact: original notes, finalized reports, intake and consent forms, and the GPS check-in records for each visit, none of it altered since creation.\n\nAt the same time, an item surfaced in the case. During one of the original visits, the mother had attempted to give the child a small wrapped gift that the court order prohibited. At the time, Reyes had secured the unopened gift, labeled it with the date, time, and circumstances, documented the incident objectively in her report, and turned it over to her program director, recording the transfer. The program had retained it in secure storage with its label intact.\n\nWhen the court asked about the item, the program could produce it with an unbroken chain of custody: who collected it and when, how it had been stored, and that it remained unopened and unchanged. Reyes's contemporaneous notes corroborated her reports line for line, and nothing in the file showed any sign of later editing. Opposing counsel had no integrity issue to exploit. The episode demonstrated that disciplined evidence handling is an investment whose value may not appear until long after a case seems finished — and that preserved originals, labeled items, documented transfers, and a real retention schedule are what let the truth survive the passage of time.",
+      "discussion": [
+        "Which specific evidence-handling habits made Reyes's file defensible when it was subpoenaed two years later?",
+        "Why did preserving the original handwritten notes matter, given that finalized reports already existed?",
+        "Trace the chain of custody for the prohibited gift from the moment Reyes intercepted it. What documentation made each link verifiable?",
+        "How might the outcome have differed if the program had no retention schedule, or if Reyes had discarded her notes after typing the reports?"
+      ]
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Boundaries, Defensibility, and Working with Authorities",
+      "content": "Sound evidence handling lives inside the monitor's boundaries. You preserve and document evidence; you do not investigate, analyze, or draw conclusions about it. Do not open sealed items to inspect their contents, do not test or examine a suspected substance, and do not interview a child to develop a case. Your job is to secure the item or record, document the observable circumstances factually, and route it through proper channels. Investigation belongs to CPS, law enforcement, and the court.\n\nRemember that your mandated-reporter obligations operate alongside evidence handling. If something you observe gives reasonable suspicion of child abuse or neglect, you must report it to the appropriate authorities regardless of how the related evidence is handled; preserving an item does not satisfy, replace, or delay the duty to report. Keep the two duties distinct and fulfill both.\n\nWhen authorities or the court request records or items, respond through your program's established process and supervisor, not on your own. Produce originals or proper copies as directed, preserve what you hand over, and document the transfer. If you are called to testify, your defensibility flows from everything covered in this domain: objective behavioral documentation, contemporaneous notes, unaltered records, labeled items, and a clean chain of custody. You will be able to point to what you personally observed and to records demonstrably unchanged since creation.\n\nAbove all, never alter, fabricate, back-date, or destroy evidence, and never handle records in a way that even appears to compromise their integrity. The credibility of your documentation — and your value to the children, the families, and the court — rests on the simple, rigorous promise that every record and item is exactly what it claims to be, created when it claims to be, and unchanged since. Build the habits now so that, whenever a case turns on the truth, your documentation can carry it.",
+      "keyPoints": [
+        "Preserve and document evidence, but never investigate, open, test, or analyze it",
+        "Mandated-reporting duties operate independently — preserving an item never replaces the duty to report",
+        "Respond to subpoenas and authority requests through your program and supervisor, not on your own",
+        "Defensibility flows from objective notes, unaltered records, labeled items, and clean chain of custody",
+        "Never alter, fabricate, back-date, or destroy evidence, or even appear to compromise its integrity"
+      ]
+    },
+    {
+      "id": "section-6",
+      "type": "reflection",
+      "title": "Reflection & Self-Assessment",
+      "questions": [
+        "Think through everything you create or might collect in a typical case. Which of those records or items could become evidence, and are you currently handling each as if it could?",
+        "A parent passes a prohibited object to the child and you intercept it. Walk through, step by step, how you would establish and maintain a chain of custody for that item.",
+        "How long does your program require you to retain records, and where and how are they stored? Could you produce a complete, unaltered file if a closed case reopened in two years?",
+        "Where is the line between preserving evidence and investigating it, and have you ever felt tempted to cross it — for example, by opening a sealed item to 'see if it matters'? How will you hold that boundary?",
+        "How do your mandated-reporting duties and your evidence-handling duties interact when you observe something concerning, and how will you make sure fulfilling one never causes you to neglect the other?"
+      ]
+    }
+  ],
+  "summary": "This lesson teaches monitors to treat their reports, notes, forms, GPS records, and any related physical items as potential court evidence, preserved through unbroken chain of custody — documented creation, secure storage, recorded transfers, and proper retention. Monitors learn to secure and label items, preserve unaltered originals, respond to subpoenas through proper channels, and stay within their boundaries: preserving and documenting evidence while never investigating it, and fulfilling mandated-reporting duties alongside evidence preservation.",
+  "prerequisites": [
+    "Report writing mastery",
+    "GPS & digital documentation"
+  ],
+  "nextTopics": [
+    "Observation techniques (SOBO)",
+    "Multi-party scheduling"
+  ]
+}

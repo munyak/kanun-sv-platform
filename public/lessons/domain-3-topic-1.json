@@ -1,0 +1,107 @@
+{
+  "title": "Recognizing Signs of Substance Abuse and Impairment During Supervised Visits",
+  "domain": "DV, Substance Abuse & Behavioral Risk",
+  "topic": "Substance abuse recognition",
+  "estimatedMinutes": 32,
+  "sections": [
+    {
+      "id": "section-1",
+      "type": "overview",
+      "title": "Why Substance Abuse Recognition Matters for Monitors",
+      "content": "Substance abuse is one of the most frequent reasons California family courts order supervised visitation. When a parent has a documented history of alcohol or drug misuse, the court relies on the monitor to be the eyes and ears that ensure a child is never left in the care of an impaired adult. Your ability to recognize, document, and respond to signs of impairment is a direct extension of the child-safety mandate at the heart of California Rules of Court Standard 5.20.\n\nIt is essential to understand the limits of your role before learning the indicators. You are an observer, not a clinician, toxicologist, or investigator. You do not diagnose addiction, you do not determine whether a substance is present in someone's system, and you do not confront a parent with a clinical conclusion. What you do is observe behavior and physical presentation, compare it against the conditions of the court order, document objectively, and act to protect the child when safety is at risk.\n\nMany court orders in substance-related cases include specific conditions: a requirement that the visiting parent submit to testing, a prohibition on visiting while under the influence, or a requirement that the parent appear sober. Your job is to enforce those conditions exactly as written and to know precisely what steps the order and your program require if you suspect impairment.\n\nThis lesson teaches you the observable signs of alcohol and drug impairment, how to document them without overstepping into diagnosis, and the trauma-informed, non-confrontational protocols that keep everyone safe. Throughout, remember that addiction is a health condition and that many parents in recovery are working hard to reunify with their children. Your neutrality and objectivity protect both the child and the parent.",
+      "keyPoints": [
+        "Substance abuse is among the most common reasons for court-ordered supervised visitation",
+        "Standard 5.20 makes child safety the monitor's central obligation in impairment cases",
+        "You observe and document behavior — you never diagnose addiction or determine intoxication clinically",
+        "Court orders often specify sobriety conditions you must enforce exactly as written",
+        "Addiction is a health condition; neutrality protects both the child and a parent in recovery"
+      ]
+    },
+    {
+      "id": "section-2",
+      "type": "concepts",
+      "title": "Observable Signs of Alcohol and Drug Impairment",
+      "content": "Impairment shows itself through clusters of observable signs rather than any single indicator. No one sign proves a person is under the influence, but a pattern of several, especially a change from how a parent normally presents, is what you document and report.\n\nAlcohol impairment commonly presents as the odor of alcohol on the breath or person, slurred or thick speech, bloodshot or watery eyes, unsteady gait or loss of balance, flushed face, slowed reaction time, and disinhibited or emotionally volatile behavior. A parent may repeat themselves, lose the thread of a conversation, or have difficulty tracking a young child's movements.\n\nStimulant use, such as cocaine or methamphetamine, may present very differently: rapid or pressured speech, dilated pupils, jitteriness or restlessness, excessive sweating, teeth grinding, irritability, paranoia, and an inability to sit still or maintain attention on the child. Opioid impairment, by contrast, tends to present with drowsiness or 'nodding off,' constricted (pinpoint) pupils, slowed or shallow breathing, droopy eyelids, slowed movements, and slurred speech. Cannabis impairment may include red eyes, a distinctive odor, delayed reactions, lethargy, and giddiness or inappropriate laughter.\n\nBeyond the substance-specific signs, watch for general behavioral indicators: a marked change from the parent's baseline presentation, poor coordination such as dropping items or fumbling, inappropriate clothing or grooming, confusion about time or place, mood swings, and difficulty supervising or responding to the child. Physical signs you should never speculate about clinically but may note objectively include track marks, tremors, or visible intoxication.\n\nContext matters. Some conditions and medications mimic impairment: diabetes, neurological conditions, fatigue, anxiety, and legally prescribed medication can all produce signs that resemble intoxication. This is precisely why your role is to document what you observe, not to conclude what caused it.",
+      "keyPoints": [
+        "Impairment appears as clusters of signs and changes from baseline, not a single indicator",
+        "Alcohol: odor, slurred speech, unsteady gait, bloodshot eyes, disinhibition",
+        "Stimulants speed a person up; opioids slow them down — pupil size and pace differ markedly",
+        "General red flags: change from baseline, poor coordination, confusion, mood swings",
+        "Medical conditions and prescribed medication can mimic impairment — document signs, not causes"
+      ],
+      "interactive": [
+        {
+          "type": "knowledge_check",
+          "question": "A visiting parent arrives with constricted pinpoint pupils, droopy eyelids, slowed speech, and keeps briefly nodding off while sitting with the child. Which response best fits the monitor's role?",
+          "options": [
+            "Tell the parent they are clearly on opioids and end the visit",
+            "Document the specific observable signs, follow the program's impairment protocol, and prioritize child safety",
+            "Ignore it, since you cannot prove drug use without a test",
+            "Ask the child whether the parent took any pills today"
+          ],
+          "correctIndex": 1,
+          "explanation": "The cluster of signs is consistent with possible impairment, but your job is not to diagnose the substance. You document the specific observable behaviors objectively, follow your program's impairment protocol, and act to keep the child safe. Naming a drug crosses into clinical conclusion; interrogating the child is outside your role."
+        }
+      ]
+    },
+    {
+      "id": "section-3",
+      "type": "concepts",
+      "title": "Documentation, Scope Limits, and Court-Order Conditions",
+      "content": "How you write down what you see determines whether your observation helps the court or undermines your credibility. The rule is simple: record observable, behavioral facts, not conclusions, labels, or guesses about causation. Write 'The parent's speech was slurred, his gait was unsteady, and there was an odor of alcohol when he spoke' rather than 'The parent was drunk.' The first is an observation a judge can weigh; the second is a conclusion you are not qualified to make.\n\nGood documentation is specific, time-stamped, and sensory. Note what you saw, heard, and smelled, where the parent was, how the child responded, and what you did. Avoid adjectives that imply diagnosis ('high,' 'wasted,' 'addict') and avoid speculation about what the parent used. Quote statements directly when relevant. Your report should let a reader who was not present picture exactly what happened.\n\nKnow the court-order conditions before every visit. In substance cases the order frequently requires the visiting parent to be sober, may require on-site or same-day testing through a service such as a breathalyzer or a third-party lab, and may specify that the visit is canceled if the parent appears under the influence or refuses a required test. You enforce these conditions exactly. You do not administer tests yourself unless your program is specifically authorized and trained to do so, and you never improvise a test that the order does not provide for.\n\nReinforce your scope at every step. You do not search a parent, you do not demand a confession, and you do not accuse. If a parent volunteers that they have been drinking or using, document the statement factually without editorializing. If conditions are ambiguous, contact your program director or the referring source for clarification before the visit rather than guessing. Objective documentation and strict adherence to scope are what make your observations trustworthy evidence and what protect a parent in recovery from unfair characterization.",
+      "keyPoints": [
+        "Record behavioral facts ('slurred speech, odor of alcohol'), never conclusions ('drunk')",
+        "Documentation should be specific, time-stamped, and sensory — observable to any reader",
+        "Avoid diagnostic labels and speculation about which substance was used",
+        "Enforce sobriety and testing conditions exactly; never improvise a test the order does not authorize",
+        "Do not search, accuse, or interrogate — document volunteered statements factually"
+      ]
+    },
+    {
+      "id": "section-4",
+      "type": "case_study",
+      "title": "Case Study: The Parent Who Arrives Smelling of Alcohol",
+      "content": "Daniel is the monitor for visits between a father, Marcus, and his 6-year-old son. The court order, issued after Marcus completed an initial phase of an alcohol treatment program, states that Marcus must appear sober and that any visit is to be canceled if he appears under the influence. The order does not provide for on-site breath testing.\n\nMarcus arrives ten minutes late for a Saturday visit. As he checks in, Daniel notices a strong odor of alcohol when Marcus speaks, slightly slurred speech, and that Marcus steadies himself against the counter as he signs in. Marcus is friendly and says he is 'just tired from a long week.' His son is already in the playroom and excited to see him.\n\nDaniel feels the pull of the moment — the child is waiting, Marcus has been doing well, and a canceled visit will be painful for everyone. But Daniel also knows the order is explicit and that his obligation is to the child's safety and to the order as written. He does not announce a diagnosis or accuse Marcus of drinking. Instead, he calmly tells Marcus that he has observed some signs of concern and that, per the court order, he needs to step away and contact his program director before the visit can proceed. He keeps the interaction private, away from the child, and non-confrontational.\n\nFollowing the program's protocol, Daniel reaches the on-call director, describes the specific observable signs, and the director directs him to cancel the visit per the order's sobriety condition. Daniel arranges for the child to be returned to the custodial parent calmly and without exposing the child to the reason. He offers Marcus the program's standard information about rescheduling and recovery support without lecturing him.\n\nIn his report, Daniel writes only what he observed: the time, the odor of alcohol on Marcus's breath, the slurred speech, the need to steady himself, Marcus's statement that he was tired, the consultation with the director, and the cancellation. He does not write 'Marcus was intoxicated' or speculate about how much he drank. His objective record gives the court exactly what it needs while protecting both the child and Marcus's dignity.",
+      "discussion": [
+        "Why was it important that Daniel describe observable signs rather than state that Marcus was intoxicated?",
+        "How did Daniel balance empathy for Marcus and the waiting child against his duty to enforce the order?",
+        "What risks would Daniel have created if he had allowed the visit to proceed because Marcus 'seemed okay'?",
+        "How should the child's return to the custodial parent be handled to minimize harm to the child?",
+        "What exactly should and should not appear in Daniel's written report about this visit?"
+      ]
+    },
+    {
+      "id": "section-5",
+      "type": "best_practices",
+      "title": "Protocols for Suspected Impairment During a Visit",
+      "content": "Prepare before every visit. Read the court order and note the precise sobriety and testing conditions, the cancellation triggers, and the reporting requirements. Know your program's impairment protocol cold, including who to call and how to safely conclude a visit. Establish each parent's baseline presentation over time so you can recognize meaningful changes.\n\nWhen you observe possible impairment, stay calm and non-confrontational. Do not accuse, diagnose, or argue. Separate the parent from the child discreetly and ensure the child is safe and supervised at all times. Speak privately and respectfully. If your program and the order authorize a test, follow the exact authorized procedure; if not, do not improvise one.\n\nEscalate according to protocol. In nearly all cases, suspected impairment means contacting your program director or on-call supervisor before making a final decision, unless the order or your training authorizes you to cancel independently. Describe the specific observable signs when you consult. If the order's sobriety condition is triggered, cancel the visit and arrange the child's safe return without exposing the child to the reason.\n\nNever allow an impaired or apparently impaired parent to drive away with the child, and never release a child into the care of someone you have reason to believe is impaired. If anyone is in immediate danger or an impaired person attempts to drive off with a child, your safety protocol may include contacting law enforcement; know your program's policy in advance.\n\nDocument immediately and objectively while details are fresh. Record observable facts, times, the child's responses, statements made, your consultations, and the outcome. Finally, manage your own response: cases involving substance abuse can be emotionally charged, and recovery is rarely linear. Treat parents with dignity, avoid moralizing, and rely on observation and the court order rather than personal judgment about addiction.",
+      "keyPoints": [
+        "Pre-visit: know the order's sobriety/testing conditions, cancellation triggers, and your program protocol",
+        "Stay calm and non-confrontational — separate parent from child discreetly and keep the child supervised",
+        "Consult your program director before final decisions unless authorized to cancel independently",
+        "Never release a child to, or let a child leave with, an apparently impaired adult; know your law-enforcement policy",
+        "Document objectively and immediately; treat parents in recovery with dignity, not moral judgment"
+      ]
+    },
+    {
+      "id": "section-6",
+      "type": "reflection",
+      "title": "Reflection and Self-Assessment",
+      "questions": [
+        "Describe the difference between documenting an observation of impairment and documenting a conclusion. Write one example of each for the same scenario.",
+        "A parent who has been progressing well in recovery arrives showing several signs that concern you, but insists they are just tired. How do you weigh empathy, the court order, and child safety in deciding what to do?",
+        "What is your program's protocol when you suspect impairment, and who exactly would you contact? If you do not know, how will you find out before your next visit?",
+        "Reflect on your own attitudes toward addiction. How might personal beliefs affect your neutrality, and what will you do to ensure your responses stay grounded in observation and the order?",
+        "How would you handle the safe return of a child when a visit is canceled for suspected impairment, in a way that minimizes harm and confusion for the child?"
+      ]
+    }
+  ],
+  "summary": "This lesson equips supervised visitation monitors to recognize the observable signs of alcohol and drug impairment, document them objectively without diagnosing, and enforce the sobriety and testing conditions of court orders under Standard 5.20. Monitors learn non-confrontational, trauma-informed protocols for responding to suspected impairment while protecting both the child and the dignity of a parent in recovery.",
+  "prerequisites": [
+    "Domestic violence dynamics"
+  ],
+  "nextTopics": [
+    "Mental health awareness",
+    "Risk assessment frameworks"
+  ]
+}
