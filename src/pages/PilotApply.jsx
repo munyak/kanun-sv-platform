@@ -1,8 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { trackEvent } from '../lib/analytics'
 import './pilot.css'
+
+// Audience words that rotate in the headline for an obvious motion cue.
+const ROTATE = ['parents', 'monitors', 'courts', 'agencies', 'families']
 
 /*
   Public pilot-tester splash + application form. This is the front door at
@@ -34,6 +37,13 @@ export default function PilotApply() {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const [done, setDone] = useState(false)
+  const [wi, setWi] = useState(0)
+
+  // Rotate the audience word in the headline (obvious, friendly motion).
+  useEffect(() => {
+    const id = setInterval(() => setWi((i) => (i + 1) % ROTATE.length), 2000)
+    return () => clearInterval(id)
+  }, [])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -111,26 +121,31 @@ export default function PilotApply() {
         <div className="pa-hero-inner">
           <div className="pa-brand"><span className="pa-brand-mark">KW</span> KaNun Monitoring</div>
 
-          <div className="pa-eyebrow"><span className="pa-dot" /> Private pilot · now onboarding testers</div>
+          <div className="pa-eyebrow"><span className="pa-dot" /> Private pilot · limited spots open</div>
 
           <h1 className="pa-headline">
-            The supervised-visitation platform,<br />
-            <span className="pa-grad">built for the people who run visits.</span>
+            The supervised-visitation<br />
+            platform for{' '}
+            <span className="pa-rotator">
+              <span key={wi} className="pa-rotator-word pa-grad">{ROTATE[wi]}</span>
+            </span>
           </h1>
 
           <p className="pa-sub">
-            We're inviting a small group of parents, monitors, and court professionals to put
-            KaNun Monitoring through its paces — guided visit workflows, GPS-verified check-ins,
-            voice notes, and court-ready California&nbsp;Standard&nbsp;5.20 reports in minutes.
+            Guided visit workflows, GPS-verified check-ins, voice notes, and court-ready
+            California&nbsp;Standard&nbsp;5.20 reports in minutes. We're inviting a small group
+            to test it free — apply in about a minute.
           </p>
 
           <div className="pa-hero-ctas">
-            <a href="#apply-form" className="pa-btn pa-btn-primary pa-btn-hero"
-               onClick={(e) => { e.preventDefault(); document.getElementById('apply-form')?.scrollIntoView({ behavior: 'smooth' }) }}>
-              Apply to the pilot →
+            <a href="#apply-form" className="pa-btn pa-btn-primary pa-btn-hero pa-cta-shine"
+               onClick={(e) => { e.preventDefault(); document.getElementById('apply-form')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('pa-name-input')?.focus() }}>
+              Apply to the pilot — it's free →
             </a>
             <Link to="/login" className="pa-hero-signin">Already approved? Sign in</Link>
           </div>
+
+          <div className="pa-microcopy">✦ Free during the pilot · approval within ~1 week · no credit card</div>
 
           <div className="pa-chips">
             <span className="pa-chip">⚖️ Court-ready 5.20 reports</span>
@@ -151,7 +166,7 @@ export default function PilotApply() {
 
           <label className="pa-field">
             <span>Your name *</span>
-            <input required value={form.name} onChange={set('name')} autoComplete="name" />
+            <input id="pa-name-input" required value={form.name} onChange={set('name')} autoComplete="name" />
           </label>
 
           <label className="pa-field">
