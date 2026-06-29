@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
   if (action === "list") {
     const { data, error } = await admin
       .from("sv_pilot_applications")
-      .select("id,created_at,name,email,role,organization,jurisdiction,court_or_provider,use_case,how_heard,status,reviewed_at,reviewed_by")
+      .select("id,created_at,name,email,role,source,organization,jurisdiction,court_or_provider,use_case,how_heard,status,reviewed_at,reviewed_by")
       .order("created_at", { ascending: false });
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true, applications: data });

@@ -96,7 +96,10 @@ export default function PilotAdmin() {
                 <div className="pad-row-head">
                   <strong>{a.name}</strong>
                   <span className={`pad-status pad-status-${a.status}`}>{a.status}</span>
-                  <span className="pad-role">{ROLE_LABEL[a.role] || a.role}</span>
+                  <span className="pad-role">
+                    {ROLE_LABEL[a.role] || a.role || 'role TBD'}
+                    {a.source === 'oauth' ? ' · OAuth' : ''}
+                  </span>
                 </div>
                 <a className="pad-email" href={`mailto:${a.email}`}>{a.email}</a>
                 <div className="pad-meta">

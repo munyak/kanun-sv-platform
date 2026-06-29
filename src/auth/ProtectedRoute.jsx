@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
+import { supabase } from '../supabase'
 import PilotApply from '../pages/PilotApply'
 
 // Admin emails allowed to view the pilot approval queue (/admin/pilots).
@@ -41,6 +42,67 @@ export function RequireAdminEmail({ children }) {
     )
   }
   return children
+}
+
+// Cache the gate decision per user id for this page load so we don't re-hit
+// the edge function on every protected navigation.
+const gateCache = new Map()
+
+// Pilot approval gate. Applies to EVERY authenticated session — email/password
+// AND Google/Facebook OAuth — so OAuth users can't bypass approval. Admins and
+// existing org members pass instantly (no network call); everyone else is
+// checked (and, for fresh OAuth sign-ins, enqueued) by the pilot-gate function.
+export function RequireApproved({ children }) {
+  const { user, memberships, loading, bootstrapping } = useAuth()
+  const [access, setAccess] = useState(() => (user && gateCache.get(user.id)) || null)
+
+  useEffect(() => {
+    if (!user || bootstrapping) return
+    const email = (user.email || '').toLowerCase()
+    if (PILOT_ADMIN_EMAILS.includes(email)) { gateCache.set(user.id, 'admin'); setAccess('admin'); return }
+    if (memberships.length > 0) { gateCache.set(user.id, 'member'); setAccess('member'); return }
+    if (gateCache.has(user.id)) { setAccess(gateCache.get(user.id)); return }
+    let cancelled = false
+    supabase.functions.invoke('pilot-gate').then(({ data, error }) => {
+      if (cancelled) return
+      const a = (!error && data?.access) ? data.access : 'pending'
+      gateCache.set(user.id, a)
+      setAccess(a)
+    })
+    return () => { cancelled = true }
+  }, [user, memberships, bootstrapping])
+
+  if (loading || bootstrapping) return <div className="loading">Loading…</div>
+  if (!user) return <Navigate to="/login" replace />
+  if (['admin', 'member', 'approved'].includes(access)) return children
+  if (!access) return <div className="loading">Loading…</div>
+  return <PendingApproval status={access} email={user.email} />
+}
+
+function PendingApproval({ status, email }) {
+  const { signOut } = useAuth()
+  const rejected = status === 'rejected'
+  return (
+    <div className="pa-page">
+      <div className="pa-card pa-thanks">
+        <div className="pa-badge">{rejected ? '–' : '⏳'}</div>
+        <h1>{rejected ? 'Application not approved' : 'Your access is pending approval'}</h1>
+        <p>
+          {rejected
+            ? 'Your request to join the KaNun Monitoring pilot wasn’t approved. If you think this is a mistake, reply to your confirmation email.'
+            : <>Thanks for signing in{email ? <> as <strong>{email}</strong></> : ''}. A KaNun administrator
+              reviews each pilot tester individually — you’ll be able to access the platform as soon as
+              you’re approved (within about a week).</>}
+        </p>
+        {!rejected && (
+          <button className="pa-btn pa-btn-ghost" onClick={() => window.location.reload()}>
+            I’ve been approved — refresh
+          </button>
+        )}
+        <button className="pa-btn pa-btn-ghost" onClick={signOut} style={{ marginTop: 8 }}>Sign out</button>
+      </div>
+    </div>
+  )
 }
 
 export function RequireOrg({ children }) {

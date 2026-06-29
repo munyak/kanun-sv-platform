@@ -10,3 +10,4 @@ dist
 # Supabase CLI temp/local state
 supabase/.temp
 supabase/.branches
+.gstack/

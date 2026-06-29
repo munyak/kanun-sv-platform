@@ -5,7 +5,7 @@ import { initAnalytics, trackPageView } from './lib/analytics'
 import Landing from './pages/Landing'
 import PilotApply from './pages/PilotApply'
 import PilotAdmin from './pages/PilotAdmin'
-import { RequireAuth, RequireOrg, RequireRole, RequireAdminEmail, OWNER_ROLES } from './auth/ProtectedRoute'
+import { RequireAuth, RequireApproved, RequireOrg, RequireRole, RequireAdminEmail, OWNER_ROLES } from './auth/ProtectedRoute'
 import AppShell from './components/AppShell'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -74,10 +74,10 @@ export default function App() {
 
         <Route
           path="/onboarding"
-          element={<RequireAuth><Onboarding /></RequireAuth>}
+          element={<RequireAuth><RequireApproved><Onboarding /></RequireApproved></RequireAuth>}
         />
 
-        <Route element={<RequireAuth><RequireOrg><AppShell /></RequireOrg></RequireAuth>}>
+        <Route element={<RequireAuth><RequireApproved><RequireOrg><AppShell /></RequireOrg></RequireApproved></RequireAuth>}>
           {/* Shared — dashboard renders role-specific content inside */}
           <Route path="/" element={<Dashboard />} />
 
