@@ -12,7 +12,19 @@
  */
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const DEFAULT_MODEL = 'claude-sonnet-4-6';
+// Fast model so synchronous generation returns within Netlify's function
+// window. sonnet + 4096 tokens was exceeding it, producing a 504 "Inactivity
+// Timeout" that the client surfaced as "Unknown error". Override with the
+// LLM_MODEL env var if a longer-timeout/streaming setup is added later.
+const DEFAULT_MODEL = 'claude-haiku-4-5-20251001';
+// Cap output per mode to keep latency comfortably under the function timeout.
+const MAX_TOKENS_BY_MODE = {
+  lesson: 3000,
+  quiz: 1600,
+  scenario: 1280,
+  tutor: 1024,
+  report_review: 1600,
+};
 
 // ─── System prompts per mode ───
 
@@ -232,7 +244,7 @@ Return ONLY the JSON object, no other text.`
 
   try {
     const model = process.env.LLM_MODEL || DEFAULT_MODEL;
-    const maxTokens = 4096;
+    const maxTokens = MAX_TOKENS_BY_MODE[mode] || 1500;
     const resp = await fetch(ANTHROPIC_URL, {
       method: 'POST',
       headers: {
