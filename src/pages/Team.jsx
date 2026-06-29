@@ -62,11 +62,22 @@ export default function Team() {
     else { showToast('Invitation revoked.'); load() }
   }
 
-  async function removeMember(id) {
-    if (!confirm('Remove this member from the organization?')) return
-    const { error } = await supabase.from('sv_user_roles').delete().eq('id', id)
-    if (error) showToast(error.message, 'error')
-    else { showToast('Member removed.'); load() }
+  async function removeMember(m) {
+    if (!confirm('Remove this member’s access? They’ll be signed out of your agency and their monitor profile deactivated. Their existing visits and reports are preserved. You can re-invite them later.')) return
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-user', {
+        body: { action: 'remove_access', user_id: m.user_id },
+      })
+      if (error) {
+        let msg = 'Could not remove member.'
+        try { const j = await error.context?.json?.(); if (j) msg = j.message || j.error || msg } catch { /* */ }
+        throw new Error(msg)
+      }
+      if (data?.error) throw new Error(data.message || data.error)
+      showToast('Member access removed.'); load()
+    } catch (e) {
+      showToast(e.message || 'Could not remove member.', 'error')
+    }
   }
 
   return (
@@ -126,7 +137,7 @@ export default function Team() {
                     <td className="cell-muted">{new Date(m.created_at).toLocaleDateString()}</td>
                     <td>
                       {canManage && m.user_id !== user?.id && (
-                        <button className="btn btn-sm btn-secondary" onClick={() => removeMember(m.id)}>Remove</button>
+                        <button className="btn btn-sm btn-secondary" onClick={() => removeMember(m)}>Remove access</button>
                       )}
                     </td>
                   </tr>

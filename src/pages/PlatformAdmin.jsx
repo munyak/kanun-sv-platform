@@ -74,6 +74,9 @@ export default function PlatformAdmin() {
   const [selectedUser, setSelectedUser] = useState(null)
   const [userDetail, setUserDetail] = useState(null)
   const [userDetailLoading, setUserDetailLoading] = useState(false)
+  // Remove-access / delete-account confirmation: { id, name, action }
+  const [userAction, setUserAction] = useState(null)
+  const [userActionBusy, setUserActionBusy] = useState(false)
 
   function showToast(message, kind = 'success') {
     setToast({ message, kind }); setTimeout(() => setToast(null), 4000)
@@ -123,6 +126,27 @@ export default function PlatformAdmin() {
       setUserDetail(data)
     } catch (e) { showToast(e.message, 'error') }
     finally { setUserDetailLoading(false) }
+  }
+
+  // Remove access (revoke role + deactivate monitor, records preserved) or
+  // permanently delete the account — both enforced server-side in manage-user.
+  async function runUserAction() {
+    if (!userAction) return
+    const { id, action } = userAction
+    setUserActionBusy(true)
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-user', { body: { action, user_id: id } })
+      if (error) {
+        let msg = 'Action failed.'
+        try { const j = await error.context?.json?.(); if (j) msg = j.message || j.error || msg } catch { /* */ }
+        throw new Error(msg)
+      }
+      if (data?.error) throw new Error(data.message || data.error)
+      showToast(action === 'delete_account' ? 'Account permanently deleted.' : 'Access removed.')
+      setUserAction(null); setSelectedUser(null); setUserDetail(null); load()
+    } catch (e) {
+      showToast(e.message || 'Action failed.', 'error')
+    } finally { setUserActionBusy(false) }
   }
 
   async function handleOrderCheck(monitor) {
@@ -466,6 +490,8 @@ export default function PlatformAdmin() {
                       <button className="btn btn-sm btn-secondary" onClick={() => handlePasswordReset(userDetail.user?.email)} disabled={resetBusy === userDetail.user?.email}>
                         {resetBusy === userDetail.user?.email ? 'Sending...' : 'Reset password'}
                       </button>
+                      <button className="btn btn-sm btn-secondary" onClick={() => setUserAction({ id: selectedUser, name: userDetail.user?.full_name || userDetail.user?.email, action: 'remove_access' })}>Remove access</button>
+                      <button className="btn btn-sm btn-secondary" style={{ color: '#c0392b', borderColor: '#e6b0aa' }} onClick={() => setUserAction({ id: selectedUser, name: userDetail.user?.full_name || userDetail.user?.email, action: 'delete_account' })}>Delete account</button>
                       <button className="btn btn-sm btn-secondary" onClick={() => setSelectedUser(null)}>Close</button>
                     </div>
                   </div>
@@ -779,7 +805,10 @@ export default function PlatformAdmin() {
                       </thead>
                       <tbody>
                         {(analytics.monitor_activity || []).map((m, i) => (
-                          <tr key={i}>
+                          <tr key={i}
+                            className={m.user_id ? 'admin-row-clickable' : ''}
+                            style={m.user_id ? { cursor: 'pointer' } : undefined}
+                            onClick={m.user_id ? () => { setTab('users'); loadUserDetail(m.user_id) } : undefined}>
                             <td className="cell-strong">{m.first_name} {m.last_name}</td>
                             <td>{m.org_name}</td>
                             <td style={{ textAlign: 'right' }}>{m.visit_count}</td>
@@ -817,7 +846,10 @@ export default function PlatformAdmin() {
                       </thead>
                       <tbody>
                         {(analytics.org_usage || []).map((o, i) => (
-                          <tr key={i}>
+                          <tr key={i}
+                            className={o.org_id ? 'admin-row-clickable' : ''}
+                            style={o.org_id ? { cursor: 'pointer' } : undefined}
+                            onClick={o.org_id ? () => { setTab('organizations'); loadOrgDetail(o.org_id) } : undefined}>
                             <td className="cell-strong">{o.org_name}</td>
                             <td style={{ textAlign: 'right' }}>{o.active_monitors}</td>
                             <td style={{ textAlign: 'right' }}>{o.total_users}</td>
@@ -946,6 +978,29 @@ export default function PlatformAdmin() {
               <button className="btn btn-secondary" onClick={() => { setOrderCheckMonitor(null); setCheckForm({ date_of_birth: '', address: '', city: '', province_state: '', county: '', postal_code: '', sin_ssn: '', check_type: 'us_criminal_tier1' }) }}>Cancel</button>
               <button className="btn btn-primary" onClick={() => handleOrderCheck(orderCheckMonitor)} disabled={orderBusy}>
                 {orderBusy ? 'Ordering...' : 'Order check'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {userAction && (
+        <div onClick={() => !userActionBusy && setUserAction(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(11,40,28,.45)', backdropFilter: 'blur(2px)', display: 'grid', placeItems: 'center', zIndex: 1000, padding: 20 }}>
+          <div onClick={(e) => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: 16, padding: '24px 26px', maxWidth: 460, width: '100%', boxShadow: '0 24px 60px rgba(0,0,0,.3)' }}>
+            <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>
+              {userAction.action === 'delete_account' ? 'Permanently delete account?' : 'Remove access?'}
+            </h3>
+            <p style={{ margin: '0 0 18px', fontSize: 14, lineHeight: 1.55, color: '#44564f' }}>
+              {userAction.action === 'delete_account'
+                ? <>This permanently deletes <strong>{userAction.name}</strong>'s account and login. It's only allowed if they have <strong>no</strong> visit records or reports — otherwise use “Remove access”. This cannot be undone.</>
+                : <><strong>{userAction.name}</strong> will lose all access and their monitor profile will be deactivated. Their existing visits, observations and reports are <strong>preserved</strong>. You can re-invite them later.</>}
+            </p>
+            <div className="btn-group" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <button className="btn btn-sm btn-secondary" onClick={() => setUserAction(null)} disabled={userActionBusy}>Cancel</button>
+              <button className="btn btn-sm" style={{ background: '#c0392b', color: '#fff' }} onClick={runUserAction} disabled={userActionBusy}>
+                {userActionBusy ? 'Working…' : userAction.action === 'delete_account' ? 'Delete permanently' : 'Remove access'}
               </button>
             </div>
           </div>
