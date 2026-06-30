@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { useAuth, roleLabel } from '../auth/AuthContext'
+import { callLLM, parseLLMJson } from '../lib/academy'
 
 /* ---- helpers ---- */
 function fmtDate(d) {
@@ -66,6 +67,10 @@ export default function PlatformAdmin() {
   const [analytics, setAnalytics] = useState(null)
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
   const [analyticsDays, setAnalyticsDays] = useState(30)
+  // AI insights (LLM read of the analytics)
+  const [insights, setInsights] = useState(null)
+  const [insightsBusy, setInsightsBusy] = useState(false)
+  const [insightsErr, setInsightsErr] = useState(null)
   // Tester feedback + usage events
   const [feedback, setFeedback] = useState(null)
   const [usageEvents, setUsageEvents] = useState(null)
@@ -229,6 +234,33 @@ export default function PlatformAdmin() {
     } catch (e) {
       showToast(e.message || 'Failed to load feedback', 'error')
     } finally { setFeedbackLoading(false) }
+  }
+
+  async function loadInsights() {
+    if (!analytics) return
+    setInsightsBusy(true); setInsightsErr(null)
+    try {
+      const payload = {
+        period_days: analyticsDays,
+        platform_totals: {
+          orgs: stats?.total_orgs, users: stats?.total_users,
+          monitors: stats?.total_monitors, reports: stats?.total_reports,
+          pending_reports: stats?.pending_reports,
+        },
+        visits: analytics.visits_summary,
+        observations: analytics.observations_summary,
+        reports: analytics.reports_summary,
+        feature_adoption: analytics.feature_adoption,
+        active_users: analytics.active_users,
+        daily_visits: analytics.daily_visits,
+        monitor_activity: (analytics.monitor_activity || []).slice(0, 20),
+        org_usage: analytics.org_usage,
+      }
+      const res = await callLLM({ mode: 'insights', messages: [{ role: 'user', content: JSON.stringify(payload) }] })
+      setInsights(parseLLMJson(res.content))
+    } catch (e) {
+      setInsightsErr(e.message || 'Could not generate insights.')
+    } finally { setInsightsBusy(false) }
   }
 
   // Lazy-load each heavy tab on first open
@@ -765,6 +797,48 @@ export default function PlatformAdmin() {
                   sub={`${analytics.active_users?.active_last_7d || 0} in last 7 days`} />
                 <StatCard label="GPS check-ins" value={analytics.feature_adoption?.gps_checkins || 0}
                   sub={`${analytics.feature_adoption?.photo_count || 0} photos captured`} />
+              </div>
+
+              {/* ── AI insights ── */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">✨ AI insights</div>
+                  <button className="btn btn-sm btn-primary" onClick={loadInsights} disabled={insightsBusy}>
+                    {insightsBusy ? 'Analyzing…' : insights ? 'Refresh' : 'Generate insights'}
+                  </button>
+                </div>
+                <div className="card-body">
+                  {insightsErr && (
+                    <div style={{ background: '#fdecec', border: '1px solid #f5c2c2', color: '#a02020', padding: '9px 12px', borderRadius: 8, fontSize: 13, marginBottom: 12 }}>{insightsErr}</div>
+                  )}
+                  {!insights && !insightsBusy && !insightsErr && (
+                    <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>
+                      Get an executive read of the last {analyticsDays} days — trends, risks, and recommended actions, generated from the data below.
+                    </div>
+                  )}
+                  {insightsBusy && <div style={{ fontSize: 13, color: 'var(--text-tertiary)' }}>Analyzing platform trends…</div>}
+                  {insights && (
+                    <>
+                      {insights.summary && <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 14, color: 'var(--text-primary)' }}>{insights.summary}</div>}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {(insights.insights || []).map((it, i) => {
+                          const c = it.severity === 'urgent' ? '#c0392b' : it.severity === 'watch' ? '#b8860b' : '#2D6A4F'
+                          return (
+                            <div key={i} style={{ borderLeft: `3px solid ${c}`, padding: '2px 0 2px 12px' }}>
+                              <div style={{ fontSize: 14, fontWeight: 600 }}>
+                                <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.4px', color: c, marginRight: 8 }}>{it.severity}</span>
+                                {it.title}
+                              </div>
+                              <div style={{ fontSize: 13, color: 'var(--text-secondary)', margin: '3px 0' }}>{it.observation}</div>
+                              <div style={{ fontSize: 13, color: 'var(--text-primary)' }}><strong>→</strong> {it.action}</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-tertiary)', marginTop: 14 }}>AI-generated from platform data · review before acting.</div>
+                    </>
+                  )}
+                </div>
               </div>
 
               {/* ── Visit Trend Chart (simple bar) ── */}
