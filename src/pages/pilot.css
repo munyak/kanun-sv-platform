@@ -363,7 +363,9 @@
   text-decoration: none; text-align: center; transition: transform .18s, box-shadow .18s, background .18s;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
-.pa-btn-primary { background: var(--emerald-500); color: #fff; }
+/* Fallback literals so these shared buttons also render correctly outside
+   .pa-page (e.g. the admin queue, .pad-page, where the tokens aren't scoped). */
+.pa-btn-primary { background: var(--emerald-500, #2D6A4F); color: #fff; }
 .pa-btn-primary:hover { background: #245840; }
 .pa-btn-primary:disabled { opacity: .7; cursor: default; }
 .pa-btn-submit {
@@ -372,8 +374,8 @@
   box-shadow: 0 14px 30px -12px rgba(45,106,79,.7);
 }
 .pa-btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 20px 40px -14px rgba(45,106,79,.8); }
-.pa-btn-ghost { background: #fff; border-color: var(--line); color: var(--emerald-500); display: inline-block; }
-.pa-btn-ghost:hover { border-color: var(--emerald-500); }
+.pa-btn-ghost { background: #fff; border-color: var(--line, #d8e6df); color: var(--emerald-500, #2D6A4F); display: inline-block; }
+.pa-btn-ghost:hover { border-color: var(--emerald-500, #2D6A4F); }
 .pa-spin { width: 15px; height: 15px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4);
   border-top-color: #fff; animation: pa-spin .7s linear infinite; }
 
