@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
+import { logUsage } from '../lib/analytics'
 
 const LA_COURTS = [
   'Stanley Mosk Courthouse (Central)',
@@ -254,6 +255,7 @@ export default function IntakeForm() {
         .insert([{ case_id: caseRow.id, child_id: childData.id, org_id: activeOrgId }])
       if (linkErr) throw linkErr
 
+      logUsage('case_created', { case_id: caseRow.id })
       showToast('Intake submitted successfully')
       setTimeout(() => navigate(`/cases/${caseRow.id}`), 800)
     } catch (err) {

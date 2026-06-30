@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import VisitPhotos from '../components/VisitPhotos'
 import { readGeolocation } from '../lib/visitPhotos'
+import { logUsage } from '../lib/analytics'
 import VoiceRecorder from '../components/VoiceRecorder'
 import { useGpsTracker, GpsStatusBar } from '../components/GpsTracker'
 import QuickFlags from '../components/QuickFlags'
@@ -294,6 +295,7 @@ export default function VisitDetail() {
               checkin_accuracy_m: pos?.accuracy ?? null,
               checkin_monitor_id: visit.monitor_id,
             })
+            if (ok) logUsage('visit_checkin', { gps: !!pos })
             if (ok) showToast(pos ? `Checked in · GPS ±${Math.round(pos.accuracy || 0)}m` : 'Checked in')
           }}
         />

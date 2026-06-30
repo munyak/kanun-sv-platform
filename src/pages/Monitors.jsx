@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import Drawer from '../components/Drawer'
+import { logUsage } from '../lib/analytics'
 
 // Maps to the real sv_monitors schema — booleans + status enum.
 const QUALS = [
@@ -276,6 +277,7 @@ export default function Monitors() {
       }
       const { error } = await supabase.from('sv_monitors').insert([payload])
       if (error) throw error
+      logUsage('monitor_added', {})
       showToast('Monitor added')
       setForm(initialForm)
       setShowForm(false)

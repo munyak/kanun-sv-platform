@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { callLLM, parseLLMJson, DOMAINS } from '../lib/academy'
+import { logUsage } from '../lib/analytics'
 import '../components/academy.css'
 
 /**
@@ -49,6 +50,7 @@ export default function AcademyQuiz() {
         throw new Error('No questions generated. Try again.')
       }
       setQuestions(parsed)
+      logUsage('quiz_started', { domain: domain || 'all', difficulty, count })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -71,6 +73,7 @@ export default function AcademyQuiz() {
   function nextQuestion() {
     if (currentIdx + 1 >= questions.length) {
       setQuizComplete(true)
+      logUsage('quiz_completed', { count: questions.length })
     } else {
       setCurrentIdx(prev => prev + 1)
       setSelected(null)

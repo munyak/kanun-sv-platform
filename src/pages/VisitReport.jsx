@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { OWNER_ROLES } from '../auth/ProtectedRoute'
+import { logUsage } from '../lib/analytics'
 
 /* ============================================================
    Guided report builder + agency review
@@ -321,6 +322,7 @@ export default function VisitReport() {
         submitted_at: new Date().toISOString(),
       }).eq('id', saved.id)
       if (error) throw error
+      logUsage('report_submitted', {})
       await supabase.from('sv_visits').update({ status: 'report_submitted' }).eq('id', visit.id)
       await load()
       showToast('Submitted for agency review')

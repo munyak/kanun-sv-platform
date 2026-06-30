@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import { logUsage } from '../lib/analytics'
 import Drawer from './Drawer'
 
 const STATUS_OPTIONS = [
@@ -71,6 +72,7 @@ export default function VisitForm({ orgId, visit, onClose, onSaved }) {
         ? await supabase.from('sv_visits').update(payload).eq('id', visit.id)
         : await supabase.from('sv_visits').insert(payload)
       if (error) throw error
+      if (!isEdit) logUsage('visit_scheduled', {})
       onSaved?.()
     } catch (e) {
       setErr(e.message || 'Could not save visit.')
