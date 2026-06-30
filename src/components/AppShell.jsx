@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth, roleLabel } from '../auth/AuthContext'
 import IntroTour from './IntroTour'
+import TesterEngagement from './TesterEngagement'
 
 /* ----- Lucide-style icons (inline SVG, stroke-current) ----- */
 const Icon = ({ d, children, size = 20 }) => (
@@ -325,6 +326,7 @@ export default function AppShell() {
       </div>
 
       <IntroTour />
+      <TesterEngagement />
 
       {sidebarOpen && <div className="shell-backdrop" onClick={() => setSidebarOpen(false)} />}
     </div>

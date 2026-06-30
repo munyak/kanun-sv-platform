@@ -66,6 +66,10 @@ export default function PlatformAdmin() {
   const [analytics, setAnalytics] = useState(null)
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
   const [analyticsDays, setAnalyticsDays] = useState(30)
+  // Tester feedback + usage events
+  const [feedback, setFeedback] = useState(null)
+  const [usageEvents, setUsageEvents] = useState(null)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
 
   // Detail panels
   const [selectedOrg, setSelectedOrg] = useState(null)
@@ -208,9 +212,29 @@ export default function PlatformAdmin() {
     } finally { setAnalyticsLoading(false) }
   }
 
-  // Load analytics when tab switches to it
+  async function loadFeedback() {
+    setFeedbackLoading(true)
+    try {
+      const [fb, ev] = await Promise.all([
+        supabase.from('sv_feedback')
+          .select('id,created_at,prompt,rating,comment,context,user_id,org_id')
+          .order('created_at', { ascending: false }).limit(100),
+        supabase.from('sv_usage_events')
+          .select('event,created_at,path,user_id')
+          .order('created_at', { ascending: false }).limit(300),
+      ])
+      if (fb.error) throw fb.error
+      setFeedback(fb.data || [])
+      setUsageEvents(ev.data || [])
+    } catch (e) {
+      showToast(e.message || 'Failed to load feedback', 'error')
+    } finally { setFeedbackLoading(false) }
+  }
+
+  // Lazy-load each heavy tab on first open
   useEffect(() => {
     if (tab === 'analytics' && !analytics && !analyticsLoading) loadAnalytics()
+    if (tab === 'feedback' && !feedback && !feedbackLoading) loadFeedback()
   }, [tab])
 
   if (role !== 'platform_admin') {
@@ -249,6 +273,7 @@ export default function PlatformAdmin() {
           { key: 'attention', label: `Needs attention${attentionCount ? ` (${attentionCount})` : ''}` },
           { key: 'background_checks', label: `Background checks (${bgChecks.length})` },
           { key: 'analytics', label: 'Analytics' },
+          { key: 'feedback', label: 'Tester feedback' },
         ].map(t => (
           <button key={t.key} className={`admin-tab ${tab === t.key ? 'active' : ''}`} onClick={() => { setTab(t.key); setSelectedOrg(null); setSelectedUser(null) }}>{t.label}</button>
         ))}
@@ -983,6 +1008,82 @@ export default function PlatformAdmin() {
           </div>
         </div>
       )}
+
+      {tab === 'feedback' && (() => {
+        const fbRows = feedback || []
+        const rated = fbRows.filter((f) => f.rating)
+        const avg = rated.length ? (rated.reduce((s, f) => s + f.rating, 0) / rated.length).toFixed(1) : '—'
+        const ev = usageEvents || []
+        const activeTesters = new Set(ev.map((e) => e.user_id).filter(Boolean)).size
+        const counts = {}; ev.forEach((e) => { counts[e.event] = (counts[e.event] || 0) + 1 })
+        const topEvents = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 8)
+        const paths = {}; ev.filter((e) => e.event === 'page_view').forEach((e) => { paths[e.path] = (paths[e.path] || 0) + 1 })
+        const topPaths = Object.entries(paths).sort((a, b) => b[1] - a[1]).slice(0, 8)
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {feedbackLoading ? <div className="loading" style={{ padding: 32 }}>Loading…</div> : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+                  <StatCard label="Feedback responses" value={fbRows.length} sub="most recent 100" />
+                  <StatCard label="Avg rating" value={avg} sub="out of 5" />
+                  <StatCard label="Activity events" value={ev.length} sub="most recent 300" />
+                  <StatCard label="Active testers" value={activeTesters} sub="distinct users" />
+                </div>
+
+                <div className="card">
+                  <div className="card-header">
+                    <div className="card-title">Recent feedback</div>
+                    <span className="badge badge-blue">{fbRows.length}</span>
+                  </div>
+                  <div className="card-body-flush">
+                    {fbRows.length === 0 ? (
+                      <div style={{ padding: 32, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>
+                        No feedback yet — testers are prompted in-app, non-invasively, as they use the platform.
+                      </div>
+                    ) : (
+                      <table className="data-table">
+                        <thead><tr><th>Rating</th><th>Prompt / comment</th><th>Where</th><th>When</th></tr></thead>
+                        <tbody>
+                          {fbRows.map((f) => (
+                            <tr key={f.id}>
+                              <td className="cell-strong">{f.rating ? `${f.rating}/5` : '—'}</td>
+                              <td>
+                                <div style={{ fontSize: 13 }}>{f.prompt}</div>
+                                {f.comment && <div style={{ fontSize: 13, color: 'var(--text-secondary)', fontStyle: 'italic', marginTop: 2 }}>“{f.comment}”</div>}
+                              </td>
+                              <td className="cell-muted">{f.context?.path || '—'}</td>
+                              <td className="cell-muted">{fmtRelative(f.created_at)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                  <div className="card">
+                    <div className="card-header"><div className="card-title">Top actions</div></div>
+                    <div className="card-body" style={{ padding: 0 }}>
+                      {topEvents.length === 0
+                        ? <div style={{ padding: 24, fontSize: 13, color: 'var(--text-tertiary)' }}>No activity captured yet</div>
+                        : topEvents.map(([name, n]) => <FeatureRow key={name} label={name.replace(/_/g, ' ')} value={n} icon="•" />)}
+                    </div>
+                  </div>
+                  <div className="card">
+                    <div className="card-header"><div className="card-title">Most-visited pages</div></div>
+                    <div className="card-body" style={{ padding: 0 }}>
+                      {topPaths.length === 0
+                        ? <div style={{ padding: 24, fontSize: 13, color: 'var(--text-tertiary)' }}>No page views yet</div>
+                        : topPaths.map(([p, n]) => <FeatureRow key={p} label={p} value={n} icon="→" />)}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
 
       {userAction && (
         <div onClick={() => !userActionBusy && setUserAction(null)}
