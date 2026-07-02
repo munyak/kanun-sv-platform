@@ -60,9 +60,14 @@ export default function App() {
         {/* Munya's pilot approval queue — gated to admin emails. */}
         <Route path="/admin/pilots" element={<RequireAdminEmail><PilotAdmin /></RequireAdminEmail>} />
         <Route path="/login" element={<Login />} />
-        {/* During the gated pilot, all new signups funnel through the
-            pilot application + approval gate instead of open self-serve. */}
+        {/* During the gated pilot, all new SELF-SERVE signups funnel through the
+            pilot application + approval gate instead of open sign-up. */}
         <Route path="/signup" element={<Navigate to="/apply" replace />} />
+        {/* Invited monitors (and other invited roles) join here. They were
+            vouched for by an approved agency, so they skip the pilot gate:
+            Signup → accept_pending_invitations() links them to the org. The
+            monitor invite email points here with ?email= pre-filled. */}
+        <Route path="/join" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />

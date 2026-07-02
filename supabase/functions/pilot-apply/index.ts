@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
   if (!name) return json({ error: "Please enter your name." }, 400);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
     return json({ error: "Please enter a valid email address." }, 400);
-  if (!["parent", "monitor", "court"].includes(role))
+  if (!["parent", "agency", "monitor", "court"].includes(role))
     return json({ error: "Please choose your role." }, 400);
   if (password.length < 8)
     return json({ error: "Password must be at least 8 characters." }, 400);

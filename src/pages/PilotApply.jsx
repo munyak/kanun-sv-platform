@@ -22,7 +22,8 @@ const MARQUEE = [
 
 const ROLES = [
   { value: 'parent', label: 'Parent', hint: 'A parent in a supervised-visitation arrangement', icon: '👪' },
-  { value: 'monitor', label: 'Monitor / Agency', hint: 'A professional monitor or visitation agency', icon: '🛡️' },
+  { value: 'agency', label: 'Agency / provider', hint: 'You run a supervised-visitation agency or program', icon: '🏢' },
+  { value: 'monitor', label: 'Monitor', hint: 'An individual professional visitation monitor', icon: '🛡️' },
   { value: 'court', label: 'Court / Legal', hint: 'Court staff, attorney, or court liaison', icon: '⚖️' },
 ]
 

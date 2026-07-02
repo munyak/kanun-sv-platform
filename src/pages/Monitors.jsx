@@ -111,6 +111,7 @@ export default function Monitors() {
   const [inviteForm, setInviteForm] = useState({ first_name: '', last_name: '', email: '', phone: '' })
   const [inviting, setInviting] = useState(false)
   const [inviteLink, setInviteLink] = useState(null)
+  const [inviteEmail, setInviteEmail] = useState(null) // 'sent' | 'pending' | 'error' | null
 
   useEffect(() => { if (activeOrgId) load() }, [activeOrgId])
 
@@ -181,41 +182,33 @@ export default function Monitors() {
     if (!email) { showToast('Email required', 'error'); return }
     setInviting(true)
     setInviteLink(null)
+    setInviteEmail(null)
     try {
-      // 1) Placeholder monitor record so the new hire appears in the list
-      //    even before they accept. status=pending_verification, active=false.
-      const { data: existing } = await supabase
-        .from('sv_monitors').select('id, user_id, email')
-        .eq('org_id', activeOrgId).ilike('email', email).maybeSingle()
-      if (!existing) {
-        const { error: mErr } = await supabase.from('sv_monitors').insert({
+      // The invite-monitor Edge Function (service role) creates the placeholder
+      // monitor record + invitation and emails the new monitor onboarding
+      // instructions from munya@kanunmonitoring.com. Doing it server-side keeps
+      // authorization enforced and lets us actually send the email.
+      const { data, error } = await supabase.functions.invoke('invite-monitor', {
+        body: {
           org_id: activeOrgId,
+          email,
           first_name: inviteForm.first_name.trim(),
           last_name: inviteForm.last_name.trim(),
-          email,
           phone: inviteForm.phone || null,
-          status: 'pending_verification',
-          active: false,
-        })
-        if (mErr) throw mErr
-      }
-
-      // 2) Invitation row — the auth.users trigger will assign role +
-      //    link sv_monitors.user_id when the invitee signs up.
-      const { error: invErr } = await supabase.from('sv_invitations').insert({
-        org_id: activeOrgId,
-        email,
-        role: 'monitor',
-        invited_by: user?.id || null,
+        },
       })
-      if (invErr && !String(invErr.message || '').includes('duplicate')) throw invErr
+      if (error) {
+        let msg = 'Failed to invite monitor'
+        try { const j = await error.context?.json?.(); if (j?.error) msg = j.error } catch { /* noop */ }
+        throw new Error(msg)
+      }
+      if (data?.error) throw new Error(data.error)
 
-      // 3) Show a signup link the owner can share if email delivery isn't
-      //    set up yet. We can't send a real magic link from the browser
-      //    without the service role key.
-      const link = `${window.location.origin}/signup?email=${encodeURIComponent(email)}`
-      setInviteLink(link)
-      showToast('Invitation created')
+      // Show the shareable join link + whether the email actually went out, so
+      // the owner knows if they need to pass the link along manually.
+      setInviteLink(data?.invite_link || `${window.location.origin}/join?email=${encodeURIComponent(email)}`)
+      setInviteEmail(data?.email_sent ? 'sent' : (data?.email_pending ? 'pending' : 'error'))
+      showToast(data?.email_sent ? 'Invitation sent' : 'Invitation created')
       setInviteForm({ first_name: '', last_name: '', email: '', phone: '' })
       load()
     } catch (err) {
@@ -304,7 +297,7 @@ export default function Monitors() {
           <div className="page-subtitle">Qualifications tracked per California Standard 5.20(e)</div>
         </div>
         <div className="btn-group">
-          <button className="btn btn-secondary" onClick={() => { setInviteLink(null); setShowInvite(true) }}>
+          <button className="btn btn-secondary" onClick={() => { setInviteLink(null); setInviteEmail(null); setShowInvite(true) }}>
             Invite monitor
           </button>
           <button className="btn btn-primary" onClick={() => setShowForm(true)}>
@@ -315,13 +308,13 @@ export default function Monitors() {
 
       <Drawer
         open={showInvite}
-        onClose={() => { setInviteLink(null); setShowInvite(false) }}
+        onClose={() => { setInviteLink(null); setInviteEmail(null); setShowInvite(false) }}
         title="Invite a monitor"
-        subtitle="Send a signup link so they can join your agency"
+        subtitle="We'll email them onboarding instructions"
         width={520}
         footer={
           <>
-            <button className="btn btn-secondary" onClick={() => { setInviteLink(null); setShowInvite(false) }} disabled={inviting}>Close</button>
+            <button className="btn btn-secondary" onClick={() => { setInviteLink(null); setInviteEmail(null); setShowInvite(false) }} disabled={inviting}>Close</button>
             {!inviteLink && (
               <button className="btn btn-primary" onClick={sendInvite} disabled={inviting}>
                 {inviting ? 'Inviting…' : 'Create invitation'}
@@ -332,8 +325,9 @@ export default function Monitors() {
       >
         <div className="form-section">
           <p className="form-help" style={{ marginBottom: 16 }}>
-            We'll create a placeholder monitor record and an invitation tied to this email.
-            When they sign up, they're automatically linked to your agency as a monitor.
+            We'll add them to your Monitors list and email them onboarding instructions —
+            how to create their account, sign in, and add the app to their phone. When they
+            sign up with this email, they're automatically linked to your agency as a monitor.
           </p>
           <div className="form-grid">
             <div className="form-group">
@@ -362,8 +356,14 @@ export default function Monitors() {
 
         {inviteLink && (
           <div className="form-section">
-            <h3 className="form-section-title">Signup link ready</h3>
-            <p className="form-help">Send this link to your new monitor. When they create an account with the same email, they'll join your agency automatically.</p>
+            <h3 className="form-section-title">
+              {inviteEmail === 'sent' ? 'Invitation emailed ✓' : 'Invitation created'}
+            </h3>
+            <p className="form-help">
+              {inviteEmail === 'sent'
+                ? 'We emailed onboarding instructions and this signup link to the monitor. You can also share the link directly as a backup.'
+                : 'Email isn’t fully set up yet, so send this signup link to your new monitor yourself. When they create an account with the same email, they’ll join your agency automatically.'}
+            </p>
             <div className="card" style={{ marginTop: 12, background: 'var(--accent-faint)', border: '1px solid var(--accent-soft)' }}>
               <div className="card-body" style={{ wordBreak: 'break-all' }}>
                 <div className="cell-mono" style={{ fontSize: 13 }}>{inviteLink}</div>

@@ -70,6 +70,7 @@ export async function sendEmail(
 
 export const ROLE_LABEL: Record<string, string> = {
   parent: "Parent",
+  agency: "Agency owner",
   monitor: "Monitor",
   court: "Court / Legal professional",
 };

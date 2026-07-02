@@ -209,10 +209,25 @@ export default function Onboarding() {
       if (s.key === 'invite' && data.invite.email.trim()) {
         if (!oid) throw new Error('Organization not created yet — go back to step 1.')
         const email = data.invite.email.trim().toLowerCase()
-        const { error: invErr } = await supabase.from('sv_invitations').insert({
-          org_id: oid, email, role: data.invite.role, invited_by: user.id,
-        })
-        if (invErr && !String(invErr.message || '').includes('duplicate')) throw invErr
+        let invited = false
+        // For monitors, use the invite-monitor Edge Function so they also get
+        // the onboarding email (how to sign up + install the app). Best-effort:
+        // fall back to a plain invitation row if the function is unavailable so
+        // onboarding never breaks.
+        if (data.invite.role === 'monitor') {
+          try {
+            const { error: fnErr } = await supabase.functions.invoke('invite-monitor', {
+              body: { org_id: oid, email },
+            })
+            if (!fnErr) invited = true
+          } catch { /* fall through to direct insert */ }
+        }
+        if (!invited) {
+          const { error: invErr } = await supabase.from('sv_invitations').insert({
+            org_id: oid, email, role: data.invite.role, invited_by: user.id,
+          })
+          if (invErr && !String(invErr.message || '').includes('duplicate')) throw invErr
+        }
       }
 
       if (s.key === 'case' && data.firstCase.case_number.trim()) {
