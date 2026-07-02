@@ -75,10 +75,19 @@ export default function PlatformAdmin() {
   const [feedback, setFeedback] = useState(null)
   const [usageEvents, setUsageEvents] = useState(null)
   const [feedbackLoading, setFeedbackLoading] = useState(false)
-  // Post-signup engagement (funnel + per-user activity + time series)
+  // Post-signup engagement (funnel + retention + activation + per-user activity)
   const [engagement, setEngagement] = useState(null)
   const [engagementLoading, setEngagementLoading] = useState(false)
   const [engSearch, setEngSearch] = useState('')
+  // Engagement filters (segmentation)
+  const [engPeriod, setEngPeriod] = useState(30)
+  const [engExcludeInternal, setEngExcludeInternal] = useState(true)
+  const [engRole, setEngRole] = useState('')
+  const [engOrg, setEngOrg] = useState('')
+  const [engShowInternal, setEngShowInternal] = useState(false)  // per-user table toggle
+  // Per-user activity timeline (Amplitude-style event stream)
+  const [userTimeline, setUserTimeline] = useState(null)
+  const [userTimelineLoading, setUserTimelineLoading] = useState(false)
 
   // Detail panels
   const [selectedOrg, setSelectedOrg] = useState(null)
@@ -133,12 +142,20 @@ export default function PlatformAdmin() {
 
   async function loadUserDetail(userId) {
     setSelectedUser(userId); setUserDetailLoading(true); setUserDetail(null)
+    setUserTimeline(null); setUserTimelineLoading(true)
     try {
       const { data, error } = await supabase.rpc('platform_admin_user_detail', { p_user_id: userId })
       if (error) throw error
       setUserDetail(data)
     } catch (e) { showToast(e.message, 'error') }
     finally { setUserDetailLoading(false) }
+    // Activity timeline loads independently (metadata-only event stream)
+    try {
+      const { data, error } = await supabase.rpc('platform_admin_user_timeline', { p_user_id: userId, p_limit: 200 })
+      if (error) throw error
+      setUserTimeline(data || [])
+    } catch (e) { setUserTimeline([]) }
+    finally { setUserTimelineLoading(false) }
   }
 
   // Remove access (revoke role + deactivate monitor, records preserved) or
@@ -221,17 +238,26 @@ export default function PlatformAdmin() {
     } finally { setAnalyticsLoading(false) }
   }
 
-  async function loadEngagement() {
+  const loadEngagement = useCallback(async (opts = {}) => {
+    const days = opts.days ?? engPeriod
+    const exclude = opts.exclude ?? engExcludeInternal
+    const roleF = opts.role ?? engRole
+    const orgF = opts.org ?? engOrg
     setEngagementLoading(true)
     try {
-      const { data, error } = await supabase.rpc('platform_admin_engagement', { p_days: 30 })
+      const { data, error } = await supabase.rpc('platform_admin_engagement_v2', {
+        p_days: days,
+        p_exclude_internal: exclude,
+        p_role: roleF || null,
+        p_org: orgF || null,
+      })
       if (error) throw error
       setEngagement(data)
     } catch (e) {
       console.error('Engagement load:', e)
       showToast(e.message || 'Failed to load engagement', 'error')
     } finally { setEngagementLoading(false) }
-  }
+  }, [engPeriod, engExcludeInternal, engRole, engOrg])
 
   async function loadFeedback() {
     setFeedbackLoading(true)
@@ -621,6 +647,11 @@ export default function PlatformAdmin() {
                           <span className={`badge badge-${statusDot(v.status)}`}>{(v.status || '—').replace(/_/g, ' ')}</span>
                         </div>
                       ))}
+                    </DetailSection>
+
+                    {/* Activity timeline — chronological, metadata-only event stream */}
+                    <DetailSection title="Activity timeline" count={userTimeline ? userTimeline.length : undefined}>
+                      <UserTimeline events={userTimeline} loading={userTimelineLoading} />
                     </DetailSection>
                   </div>
                 </>
@@ -1020,11 +1051,46 @@ export default function PlatformAdmin() {
       {/* ============ ENGAGEMENT TAB ============ */}
       {tab === 'engagement' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ flex: 1, fontSize: 13, color: 'var(--text-secondary)' }}>
-              What users do after they sign up — activation funnel, per-user activity (metadata only), and daily trends over the last 30 days.
+          {/* Intro + filters */}
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+            Product-analytics view of what customers do after they sign up — north-star KPIs, retention, activation & time-to-value, feature adoption, and per-user activity. Metadata only; no case, report or visit contents.
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>Period</span>
+              {[7, 30, 60, 90].map(d => (
+                <button key={d} className={`btn btn-sm ${engPeriod === d ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => { setEngPeriod(d); loadEngagement({ days: d }) }}>{d}d</button>
+              ))}
             </div>
-            <button className="btn btn-sm btn-secondary" onClick={loadEngagement} disabled={engagementLoading}>
+            <select className="form-input" value={engRole} style={{ height: 30, fontSize: 13, width: 150 }}
+              onChange={e => { setEngRole(e.target.value); loadEngagement({ role: e.target.value }) }}>
+              <option value="">All roles</option>
+              {(engagement?.segments?.roles || []).map(r => (
+                <option key={r.role} value={r.role}>{roleLabel(r.role)} ({r.n})</option>
+              ))}
+            </select>
+            <select className="form-input" value={engOrg} style={{ height: 30, fontSize: 13, width: 190 }}
+              onChange={e => { setEngOrg(e.target.value); loadEngagement({ org: e.target.value }) }}>
+              <option value="">All organizations</option>
+              {(engagement?.segments?.orgs || []).map(o => (
+                <option key={o.org_id} value={o.org_id}>{o.name} ({o.members})</option>
+              ))}
+            </select>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <input type="checkbox" checked={engExcludeInternal}
+                onChange={e => { setEngExcludeInternal(e.target.checked); loadEngagement({ exclude: e.target.checked }) }} />
+              Exclude staff / test accounts
+            </label>
+            <div style={{ flex: 1 }} />
+            {engagement?.meta && (
+              <span style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>
+                {engagement.meta.universe_size} of {engagement.meta.total_users} users
+                {engExcludeInternal && engagement.meta.internal_count > 0 ? ` · ${engagement.meta.internal_count} internal hidden` : ''}
+              </span>
+            )}
+            <button className="btn btn-sm btn-secondary" onClick={() => loadEngagement()} disabled={engagementLoading}>
               {engagementLoading ? 'Loading…' : 'Refresh'}
             </button>
           </div>
@@ -1032,37 +1098,125 @@ export default function PlatformAdmin() {
           {engagementLoading && !engagement ? (
             <div className="loading" style={{ padding: 48 }}>Loading engagement…</div>
           ) : engagement ? (
+            (engagement.meta?.universe_size || 0) === 0 ? (
+              <div className="card"><div className="card-body">
+                <EmptyState title="No users match these filters"
+                  body="Try clearing the role or organization filter, or turn off staff exclusion."
+                  action={<button className="btn btn-sm btn-secondary" onClick={() => { setEngRole(''); setEngOrg(''); setEngExcludeInternal(false); loadEngagement({ role: '', org: '', exclude: false }) }}>Clear filters</button>} />
+              </div></div>
+            ) : (
             <>
-              {/* KPI totals */}
+              {/* Low-N honesty caveat */}
+              {(engagement.meta?.universe_size || 0) < 30 && (
+                <div style={{ background: 'var(--warning-soft)', border: '1px solid #EAD9A8', color: '#7a5a08', padding: '9px 13px', borderRadius: 'var(--r)', fontSize: 12.5, display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 14 }}>ℹ️</span>
+                  Based on {engagement.meta.universe_size} {engagement.meta.universe_size === 1 ? 'user' : 'users'} — early-stage sample. Figures are shown as counts ("k of {engagement.meta.universe_size}"); percentages and trends are directional, not statistically significant.
+                </div>
+              )}
+
+              {/* ── North-star KPI header ── */}
               <div className="stats-grid">
-                <StatCard label="Total users" value={engagement.totals?.total_users || 0} sub={`${engagement.totals?.never_logged_in || 0} never logged in`} />
-                <StatCard label="New signups (30d)" value={engagement.totals?.new_30d || 0} sub={`${engagement.totals?.new_7d || 0} in last 7 days`} />
-                <StatCard label="Active (7d)" value={engagement.totals?.active_7d || 0} sub={`${engagement.totals?.active_30d || 0} active in 30d`} />
-                <StatCard label="Created a case" value={engagement.funnel?.created_case || 0} sub={`of ${engagement.funnel?.activated || 0} activated`} />
-                <StatCard label="Reports submitted" value={engagement.funnel?.submitted_report || 0} sub="users who filed ≥1 report" />
+                <KpiCard label="Total users" k={engagement.kpis?.total_users} universe={engagement.meta?.universe_size}
+                  suffixSub={`+${engagement.kpis?.total_users?.delta || 0} this period`} />
+                <KpiCard label="New signups" k={engagement.kpis?.new_signups} periodDays={engagement.meta?.period_days} spark />
+                <KpiCard label="Active users" k={engagement.kpis?.active_users} periodDays={engagement.meta?.period_days} spark />
+                <KpiCard label="Activation rate" k={engagement.kpis?.activation_rate} isRate
+                  suffixSub={`${engagement.kpis?.activation_rate?.activated || 0} of ${engagement.kpis?.activation_rate?.total || 0} activated`} />
+                <KpiCard label="Stickiness (DAU/MAU)" k={engagement.kpis?.stickiness} isRate spark experimental />
               </div>
 
-              {/* Funnel */}
-              <div className="card">
-                <div className="card-header"><div className="card-title">Signup → activation funnel</div></div>
-                <div className="card-body">
-                  <EngagementFunnel funnel={engagement.funnel} />
+              {/* ── Funnel + Activation/TTV ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 20 }}>
+                <div className="card">
+                  <div className="card-header">
+                    <div className="card-title">Signup → activation funnel</div>
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>conversion & median time-to-convert</span>
+                  </div>
+                  <div className="card-body"><FunnelV2 funnel={engagement.funnel} /></div>
+                </div>
+                <div className="card">
+                  <div className="card-header"><div className="card-title">Time to value</div></div>
+                  <div className="card-body">
+                    <TtvCards ttv={engagement.activation?.ttv} />
+                    <div style={{ marginTop: 16, borderTop: '1px solid var(--border-subtle)', paddingTop: 14 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>Activation rate by signup week</div>
+                      <ActivationCohorts cohorts={engagement.activation?.by_cohort} />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Daily trends */}
+              {/* ── Retention ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 20 }}>
+                <div className="card">
+                  <div className="card-header">
+                    <div className="card-title">Retention cohorts</div>
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>% of weekly signup cohort still active</span>
+                  </div>
+                  <div className="card-body" style={{ padding: '14px 16px', overflowX: 'auto' }}>
+                    <RetentionGrid retention={engagement.retention} />
+                  </div>
+                </div>
+                <div className="card">
+                  <div className="card-header">
+                    <div className="card-title">Retention curve</div>
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>N-day (rolling)</span>
+                  </div>
+                  <div className="card-body" style={{ padding: '16px 20px' }}>
+                    <RetentionCurve curve={engagement.retention?.curve} />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Stickiness / active users over time ── */}
               <div className="card">
-                <div className="card-header"><div className="card-title">Daily activity — last {engagement.period_days || 30} days</div></div>
+                <div className="card-header">
+                  <div className="card-title">Active users — DAU / WAU / MAU</div>
+                  <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>last {engagement.meta?.period_days || 30} days</span>
+                </div>
+                <div className="card-body" style={{ padding: '16px 20px' }}>
+                  <StickinessChart data={engagement.stickiness_series || []} />
+                </div>
+              </div>
+
+              {/* ── Feature adoption + page areas ── */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                <div className="card">
+                  <div className="card-header">
+                    <div className="card-title">Feature adoption</div>
+                    <span style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>of {engagement.meta?.universe_size} users</span>
+                  </div>
+                  <div className="card-body" style={{ padding: '6px 0' }}>
+                    <FeatureAdoption features={engagement.feature_adoption} universe={engagement.meta?.universe_size} />
+                  </div>
+                </div>
+                <div className="card">
+                  <div className="card-header"><div className="card-title">Most-used areas</div></div>
+                  <div className="card-body" style={{ padding: '6px 0' }}>
+                    <PageAreas areas={engagement.page_areas} universe={engagement.meta?.universe_size} />
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Daily activity trend ── */}
+              <div className="card">
+                <div className="card-header"><div className="card-title">Daily activity — last {engagement.meta?.period_days || 30} days</div></div>
                 <div className="card-body" style={{ padding: '16px 20px' }}>
                   <EngagementTrend data={engagement.daily || []} />
                 </div>
               </div>
 
-              {/* Per-user activity table */}
+              {/* ── Per-user activity table ── */}
               <div className="card">
                 <div className="card-header">
                   <div className="card-title">Per-user activity</div>
-                  <input type="search" className="form-input" placeholder="Search users…" value={engSearch} onChange={e => setEngSearch(e.target.value)} style={{ width: 220, height: 30, fontSize: 13 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={engShowInternal} onChange={e => setEngShowInternal(e.target.checked)} />
+                      Show staff / test
+                    </label>
+                    <input type="search" className="form-input" placeholder="Search users…" value={engSearch} onChange={e => setEngSearch(e.target.value)} style={{ width: 200, height: 30, fontSize: 13 }} />
+                  </div>
                 </div>
                 <div className="card-body-flush">
                   <table className="data-table">
@@ -1079,16 +1233,17 @@ export default function PlatformAdmin() {
                     </thead>
                     <tbody>
                       {(engagement.per_user || []).filter(u => {
+                        if (!engShowInternal && u.is_internal) return false
                         if (!engSearch) return true
                         const q = engSearch.toLowerCase()
                         return (u.email || '').toLowerCase().includes(q) || (u.full_name || '').toLowerCase().includes(q) || (u.org_names || '').toLowerCase().includes(q)
                       }).map((u, i) => (
                         <tr key={u.user_id || i} className="admin-row-clickable" style={{ cursor: 'pointer' }} onClick={() => { setTab('users'); loadUserDetail(u.user_id) }}>
                           <td>
-                            <div className="cell-strong">{u.full_name || u.email}</div>
+                            <div className="cell-strong">{u.full_name || u.email}{u.is_internal && <span className="badge badge-gray" style={{ marginLeft: 6, fontSize: 10 }}>staff</span>}</div>
                             <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{u.org_names || (u.full_name ? u.email : '—')}</div>
                           </td>
-                          <td>{(u.roles && u.roles.length) ? u.roles.map(r => roleLabel(r)).join(', ') : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}</td>
+                          <td>{u.primary_role ? roleLabel(u.primary_role) : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}</td>
                           <td className="cell-muted">{fmtDate(u.signup_at)}</td>
                           <td className="cell-muted">{fmtRelative(u.last_active || u.last_sign_in_at)}</td>
                           <td style={{ textAlign: 'right' }}>{u.n_cases}</td>
@@ -1103,13 +1258,14 @@ export default function PlatformAdmin() {
                   </table>
                 </div>
                 <div style={{ padding: '10px 16px', fontSize: 11, color: 'var(--text-tertiary)' }}>
-                  Activity metadata only — counts, timestamps and statuses. No case, report, or visit contents are shown here. Click a row for the full user detail.
+                  Activity metadata only — counts, timestamps and statuses. No case, report, or visit contents are shown here. Click a row for the full user detail and activity timeline.
                 </div>
               </div>
             </>
+            )
           ) : (
             <div style={{ padding: 48, textAlign: 'center' }}>
-              <button className="btn btn-primary" onClick={loadEngagement}>Load engagement</button>
+              <button className="btn btn-primary" onClick={() => loadEngagement()}>Load engagement</button>
             </div>
           )}
         </div>
@@ -1412,40 +1568,377 @@ function VisitTrendChart({ data }) {
 
 /* ---- Engagement components ---- */
 
-function EngagementFunnel({ funnel }) {
+/* Format a duration in days for time-to-value / time-to-convert. */
+function fmtDays(d) {
+  if (d === null || d === undefined) return '—'
+  const n = Number(d)
+  if (n <= 0) return '<1h'
+  if (n < 1) return `${Math.round(n * 24)}h`
+  if (n < 10) return `${n}d`
+  return `${Math.round(n)}d`
+}
+
+/* Period-over-period delta. At low N we suppress % unless the prior base is
+   meaningful (>=5) and fall back to an absolute delta ("+2"). */
+function deltaInfo(value, prev) {
+  if (prev === null || prev === undefined) return null
+  const diff = (value || 0) - (prev || 0)
+  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '·'
+  const color = diff > 0 ? 'var(--success)' : diff < 0 ? 'var(--error)' : 'var(--text-tertiary)'
+  const text = prev >= 5 ? `${diff >= 0 ? '+' : ''}${Math.round((100 * diff) / prev)}%` : `${diff >= 0 ? '+' : ''}${diff}`
+  return { text, color, arrow }
+}
+
+function Sparkline({ data, color = 'var(--accent)', height = 26, width = 96 }) {
+  if (!data || !data.length) return null
+  const max = Math.max(...data, 1)
+  const step = data.length > 1 ? width / (data.length - 1) : width
+  const pts = data.map((v, i) => `${(i * step).toFixed(1)},${(height - (v / max) * (height - 3) - 1.5).toFixed(1)}`).join(' ')
+  const allZero = data.every(v => !v)
+  return (
+    <svg width={width} height={height} style={{ display: 'block', overflow: 'visible' }}>
+      {allZero
+        ? <line x1="0" y1={height - 1.5} x2={width} y2={height - 1.5} stroke="var(--border-strong)" strokeWidth="1.5" />
+        : <polyline points={pts} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round" />}
+    </svg>
+  )
+}
+
+function KpiCard({ label, k, spark, isRate, experimental, periodDays, suffixSub, universe }) {
+  if (!k) return <div className="stat-card"><div className="stat-label">{label}</div><div className="stat-value">—</div></div>
+  const d = deltaInfo(k.value, k.prev)
+  return (
+    <div className="stat-card">
+      <div className="stat-card-head">
+        <div className="stat-label">{label}{experimental && <span title="Volatile at low sample size" style={{ marginLeft: 5, fontSize: 9, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '.3px' }}>exp</span>}</div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+        <div className="stat-value">{k.value ?? 0}{isRate ? '%' : ''}</div>
+        {spark && k.spark && <Sparkline data={k.spark} color={isRate ? 'var(--success)' : 'var(--accent)'} />}
+      </div>
+      <div className="stat-sub" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        {d && <span style={{ color: d.color, fontWeight: 600 }}>{d.arrow} {d.text}</span>}
+        <span>{suffixSub || (k.prev !== undefined ? `vs prior ${periodDays || 30}d` : '')}</span>
+      </div>
+    </div>
+  )
+}
+
+function EmptyState({ title, body, action }) {
+  return (
+    <div style={{ padding: '28px 20px', textAlign: 'center' }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>{title}</div>
+      {body && <div style={{ fontSize: 13, color: 'var(--text-tertiary)', marginBottom: action ? 14 : 0, maxWidth: 380, margin: '0 auto' }}>{body}</div>}
+      {action && <div style={{ marginTop: 14 }}>{action}</div>}
+    </div>
+  )
+}
+
+function FunnelV2({ funnel }) {
   if (!funnel) return null
+  const md = funnel.median_days || {}
   const steps = [
     { key: 'signed_up', label: 'Signed up', desc: 'Created an account' },
-    { key: 'confirmed', label: 'Confirmed email', desc: 'Verified their email' },
-    { key: 'activated', label: 'Activated', desc: 'Logged in at least once' },
-    { key: 'created_case', label: 'Created a case', desc: 'Started real work' },
-    { key: 'scheduled_visit', label: 'Scheduled a visit', desc: 'Booked a visit' },
-    { key: 'submitted_report', label: 'Submitted a report', desc: 'Filed a report' },
+    { key: 'confirmed', label: 'Confirmed email', desc: 'Verified email', t: md.to_confirmed },
+    { key: 'activated', label: 'Activated', desc: 'Logged in ≥ once', t: md.to_activated },
+    { key: 'created_case', label: 'Created a case', desc: 'Started real work', t: md.to_case },
+    { key: 'scheduled_visit', label: 'Scheduled a visit', desc: 'Booked a visit', t: md.to_visit },
+    { key: 'submitted_report', label: 'Submitted a report', desc: 'Filed a report', t: md.to_report },
   ]
   const top = funnel.signed_up || 0
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
       {steps.map((s, i) => {
         const val = funnel[s.key] || 0
         const prev = i === 0 ? val : (funnel[steps[i - 1].key] || 0)
         const pctOfTop = top ? Math.round((100 * val) / top) : 0
+        const conv = i === 0 ? 100 : (prev ? Math.round((100 * val) / prev) : 0)
         const drop = prev - val
         return (
           <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 160, flexShrink: 0 }}>
+            <div style={{ width: 132, flexShrink: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 550 }}>{s.label}</div>
               <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{s.desc}</div>
             </div>
             <div style={{ flex: 1, background: 'var(--bg-subtle)', borderRadius: 6, height: 28, position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${pctOfTop}%`, background: 'var(--accent, #2D6A4F)', opacity: 0.85, borderRadius: 6, transition: 'width .3s' }} />
-              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', paddingLeft: 10, fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{val} · {pctOfTop}%</div>
+              <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${pctOfTop}%`, background: 'var(--accent)', opacity: 0.9, borderRadius: 6, transition: 'width .3s' }} />
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', paddingLeft: 10, fontSize: 12, fontWeight: 600, color: pctOfTop > 12 ? '#fff' : 'var(--text-primary)' }}>
+                {val} of {top} · {pctOfTop}%
+              </div>
             </div>
-            <div style={{ width: 96, flexShrink: 0, textAlign: 'right', fontSize: 11, color: 'var(--text-tertiary)' }}>
-              {i > 0 && (drop > 0 ? <span style={{ color: 'var(--error, #c0392b)' }}>−{drop} dropped</span> : <span style={{ color: 'var(--success, #2D6A4F)' }}>no drop</span>)}
+            <div style={{ width: 120, flexShrink: 0, textAlign: 'right', fontSize: 11 }}>
+              {i > 0 ? (
+                <>
+                  <div style={{ color: drop > 0 ? 'var(--error)' : 'var(--success)' }}>{conv}% cont.{drop > 0 ? ` · −${drop}` : ''}</div>
+                  {val > 0 && s.t !== undefined && s.t !== null && <div style={{ color: 'var(--text-tertiary)' }}>~{fmtDays(s.t)} to convert</div>}
+                </>
+              ) : <span style={{ color: 'var(--text-tertiary)' }}>entered</span>}
             </div>
           </div>
         )
       })}
+    </div>
+  )
+}
+
+function TtvCards({ ttv }) {
+  if (!ttv) return null
+  const items = [
+    { key: 'login', label: 'First login' },
+    { key: 'case', label: 'First case' },
+    { key: 'visit', label: 'First visit' },
+    { key: 'report', label: 'First report' },
+  ]
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+      {items.map(it => {
+        const m = ttv[it.key] || {}
+        const has = m.n > 0
+        return (
+          <div key={it.key} style={{ background: 'var(--bg-subtle)', borderRadius: 'var(--r)', padding: '10px 12px' }}>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{it.label} (median)</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: has ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>{has ? fmtDays(m.median_days) : '—'}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{has ? `n = ${m.n}` : 'no data yet'}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function ActivationCohorts({ cohorts }) {
+  if (!cohorts || !cohorts.length) return <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>No signup cohorts yet.</div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      {cohorts.map(c => (
+        <div key={c.cohort_week} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 84, flexShrink: 0, fontSize: 11.5, color: 'var(--text-secondary)' }}>{fmtDate(c.cohort_week)}</div>
+          <div style={{ flex: 1, background: 'var(--bg-subtle)', borderRadius: 4, height: 16, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, left: 0, width: `${c.pct}%`, background: 'var(--success)', opacity: 0.85 }} />
+          </div>
+          <div style={{ width: 74, flexShrink: 0, textAlign: 'right', fontSize: 11.5, color: 'var(--text-secondary)' }}>{c.activated}/{c.size} · {c.pct}%</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* Single-hue green sequential scale, globally anchored 0–100% (research: don't
+   per-row normalize at low N). Returns a background + readable text color. */
+function retColor(pct) {
+  if (pct === null || pct === undefined) return { bg: 'var(--bg-subtle)', fg: 'var(--text-tertiary)' }
+  const a = 0.10 + (pct / 100) * 0.85
+  return { bg: `rgba(46,125,79,${a.toFixed(2)})`, fg: pct >= 55 ? '#fff' : 'var(--text-primary)' }
+}
+
+function RetentionGrid({ retention }) {
+  const cohorts = retention?.cohorts || []
+  if (!cohorts.length) {
+    return <EmptyState title="No cohorts yet" body="Retention appears once users have signed up across multiple weeks." />
+  }
+  const maxWk = Math.max(0, ...cohorts.flatMap(c => (c.cells || []).map(cell => cell.wk)))
+  const cols = Array.from({ length: maxWk + 1 }, (_, i) => i)
+  return (
+    <>
+      <table style={{ borderCollapse: 'separate', borderSpacing: 3, fontSize: 11.5 }}>
+        <thead>
+          <tr>
+            <th style={{ textAlign: 'left', fontWeight: 600, color: 'var(--text-tertiary)', padding: '0 8px 4px 0' }}>Cohort</th>
+            <th style={{ textAlign: 'right', fontWeight: 600, color: 'var(--text-tertiary)', padding: '0 8px 4px 0' }}>Users</th>
+            {cols.map(w => <th key={w} style={{ fontWeight: 600, color: 'var(--text-tertiary)', padding: '0 0 4px', minWidth: 34 }}>W{w}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {cohorts.map(c => {
+            const lastWk = Math.max(0, ...(c.cells || []).map(cell => cell.wk))
+            return (
+              <tr key={c.cohort_week}>
+                <td style={{ whiteSpace: 'nowrap', color: 'var(--text-secondary)', paddingRight: 8 }}>{fmtDate(c.cohort_week)}</td>
+                <td style={{ textAlign: 'right', color: 'var(--text-secondary)', paddingRight: 8, fontWeight: 600 }}>{c.size}</td>
+                {cols.map(w => {
+                  const cell = (c.cells || []).find(x => x.wk === w)
+                  if (!cell) return <td key={w} style={{ background: 'transparent' }} />
+                  const col = retColor(cell.pct)
+                  const inFlux = w === lastWk
+                  return (
+                    <td key={w} title={`${fmtDate(c.cohort_week)} · W${w}: ${cell.active} of ${c.size} active (${cell.pct}%)${inFlux ? ' — in progress' : ''}`}
+                      style={{ background: col.bg, color: col.fg, textAlign: 'center', borderRadius: 4, padding: '5px 0', fontWeight: 600, position: 'relative', border: inFlux ? '1px dashed var(--border-strong)' : '1px solid transparent' }}>
+                      {cell.active}{inFlux ? '*' : ''}
+                    </td>
+                  )
+                })}
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <div style={{ marginTop: 10, fontSize: 11, color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <span>Cells show active users; shading = % of cohort. W0 = signup week.</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <span style={{ width: 12, height: 12, background: retColor(10).bg, borderRadius: 2, display: 'inline-block' }} />low
+          <span style={{ width: 12, height: 12, background: retColor(90).bg, borderRadius: 2, display: 'inline-block', marginLeft: 4 }} />high
+        </span>
+        <span>* current week (in progress)</span>
+      </div>
+    </>
+  )
+}
+
+function RetentionCurve({ curve }) {
+  const pts = (curve || []).filter(p => p.eligible > 0)
+  if (!pts.length) return <EmptyState title="Not enough tenure yet" body="The N-day curve fills in as users accumulate days since signup." />
+  const W = 240, H = 120, padL = 26, padB = 22, padT = 8
+  const xs = pts.map((_, i) => padL + (pts.length > 1 ? (i * (W - padL - 6)) / (pts.length - 1) : 0))
+  const y = pct => padT + (1 - (pct || 0) / 100) * (H - padT - padB)
+  const line = pts.map((p, i) => `${xs[i].toFixed(1)},${y(p.pct).toFixed(1)}`).join(' ')
+  return (
+    <div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+        {[0, 50, 100].map(g => (
+          <g key={g}>
+            <line x1={padL} y1={y(g)} x2={W - 6} y2={y(g)} stroke="var(--border-subtle)" strokeWidth="1" />
+            <text x={padL - 5} y={y(g) + 3} textAnchor="end" fontSize="9" fill="var(--text-tertiary)">{g}</text>
+          </g>
+        ))}
+        <polyline points={line} fill="none" stroke="var(--success)" strokeWidth="2" strokeLinejoin="round" />
+        {pts.map((p, i) => (
+          <g key={i}>
+            <circle cx={xs[i]} cy={y(p.pct)} r="3" fill="var(--success)" />
+            <text x={xs[i]} y={y(p.pct) - 7} textAnchor="middle" fontSize="9" fontWeight="600" fill="var(--text-primary)">{p.pct}%</text>
+            <text x={xs[i]} y={H - 8} textAnchor="middle" fontSize="9" fill="var(--text-tertiary)">D{p.day}</text>
+          </g>
+        ))}
+      </svg>
+      <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-tertiary)' }}>
+        {pts.map(p => `D${p.day}: ${p.retained}/${p.eligible}`).join('  ·  ')}
+      </div>
+    </div>
+  )
+}
+
+function StickinessChart({ data }) {
+  if (!data || !data.length) return <EmptyState title="No activity in this window" />
+  const days = data.slice(-Math.min(data.length, 60))
+  const series = [
+    { key: 'dau', label: 'DAU', color: 'var(--accent)' },
+    { key: 'wau', label: 'WAU', color: 'var(--success)' },
+    { key: 'mau', label: 'MAU', color: 'var(--warning)' },
+  ]
+  const max = Math.max(1, ...days.flatMap(d => [d.dau, d.wau, d.mau]))
+  const W = 720, H = 150, padL = 22, padB = 18, padT = 8
+  const xs = i => padL + (days.length > 1 ? (i * (W - padL - 6)) / (days.length - 1) : 0)
+  const y = v => padT + (1 - v / max) * (H - padT - padB)
+  const last = days[days.length - 1] || {}
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 8, fontSize: 12 }}>
+        {series.map(s => (
+          <span key={s.key} style={{ color: 'var(--text-secondary)' }}>
+            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: s.color, marginRight: 6 }} />
+            {s.label} <strong style={{ color: 'var(--text-primary)' }}>{last[s.key] ?? 0}</strong>
+          </span>
+        ))}
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ display: 'block' }}>
+        {[0, Math.round(max / 2), max].map((g, i) => (
+          <line key={i} x1={padL} y1={y(g)} x2={W - 6} y2={y(g)} stroke="var(--border-subtle)" strokeWidth="1" />
+        ))}
+        {series.map(s => (
+          <polyline key={s.key} fill="none" stroke={s.color} strokeWidth="1.8" strokeLinejoin="round"
+            points={days.map((d, i) => `${xs(i).toFixed(1)},${y(d[s.key] || 0).toFixed(1)}`).join(' ')} />
+        ))}
+      </svg>
+      <div style={{ marginTop: 6, fontSize: 11, color: 'var(--text-tertiary)' }}>Distinct active users on a rolling 1 / 7 / 30-day window. Shown as counts (more reliable than ratios at this scale).</div>
+    </div>
+  )
+}
+
+function FeatureAdoption({ features, universe }) {
+  if (!features || !features.length) return <EmptyState title="No feature usage yet" />
+  const N = universe || 0
+  return (
+    <div>
+      {features.map(f => {
+        const pct = N ? Math.round((100 * f.users) / N) : 0
+        return (
+          <div key={f.feature} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px' }}>
+            <span style={{ flex: 1, fontSize: 13, color: 'var(--text-secondary)' }}>{f.feature}</span>
+            <div style={{ width: 120, background: 'var(--bg-subtle)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: 'var(--accent)', opacity: 0.85 }} />
+            </div>
+            <span style={{ width: 74, textAlign: 'right', fontSize: 12.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+              {f.users} of {N} <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>· {pct}%</span>
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function PageAreas({ areas, universe }) {
+  if (!areas || !areas.length) return <EmptyState title="No page views yet" body="Page-area usage appears as testers navigate the app." />
+  const max = Math.max(1, ...areas.map(a => a.views))
+  return (
+    <div>
+      {areas.slice(0, 12).map(a => (
+        <div key={a.area} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '7px 16px' }}>
+          <span style={{ flex: 1, fontSize: 13, color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{a.area.replace(/-/g, ' ')}</span>
+          <div style={{ width: 110, background: 'var(--bg-subtle)', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+            <div style={{ width: `${Math.round((100 * a.views) / max)}%`, height: '100%', background: 'var(--success)', opacity: 0.8 }} />
+          </div>
+          <span style={{ width: 96, textAlign: 'right', fontSize: 12, color: 'var(--text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+            {a.views} views · {a.users}u
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* Amplitude-style per-user activity feed — grouped by day, newest first. */
+function UserTimeline({ events, loading }) {
+  if (loading) return <div style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-tertiary)' }}>Loading activity…</div>
+  if (!events || !events.length) return <div style={{ padding: '12px 16px', fontSize: 13, color: 'var(--text-tertiary)' }}>No recorded activity yet.</div>
+  const dotColor = {
+    signup: 'var(--success)', confirmed: 'var(--success)', last_login: 'var(--accent)', login: 'var(--accent)',
+    case: 'var(--warning)', case_created: 'var(--warning)', visit: '#7048b6', visit_scheduled: '#7048b6',
+    visit_checkin: '#0f9d8a', report: 'var(--error)', report_submitted: 'var(--error)', org_created: 'var(--success)',
+    monitor_added: 'var(--accent)', quiz_started: '#b8860b', quiz_completed: '#b8860b', page_view: 'var(--text-tertiary)',
+    feedback_submitted: '#1d6fb8',
+  }
+  // Group by day label
+  const groups = []
+  const byDay = {}
+  events.forEach(e => {
+    const key = new Date(e.ts).toDateString()
+    if (!byDay[key]) { byDay[key] = []; groups.push(key) }
+    byDay[key].push(e)
+  })
+  const dayLabel = (k) => {
+    const t = new Date(); const y = new Date(); y.setDate(t.getDate() - 1)
+    if (k === t.toDateString()) return 'Today'
+    if (k === y.toDateString()) return 'Yesterday'
+    return new Date(k).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+  return (
+    <div style={{ maxHeight: 340, overflowY: 'auto' }}>
+      {groups.map(g => (
+        <div key={g}>
+          <div style={{ position: 'sticky', top: 0, background: 'var(--bg-card)', fontSize: 11, fontWeight: 600, color: 'var(--text-tertiary)', padding: '8px 16px 4px', textTransform: 'uppercase', letterSpacing: '.3px' }}>{dayLabel(g)}</div>
+          {byDay[g].map((e, i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '5px 16px' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor[e.type] || 'var(--text-tertiary)', marginTop: 5, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: 'var(--text-primary)' }}>{e.label}</div>
+              </div>
+              <span style={{ fontSize: 11, color: 'var(--text-tertiary)', flexShrink: 0 }}>
+                {new Date(e.ts).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+              </span>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   )
 }
