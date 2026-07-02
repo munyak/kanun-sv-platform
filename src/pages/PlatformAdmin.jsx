@@ -75,6 +75,10 @@ export default function PlatformAdmin() {
   const [feedback, setFeedback] = useState(null)
   const [usageEvents, setUsageEvents] = useState(null)
   const [feedbackLoading, setFeedbackLoading] = useState(false)
+  // Post-signup engagement (funnel + per-user activity + time series)
+  const [engagement, setEngagement] = useState(null)
+  const [engagementLoading, setEngagementLoading] = useState(false)
+  const [engSearch, setEngSearch] = useState('')
 
   // Detail panels
   const [selectedOrg, setSelectedOrg] = useState(null)
@@ -217,6 +221,18 @@ export default function PlatformAdmin() {
     } finally { setAnalyticsLoading(false) }
   }
 
+  async function loadEngagement() {
+    setEngagementLoading(true)
+    try {
+      const { data, error } = await supabase.rpc('platform_admin_engagement', { p_days: 30 })
+      if (error) throw error
+      setEngagement(data)
+    } catch (e) {
+      console.error('Engagement load:', e)
+      showToast(e.message || 'Failed to load engagement', 'error')
+    } finally { setEngagementLoading(false) }
+  }
+
   async function loadFeedback() {
     setFeedbackLoading(true)
     try {
@@ -266,6 +282,7 @@ export default function PlatformAdmin() {
   // Lazy-load each heavy tab on first open
   useEffect(() => {
     if (tab === 'analytics' && !analytics && !analyticsLoading) loadAnalytics()
+    if (tab === 'engagement' && !engagement && !engagementLoading) loadEngagement()
     if (tab === 'feedback' && !feedback && !feedbackLoading) loadFeedback()
   }, [tab])
 
@@ -305,6 +322,7 @@ export default function PlatformAdmin() {
           { key: 'attention', label: `Needs attention${attentionCount ? ` (${attentionCount})` : ''}` },
           { key: 'background_checks', label: `Background checks (${bgChecks.length})` },
           { key: 'analytics', label: 'Analytics' },
+          { key: 'engagement', label: 'Engagement' },
           { key: 'feedback', label: 'Tester feedback' },
         ].map(t => (
           <button key={t.key} className={`admin-tab ${tab === t.key ? 'active' : ''}`} onClick={() => { setTab(t.key); setSelectedOrg(null); setSelectedUser(null) }}>{t.label}</button>
@@ -999,6 +1017,104 @@ export default function PlatformAdmin() {
         </div>
       )}
 
+      {/* ============ ENGAGEMENT TAB ============ */}
+      {tab === 'engagement' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ flex: 1, fontSize: 13, color: 'var(--text-secondary)' }}>
+              What users do after they sign up — activation funnel, per-user activity (metadata only), and daily trends over the last 30 days.
+            </div>
+            <button className="btn btn-sm btn-secondary" onClick={loadEngagement} disabled={engagementLoading}>
+              {engagementLoading ? 'Loading…' : 'Refresh'}
+            </button>
+          </div>
+
+          {engagementLoading && !engagement ? (
+            <div className="loading" style={{ padding: 48 }}>Loading engagement…</div>
+          ) : engagement ? (
+            <>
+              {/* KPI totals */}
+              <div className="stats-grid">
+                <StatCard label="Total users" value={engagement.totals?.total_users || 0} sub={`${engagement.totals?.never_logged_in || 0} never logged in`} />
+                <StatCard label="New signups (30d)" value={engagement.totals?.new_30d || 0} sub={`${engagement.totals?.new_7d || 0} in last 7 days`} />
+                <StatCard label="Active (7d)" value={engagement.totals?.active_7d || 0} sub={`${engagement.totals?.active_30d || 0} active in 30d`} />
+                <StatCard label="Created a case" value={engagement.funnel?.created_case || 0} sub={`of ${engagement.funnel?.activated || 0} activated`} />
+                <StatCard label="Reports submitted" value={engagement.funnel?.submitted_report || 0} sub="users who filed ≥1 report" />
+              </div>
+
+              {/* Funnel */}
+              <div className="card">
+                <div className="card-header"><div className="card-title">Signup → activation funnel</div></div>
+                <div className="card-body">
+                  <EngagementFunnel funnel={engagement.funnel} />
+                </div>
+              </div>
+
+              {/* Daily trends */}
+              <div className="card">
+                <div className="card-header"><div className="card-title">Daily activity — last {engagement.period_days || 30} days</div></div>
+                <div className="card-body" style={{ padding: '16px 20px' }}>
+                  <EngagementTrend data={engagement.daily || []} />
+                </div>
+              </div>
+
+              {/* Per-user activity table */}
+              <div className="card">
+                <div className="card-header">
+                  <div className="card-title">Per-user activity</div>
+                  <input type="search" className="form-input" placeholder="Search users…" value={engSearch} onChange={e => setEngSearch(e.target.value)} style={{ width: 220, height: 30, fontSize: 13 }} />
+                </div>
+                <div className="card-body-flush">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>User</th><th>Role</th><th>Signed up</th><th>Last active</th>
+                        <th style={{ textAlign: 'right' }}>Cases</th>
+                        <th style={{ textAlign: 'right' }}>Visits</th>
+                        <th style={{ textAlign: 'right' }}>Reports</th>
+                        <th style={{ textAlign: 'right' }}>Academy</th>
+                        <th style={{ textAlign: 'right' }}>Events</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(engagement.per_user || []).filter(u => {
+                        if (!engSearch) return true
+                        const q = engSearch.toLowerCase()
+                        return (u.email || '').toLowerCase().includes(q) || (u.full_name || '').toLowerCase().includes(q) || (u.org_names || '').toLowerCase().includes(q)
+                      }).map((u, i) => (
+                        <tr key={u.user_id || i} className="admin-row-clickable" style={{ cursor: 'pointer' }} onClick={() => { setTab('users'); loadUserDetail(u.user_id) }}>
+                          <td>
+                            <div className="cell-strong">{u.full_name || u.email}</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-tertiary)' }}>{u.org_names || (u.full_name ? u.email : '—')}</div>
+                          </td>
+                          <td>{(u.roles && u.roles.length) ? u.roles.map(r => roleLabel(r)).join(', ') : <span style={{ color: 'var(--text-tertiary)' }}>—</span>}</td>
+                          <td className="cell-muted">{fmtDate(u.signup_at)}</td>
+                          <td className="cell-muted">{fmtRelative(u.last_active || u.last_sign_in_at)}</td>
+                          <td style={{ textAlign: 'right' }}>{u.n_cases}</td>
+                          <td style={{ textAlign: 'right' }}>{u.n_visits}</td>
+                          <td style={{ textAlign: 'right' }}>{u.n_reports}</td>
+                          <td style={{ textAlign: 'right' }}>{u.n_academy}</td>
+                          <td style={{ textAlign: 'right' }}>{u.n_events}</td>
+                          <td><EngagementStatus u={u} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div style={{ padding: '10px 16px', fontSize: 11, color: 'var(--text-tertiary)' }}>
+                  Activity metadata only — counts, timestamps and statuses. No case, report, or visit contents are shown here. Click a row for the full user detail.
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ padding: 48, textAlign: 'center' }}>
+              <button className="btn btn-primary" onClick={loadEngagement}>Load engagement</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Order check modal */}
       {orderCheckMonitor && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', overflowY: 'auto', padding: '24px 0' }} onClick={() => setOrderCheckMonitor(null)}>
@@ -1292,6 +1408,99 @@ function VisitTrendChart({ data }) {
       })}
     </div>
   )
+}
+
+/* ---- Engagement components ---- */
+
+function EngagementFunnel({ funnel }) {
+  if (!funnel) return null
+  const steps = [
+    { key: 'signed_up', label: 'Signed up', desc: 'Created an account' },
+    { key: 'confirmed', label: 'Confirmed email', desc: 'Verified their email' },
+    { key: 'activated', label: 'Activated', desc: 'Logged in at least once' },
+    { key: 'created_case', label: 'Created a case', desc: 'Started real work' },
+    { key: 'scheduled_visit', label: 'Scheduled a visit', desc: 'Booked a visit' },
+    { key: 'submitted_report', label: 'Submitted a report', desc: 'Filed a report' },
+  ]
+  const top = funnel.signed_up || 0
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {steps.map((s, i) => {
+        const val = funnel[s.key] || 0
+        const prev = i === 0 ? val : (funnel[steps[i - 1].key] || 0)
+        const pctOfTop = top ? Math.round((100 * val) / top) : 0
+        const drop = prev - val
+        return (
+          <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 160, flexShrink: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 550 }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-tertiary)' }}>{s.desc}</div>
+            </div>
+            <div style={{ flex: 1, background: 'var(--bg-subtle)', borderRadius: 6, height: 28, position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: `${pctOfTop}%`, background: 'var(--accent, #2D6A4F)', opacity: 0.85, borderRadius: 6, transition: 'width .3s' }} />
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', paddingLeft: 10, fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>{val} · {pctOfTop}%</div>
+            </div>
+            <div style={{ width: 96, flexShrink: 0, textAlign: 'right', fontSize: 11, color: 'var(--text-tertiary)' }}>
+              {i > 0 && (drop > 0 ? <span style={{ color: 'var(--error, #c0392b)' }}>−{drop} dropped</span> : <span style={{ color: 'var(--success, #2D6A4F)' }}>no drop</span>)}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function EngagementTrend({ data }) {
+  if (!data || !data.length) {
+    return <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-tertiary)', fontSize: 13 }}>No activity data in this period</div>
+  }
+  const series = [
+    { key: 'signups', label: 'Signups', color: '#2D6A4F' },
+    { key: 'active_users', label: 'Active users', color: '#1d6fb8' },
+    { key: 'logins', label: 'Logins', color: '#0f9d8a' },
+    { key: 'cases', label: 'Cases created', color: '#b8860b' },
+    { key: 'visits', label: 'Visits scheduled', color: '#7048b6' },
+    { key: 'reports', label: 'Reports submitted', color: '#c0392b' },
+  ]
+  const days = data.slice(-30)
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {series.map(s => {
+        const max = Math.max(...days.map(d => d[s.key] || 0), 1)
+        const total = days.reduce((a, d) => a + (d[s.key] || 0), 0)
+        return (
+          <div key={s.key}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+              <span style={{ color: 'var(--text-secondary)' }}>
+                <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: s.color, marginRight: 6 }} />{s.label}
+              </span>
+              <span style={{ color: 'var(--text-tertiary)' }}>{total} total</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 34 }}>
+              {days.map((d, i) => {
+                const v = d[s.key] || 0
+                const h = v > 0 ? Math.max((v / max) * 34, 3) : 1
+                return (
+                  <div key={i}
+                    title={`${new Date(d.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${v}`}
+                    style={{ flex: 1, minWidth: 3, height: h, background: v > 0 ? s.color : 'var(--border-subtle, #e5e5e5)', opacity: v > 0 ? 0.8 : 0.5, borderRadius: '2px 2px 0 0' }} />
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function EngagementStatus({ u }) {
+  const last = u.last_active || u.last_sign_in_at
+  if (!last) return <span className="badge badge-gray">Never logged in</span>
+  const days = (Date.now() - new Date(last).getTime()) / 86400000
+  if (days <= 7) return <span className="badge badge-green">Active</span>
+  if (days <= 30) return <span className="badge badge-blue">Recent</span>
+  return <span className="badge badge-gray">Dormant</span>
 }
 
 function FeatureRow({ label, value, icon }) {

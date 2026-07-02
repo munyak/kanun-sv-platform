@@ -1,5 +1,18 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { supabase } from '../supabase'
+import { logUsage } from '../lib/analytics'
+
+// Record a login for engagement analytics. Deduped to at most once per user
+// per day per browser so token refreshes / re-mounts don't inflate the count.
+function maybeLogLogin(uid) {
+  if (!uid) return
+  try {
+    const marker = `${uid}:${new Date().toISOString().slice(0, 10)}`
+    if (localStorage.getItem('kanun.loginLogged') === marker) return
+    localStorage.setItem('kanun.loginLogged', marker)
+    logUsage('login', {})
+  } catch { /* fire and forget */ }
+}
 
 const AuthContext = createContext(null)
 
@@ -55,6 +68,7 @@ export function AuthProvider({ children }) {
       if (!newSession && event !== 'SIGNED_OUT') return
       setSession(newSession ?? null)
       setUser(newSession?.user ?? null)
+      if (event === 'SIGNED_IN') maybeLogLogin(newSession?.user?.id)
     })
     sub = data?.subscription
     return () => sub?.unsubscribe()
