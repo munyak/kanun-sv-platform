@@ -166,6 +166,7 @@ RULES:
 - Provide line-by-line feedback with specific improvement suggestions
 - Compare against the KaNun Standard Report Format
 - Check for: all required fields, behavioral language (not interpretive), specific timestamps and quotes, legally sufficient documentation
+- Supervised visitation monitors observe and document ONLY. They must NOT make recommendations or offer opinions about the case, custody, or the parties. Never suggest adding a "Recommendations" section, and flag any recommendation or opinion language as a defect to correct.
 - Be constructive and educational in feedback
 
 Output JSON:

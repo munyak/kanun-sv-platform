@@ -15,7 +15,11 @@ import { logUsage } from '../lib/analytics'
      4. Court Order Compliance  — from court_compliance map
      5. Incidents               — pulled from critical/concern observations
      6. Monitor's Assessment    — free text
-     7. Recommendations         — optional free text
+
+   Note: Supervised visitation monitors observe and document only; they do
+   not issue recommendations. No recommendations section is collected,
+   rendered, or exported. (Legacy `recommendations` data in sv_reports is
+   left intact in the DB but is never surfaced.)
 
    Status flow:
      draft → pending_review → (changes_requested → pending_review)* → approved
@@ -140,7 +144,6 @@ function buildInitialSections(visit, observations) {
     court_compliance: complianceLines.join('\n') || 'No specific court order conditions were tracked for this visit.',
     incidents: incidents || 'No incidents or safety concerns were recorded during this visit.',
     assessment: '',
-    recommendations: '',
   }
 }
 
@@ -198,7 +201,7 @@ export default function VisitReport() {
         if (r) {
           if (r.observations) initial.observations_by_category.uncategorized = r.observations
           if (r.safety_concerns) initial.incidents = r.safety_concerns
-          if (r.recommendations) initial.recommendations = r.recommendations
+          // Legacy `recommendations` intentionally not surfaced — monitors do not issue recommendations.
           if (r.interactions) initial.assessment = r.interactions
         }
         setSections(initial)
@@ -229,7 +232,6 @@ export default function VisitReport() {
     setSections((s) => ({
       ...fresh,
       assessment: s?.assessment || '',
-      recommendations: s?.recommendations || '',
     }))
     showToast('Re-pulled from visit data')
   }
@@ -240,17 +242,20 @@ export default function VisitReport() {
       const observations_text = Object.entries(sections?.observations_by_category || {})
         .map(([k, v]) => `## ${categoryLabel(k)}\n${v || ''}`)
         .join('\n\n')
+      // Monitors do not issue recommendations — never persist a recommendations
+      // section. Strip any legacy key from the sections JSON before saving; the
+      // dedicated `recommendations` DB column is intentionally left untouched.
+      const { recommendations: _legacyRecs, ...sectionsToSave } = sections || {}
       const payload = {
         org_id: activeOrgId,
         case_id: visit.case_id,
         visit_id: visit.id,
         monitor_id: visit.monitor_id,
         report_type: 'visit_summary',
-        sections,
+        sections: sectionsToSave,
         observations: observations_text,
         interactions: sections?.assessment || '',
         safety_concerns: sections?.incidents || '',
-        recommendations: sections?.recommendations || '',
         visit_details: {
           scheduled_date: visit.scheduled_date,
           scheduled_start_time: visit.scheduled_start_time,
@@ -644,21 +649,6 @@ export default function VisitReport() {
             />
           </Section>
 
-          <Section
-            title="7. Recommendations (optional)"
-            sub="For continued supervision, adjustments, etc."
-            comments={comments.filter((c) => c.section_name === 'recommendations')}
-            canComment={canReview}
-            onComment={(t) => addSectionComment('recommendations', t)}
-          >
-            <textarea
-              className="form-textarea" rows={4}
-              value={sections.recommendations}
-              disabled={!isEditable}
-              onChange={(e) => updateSection('recommendations', e.target.value)}
-            />
-          </Section>
-
           {monitorCanEdit && (
             <div className="rb-footer-actions">
               <button className="btn btn-secondary" onClick={() => saveDraft()} disabled={busy}>
@@ -803,13 +793,6 @@ function ReportPreview({ visit, report, sections, status }) {
 
       <h2>6. Monitor's assessment</h2>
       <p style={{ whiteSpace: 'pre-wrap' }}>{sections.assessment || '—'}</p>
-
-      {sections.recommendations && (
-        <>
-          <h2>7. Recommendations</h2>
-          <p style={{ whiteSpace: 'pre-wrap' }}>{sections.recommendations}</p>
-        </>
-      )}
 
       <div className="rb-preview-foot">
         Report status: <strong>{status.replace('_', ' ')}</strong>
