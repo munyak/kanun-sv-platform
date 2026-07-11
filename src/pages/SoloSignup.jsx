@@ -1,62 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../supabase'
-import './pilot.css'
+import './inkseal.css'
 
-// Self-serve signup for individual (solo) monitors — no agency, no approval.
-// Creates the account + a 14-day trial via the solo-signup function, then signs
-// them straight in. Shares the pilot-apply visual shell (pilot.css / pa-* classes)
-// so it matches the rest of the site; only the copy and the (shorter) form differ.
+/*
+  Self-serve signup for individual (solo) monitors — "Ink & Seal" brand system.
+  No agency, no approval gate. Creates the account + a 14-day trial via the
+  solo-signup function, then signs them straight in.
+*/
 
-// Audience words that rotate in the headline, same motion cue as /apply.
-const ROTATE = ['solo monitors', 'private practice', 'independent pros', 'your caseload', 'you']
-
-// Trust signals that drift across the hero marquee.
-const MARQUEE = [
-  'California Standard 5.20', 'Court-ready exports', 'GPS-verified check-ins',
-  'Tamper-evident logs', 'End-to-end encrypted', 'No agency required',
+const TICKER = [
+  'Solo plan — start free today', '14 days free · no card',
+  'Court-ready in your jurisdiction', 'No agency required', 'Cancel anytime',
 ]
+
+function useReveal(deps = []) {
+  useEffect(() => {
+    const els = document.querySelectorAll('.ik-rv')
+    if (!('IntersectionObserver' in window)) { els.forEach((el) => el.classList.add('ik-in')); return }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('ik-in'); io.unobserve(e.target) } })
+    }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' })
+    els.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, deps) // eslint-disable-line react-hooks/exhaustive-deps
+}
 
 export default function SoloSignup() {
   const nav = useNavigate()
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', password: '' })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
-  const [wi, setWi] = useState(0)
-  const heroRef = useRef(null)
 
-  // Rotate the audience word in the headline.
-  useEffect(() => {
-    const id = setInterval(() => setWi((i) => (i + 1) % ROTATE.length), 2200)
-    return () => clearInterval(id)
-  }, [])
-
-  // Pointer-driven parallax on the hero (disabled for reduced-motion / touch).
-  useEffect(() => {
-    const el = heroRef.current
-    if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    if (!window.matchMedia('(pointer: fine)').matches) return
-    let raf = 0
-    const onMove = (e) => {
-      const r = el.getBoundingClientRect()
-      const x = (e.clientX - r.left) / r.width - 0.5
-      const y = (e.clientY - r.top) / r.height - 0.5
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => {
-        el.style.setProperty('--mx', x.toFixed(3))
-        el.style.setProperty('--my', y.toFixed(3))
-      })
-    }
-    const reset = () => { el.style.setProperty('--mx', '0'); el.style.setProperty('--my', '0') }
-    el.addEventListener('mousemove', onMove)
-    el.addEventListener('mouseleave', reset)
-    return () => {
-      el.removeEventListener('mousemove', onMove)
-      el.removeEventListener('mouseleave', reset)
-      cancelAnimationFrame(raf)
-    }
-  }, [])
+  useReveal([])
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
@@ -84,127 +60,264 @@ export default function SoloSignup() {
     }
   }
 
+  const goTop = (e) => {
+    e.preventDefault()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setTimeout(() => document.getElementById('ik-first-input')?.focus({ preventScroll: true }), 450)
+  }
+
   return (
-    <div className="pa-page">
-      <div className="pa-hero" ref={heroRef}>
-        {/* layered animated branded backdrop */}
-        <div className="pa-hero-bg" aria-hidden="true">
-          <span className="pa-aurora" />
-          <span className="pa-blob pa-blob-1" />
-          <span className="pa-blob pa-blob-2" />
-          <span className="pa-blob pa-blob-3" />
-          <span className="pa-grid-overlay" />
-          <span className="pa-spotlight" />
-          <span className="pa-grain" />
+    <div className="ik-page">
+      <div className="ik-grain" aria-hidden="true" />
+
+      <div className="ik-topline ik-mono" aria-hidden="true">
+        <div className="ik-ticker">
+          {[...TICKER, ...TICKER].map((t, i) => (
+            <React.Fragment key={i}><span>{t}</span><b>✦</b></React.Fragment>
+          ))}
         </div>
+      </div>
 
-        {/* signature visual: pinging "live monitoring" radar */}
-        <div className="pa-visual" aria-hidden="true">
-          <span className="pa-ping">
-            <span className="pa-ping-ring" />
-            <span className="pa-ping-ring pa-ping-ring-2" />
-            <span className="pa-ping-ring pa-ping-ring-3" />
-            <span className="pa-ping-core" />
-          </span>
+      <nav className="ik-nav">
+        <div className="ik-wrap ik-navrow">
+          <Link to="/welcome" className="ik-wordmark">KaNun <span className="ik-tag">Monitoring · Solo</span></Link>
+          <div className="ik-navlinks">
+            <a href="#ik-platform">Platform</a>
+            <a href="#ik-exhibit">The Record</a>
+            <a href="#ik-creed">Security</a>
+          </div>
+          <div className="ik-navright">
+            <Link className="ik-signin" to="/login">Sign in</Link>
+            <a className="ik-btn ik-btn-wax" href="#top" onClick={goTop}>Start free</a>
+          </div>
         </div>
+      </nav>
 
-        <div className="pa-hero-inner">
-          <div className="pa-brand">
-            <span className="pa-brand-mark">KW<span className="pa-brand-orbit" /></span>
-            KaNun Monitoring
+      <main>
+        {/* ============ HERO + INTAKE ============ */}
+        <section className="ik-hero" id="ik-start">
+          <div className="ik-wrap">
+            <div className="ik-hero-meta ik-mono">
+              <span className="ik-live">Solo plan · Open now</span>
+              <span>For independent professional monitors</span>
+              <span>Court-ready · Every jurisdiction</span>
+            </div>
+            <div className="ik-hero-grid">
+              <div>
+                <h1 className="ik-display">
+                  Work solo.<br />File like a <span className="ik-ital">firm.</span>
+                </h1>
+                <p className="ik-lede" style={{ marginTop: 28 }}>
+                  For independent professional monitors. Guided visits, GPS-verified
+                  check-ins, voice notes — <b>a court-ready report in 5 minutes, not 45.</b>
+                  {' '}No agency required.
+                </p>
+                <div className="ik-points ik-mono">
+                  <span>14 days free</span>
+                  <span>No card to start</span>
+                  <span>Cancel anytime</span>
+                </div>
+              </div>
+
+              <form className="ik-intake ik-form" onSubmit={submit} noValidate>
+                <div className="ik-intakehead ik-mono"><span>Intake · Solo Plan</span><span>~1 min</span></div>
+                <h2>Open your practice</h2>
+                <p className="ik-intakesub">You'll be signed straight in — no approval, no waiting.</p>
+
+                <div className="ik-frow ik-fpair">
+                  <div>
+                    <div className="ik-flabel"><span>First name</span><span className="ik-req">Required</span></div>
+                    <input id="ik-first-input" type="text" required value={form.first_name}
+                      onChange={set('first_name')} autoComplete="given-name" placeholder="Jordan" />
+                  </div>
+                  <div>
+                    <div className="ik-flabel"><span>Last name</span></div>
+                    <input type="text" value={form.last_name} onChange={set('last_name')}
+                      autoComplete="family-name" placeholder="Rivera" />
+                  </div>
+                </div>
+
+                <div className="ik-frow">
+                  <div className="ik-flabel"><span>Email</span><span className="ik-req">Required</span></div>
+                  <input type="email" required value={form.email} onChange={set('email')}
+                    autoComplete="email" placeholder="you@email.com" />
+                </div>
+
+                <div className="ik-frow">
+                  <div className="ik-flabel"><span>Choose a password</span><span className="ik-req">Required</span></div>
+                  <input type="password" required minLength={8} value={form.password}
+                    onChange={set('password')} autoComplete="new-password" placeholder="At least 8 characters" />
+                  <p className="ik-fhint">Your trial starts the moment you sign up.</p>
+                </div>
+
+                {err && <div className="ik-error">{err}</div>}
+
+                <button className="ik-btn ik-btn-ink" disabled={busy}>
+                  {busy ? <span className="ik-spin" aria-hidden="true" /> : null}
+                  {busy ? 'Creating your account…' : 'Start my free trial →'}
+                </button>
+
+                <p className="ik-fnote">Already have an account? <Link to="/login">Sign in</Link></p>
+                <p className="ik-crosslink">
+                  Running an agency with multiple monitors? <Link to="/apply">Apply for the agency pilot →</Link>
+                </p>
+              </form>
+            </div>
           </div>
+        </section>
 
-          <div className="pa-eyebrow"><span className="pa-dot" /> Solo plan · start free</div>
-
-          <h1 className="pa-headline">
-            The supervised-visitation<br />
-            platform for{' '}
-            <span className="pa-rotator">
-              <span key={wi} className="pa-rotator-word pa-grad">{ROTATE[wi]}</span>
-            </span>
-          </h1>
-
-          <p className="pa-sub">
-            Guided visit workflows, GPS-verified check-ins, voice notes, and court-ready
-            California&nbsp;Standard&nbsp;5.20 reports in minutes. No agency required —
-            start free in about a minute.
-          </p>
-
-          <div className="pa-hero-ctas">
-            <a href="#start-form" className="pa-btn pa-btn-primary pa-btn-hero pa-cta-shine"
-               onClick={(e) => { e.preventDefault(); document.getElementById('start-form')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('solo-first-input')?.focus() }}>
-              Start free — no card
-              <svg className="pa-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </a>
-            <Link to="/login" className="pa-hero-signin">Already have an account? Sign in</Link>
+        {/* ============ THE MATH ============ */}
+        <section className="ik-math">
+          <div className="ik-wrap ik-mathgrid">
+            <div className="ik-cell ik-rv">
+              <div className="ik-mathnum">45 <em>→</em> 5</div>
+              <p className="ik-mathlbl">Minutes per report. The visit ends; the report is basically done.</p>
+            </div>
+            <div className="ik-cell ik-rv">
+              <div className="ik-mathnum"><em>Zero</em></div>
+              <p className="ik-mathlbl">Agency required. Your cases, your clients, your record — under your name.</p>
+            </div>
+            <div className="ik-cell ik-rv">
+              <div className="ik-mathnum">100<em>%</em></div>
+              <p className="ik-mathlbl">Court-ready. Your court's format — California's 5.20 built in first.</p>
+            </div>
           </div>
+        </section>
 
-          <div className="pa-microcopy">✦ 14 days free · no credit card to start · cancel anytime</div>
+        {/* ============ SOLO PREMISE ============ */}
+        <section className="ik-sec" style={{ borderBottom: '1px solid var(--ik-line-l)' }}>
+          <div className="ik-wrap">
+            <div className="ik-kicker ik-mono ik-rv">No. 01 — The Solo Premise</div>
+            <blockquote className="ik-rv" style={{
+              fontFamily: 'var(--ik-display)', fontWeight: 340, border: 'none',
+              fontSize: 'clamp(26px,4vw,52px)', lineHeight: 1.14, letterSpacing: '-0.01em', maxWidth: '26ch',
+            }}>
+              When you work alone, your record <em style={{ fontStyle: 'italic', color: 'var(--ik-wax)' }}>is</em> your reputation.
+            </blockquote>
+            <div className="ik-support">
+              <p className="ik-rv" style={{ color: 'var(--ik-soft)' }}>
+                When an attorney challenges a detail from three months ago, "I remember it
+                clearly" is not a defense. KaNun puts <b style={{ color: 'var(--ik-ink)' }}>a verified, tamper-evident record
+                behind every report you sign</b> — court-grade infrastructure, priced for a
+                practice of one.
+              </p>
+            </div>
+          </div>
+        </section>
 
-          {/* drifting trust marquee */}
-          <div className="pa-marquee" aria-hidden="true">
-            <div className="pa-marquee-track">
-              {[...MARQUEE, ...MARQUEE].map((m, i) => (
-                <span className="pa-marquee-item" key={i}><span className="pa-marquee-dot" /> {m}</span>
+        {/* ============ PLATFORM INDEX ============ */}
+        <section className="ik-sec ik-platform" id="ik-platform">
+          <div className="ik-wrap">
+            <div className="ik-kicker ik-mono ik-rv">No. 02 — The Platform</div>
+            <h2 className="ik-h2 ik-rv">Your entire back office,<br /><span className="ik-ital">in your pocket.</span></h2>
+            <div className="ik-idx">
+              {[
+                ['01', 'Guided visits', "The court order's conditions, built into the flow. Every visit, defensible."],
+                ['02', 'GPS-verified check-ins', 'Arrivals and exchanges verified against the location. Nobody has to take your word.'],
+                ['03', 'Voice, transcribed', 'Speak your observations. They land timestamped and transcribed in the case file.'],
+                ['04', 'Court-ready, in minutes', 'End the visit, export a report your court recognizes on sight — before you\'re home.'],
+                ['05', 'Cases & scheduling', 'Orders, schedules, contacts, history — a practice of one, organized like a program of fifty.'],
+              ].map(([num, title, desc]) => (
+                <div className="ik-row ik-rv" key={num}>
+                  <div className="ik-num">{num}</div>
+                  <div className="ik-title">{title}</div>
+                  <div className="ik-desc">{desc}</div>
+                  <div className="ik-arrow">→</div>
+                </div>
               ))}
             </div>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <div className="pa-formwrap">
-        <div className="pa-card" id="start-form">
-          <div className="pa-card-head">
-            <h2>Start your free trial</h2>
-            <span className="pa-card-badge">~1 min</span>
-          </div>
-          <p className="pa-muted">Court-ready visit reports in 5 minutes, not 45. No agency required, no card to start.</p>
-          <form onSubmit={submit} className="pa-form" noValidate>
-            <div className="pa-field-row">
-              <label className="pa-field">
-                <span>First name *</span>
-                <input id="solo-first-input" required value={form.first_name} onChange={set('first_name')}
-                  autoComplete="given-name" placeholder="Jordan" />
-              </label>
-              <label className="pa-field">
-                <span>Last name</span>
-                <input value={form.last_name} onChange={set('last_name')}
-                  autoComplete="family-name" placeholder="Rivera" />
-              </label>
+        {/* ============ EXHIBIT ============ */}
+        <section className="ik-sec ik-exhibit ik-dark" id="ik-exhibit">
+          <div className="ik-wrap ik-exgrid">
+            <div className="ik-excopy ik-rv">
+              <span className="ik-mono ik-exkicker">No. 03 — Exhibit A</span>
+              <h2 className="ik-exh2">Your signature,<br />fully <em>backed.</em></h2>
+              <p>
+                Verified locations. Sealed timestamps. Built first to California's exacting
+                Standard 5.20. Your name on the line — the record behind it.
+              </p>
             </div>
+            <div className="ik-docframe ik-rv">
+              <div className="ik-stamp">Filed · GPS Verified</div>
+              <div className="ik-doc" role="img" aria-label="A completed KaNun visit report">
+                <div className="ik-dochead">
+                  <div>
+                    <div className="ik-mono">Visit report · Case 24-0187</div>
+                    <h3>Supervised Visitation Record</h3>
+                    <div className="ik-mono">Sat Jun 27 · 14:00–16:00 · Long Beach, CA</div>
+                  </div>
+                  <div className="ik-seal">Sealed<br />✦<br />KaNun</div>
+                </div>
+                <div className="ik-docrows">
+                  <div className="ik-docrow">
+                    <span className="ik-doct">14:00:07</span>
+                    <span className="ik-docv">Check-in confirmed<span>Location match — all parties present</span></span>
+                    <span className="ik-docok">Verified</span>
+                  </div>
+                  <div className="ik-docrow">
+                    <span className="ik-doct">14:14:32</span>
+                    <span className="ik-docv">Voice note transcribed<span>"Child greeted parent warmly, engaged in board game…"</span></span>
+                    <span className="ik-docok">Sealed</span>
+                  </div>
+                  <div className="ik-docrow">
+                    <span className="ik-doct">15:52:11</span>
+                    <span className="ik-docv">Visit ended — no interventions<span>Exchange completed per court order</span></span>
+                    <span className="ik-docok">Sealed</span>
+                  </div>
+                </div>
+                <div className="ik-docfoot">
+                  <span className="ik-mono">Formatted to CA Standard 5.20</span>
+                  <span className="ik-sig">M. Alvarez, PM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-            <label className="pa-field">
-              <span>Email *</span>
-              <input type="email" required value={form.email} onChange={set('email')} autoComplete="email"
-                placeholder="you@email.com" />
-            </label>
-
-            <label className="pa-field">
-              <span>Choose a password *</span>
-              <input type="password" required minLength={8} value={form.password}
-                onChange={set('password')} autoComplete="new-password" placeholder="At least 8 characters" />
-              <small>You’ll be signed straight in — no approval needed.</small>
-            </label>
-
-            {err && <div className="pa-error">{err}</div>}
-
-            <button className="pa-btn pa-btn-primary pa-btn-submit pa-cta-shine" disabled={busy}>
-              {busy ? <span className="pa-spin" aria-hidden="true" /> : null}
-              {busy ? 'Creating your account…' : 'Start my free trial'}
-            </button>
-
-            <p className="pa-foot">
-              Already have an account? <Link to="/login">Sign in</Link>
+        {/* ============ CREED ============ */}
+        <section className="ik-sec ik-creed" id="ik-creed">
+          <div className="ik-wrap">
+            <span className="ik-mono ik-creedkick ik-rv">No. 04 — The Standard</span>
+            <h2 className="ik-rv">These records decide custody.<br />We engineer them <em style={{ whiteSpace: 'nowrap' }}>like it.</em></h2>
+            <p className="ik-attrib ik-rv">
+              Encrypted end-to-end. Tamper-evident. Every touch logged. Built by a team that
+              spent two decades securing the world's most valuable companies —
+              <b> now guarding the family court record.</b>
             </p>
-            <p className="pa-foot">
-              Running an agency with multiple monitors? <Link to="/apply">Apply for the agency pilot</Link>.
-            </p>
-          </form>
+          </div>
+        </section>
+
+        {/* ============ FINAL CTA ============ */}
+        <section className="ik-sec ik-final">
+          <div className="ik-wrap">
+            <h2 className="ik-h2 ik-rv">Tonight's reports,<br />done by <span className="ik-ital">dinner.</span></h2>
+            <p className="ik-rv">Fourteen days free. No card. No agency. Cancel anytime.</p>
+            <a className="ik-btn ik-btn-wax ik-rv" href="#top" onClick={goTop}>Start my free trial →</a>
+            <span className="ik-mono ik-finalunder ik-rv">
+              Running an agency? <Link to="/apply">Apply for the agency pilot</Link>
+            </span>
+          </div>
+        </section>
+      </main>
+
+      <footer className="ik-footer">
+        <div className="ik-wrap">
+          <svg className="ik-giant" viewBox="0 0 1240 132" aria-hidden="true" focusable="false">
+            <text x="620" y="106" textAnchor="middle" fontSize="120" textLength="1220" lengthAdjust="spacingAndGlyphs">KANUN MONITORING</text>
+          </svg>
+          <div className="ik-footrow">
+            <span className="ik-mono">© 2026 KaNun Monitoring · Los Angeles, CA</span>
+            <span className="ik-mono">
+              <Link to="/privacy">Privacy</Link>
+              <Link to="/terms">Terms</Link>
+              <a href="mailto:hello@kanunmonitoring.com">Contact</a>
+            </span>
+          </div>
         </div>
-      </div>
+      </footer>
     </div>
   )
 }
