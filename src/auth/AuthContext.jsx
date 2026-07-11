@@ -106,7 +106,7 @@ export function AuthProvider({ children }) {
       if (row.org_id) {
         const { data: org } = await supabase
           .from('sv_organizations')
-          .select('id, name, logo_url')
+          .select('id, name, logo_url, is_solo, plan, subscription_status, trial_ends_at')
           .eq('id', row.org_id)
           .maybeSingle()
         row.sv_organizations = org

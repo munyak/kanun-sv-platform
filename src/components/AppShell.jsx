@@ -3,6 +3,9 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth, roleLabel } from '../auth/AuthContext'
 import IntroTour from './IntroTour'
 import TesterEngagement from './TesterEngagement'
+import TrialBanner from './TrialBanner'
+import Paywall from './Paywall'
+import { billingState } from '../lib/billing'
 
 /* ----- Lucide-style icons (inline SVG, stroke-current) ----- */
 const Icon = ({ d, children, size = 20 }) => (
@@ -186,6 +189,7 @@ export default function AppShell() {
   const items = NAV_BY_ROLE[role] || NAV_BY_ROLE.agency_owner
   const isMonitor = role === 'monitor'
   const isViewingAs = !!viewAsRole
+  const bill = billingState(org)
 
   async function handleSignOut() {
     await signOut()
@@ -321,7 +325,8 @@ export default function AppShell() {
               </button>
             </div>
           )}
-          <Outlet />
+          <TrialBanner />
+          {bill.needsPaywall ? <Paywall status={bill.status} /> : <Outlet />}
         </main>
       </div>
 

@@ -30,6 +30,8 @@ import Settings from './pages/Settings'
 import ParentPortal from './pages/ParentPortal'
 import AttorneyPortal from './pages/AttorneyPortal'
 import Billing from './pages/Billing'
+import Subscription from './pages/Subscription'
+import SoloSignup from './pages/SoloSignup'
 import Academy from './pages/Academy'
 import AcademyScenario from './pages/AcademyScenario'
 import AcademyTutor from './pages/AcademyTutor'
@@ -63,6 +65,9 @@ export default function App() {
         {/* During the gated pilot, all new SELF-SERVE signups funnel through the
             pilot application + approval gate instead of open sign-up. */}
         <Route path="/signup" element={<Navigate to="/apply" replace />} />
+        {/* Self-serve SOLO monitor signup — public, no pilot gate. The revenue
+            unlock: a solo monitor signs up and lands in the app on a 14-day trial. */}
+        <Route path="/start" element={<SoloSignup />} />
         {/* Invited monitors (and other invited roles) join here. They were
             vouched for by an approved agency, so they skip the pilot gate:
             Signup → accept_pending_invitations() links them to the org. The
@@ -130,6 +135,8 @@ export default function App() {
             path="/billing"
             element={<RequireRole allow={OWNER_ROLES} redirect><Billing /></RequireRole>}
           />
+          {/* Solo self-serve subscription — reachable by any member (also the Stripe return target). */}
+          <Route path="/subscription" element={<Subscription />} />
 
           {/* Monitor-only */}
           <Route
