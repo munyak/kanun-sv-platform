@@ -13,7 +13,7 @@ const DAY = 86_400_000
 // but nobody can hit Stripe checkout (which is still on the TEST key pre-cutover).
 // FLIP TO true at the live-Stripe cutover (live key + live webhook set), rebuild,
 // and redeploy — that turns on the Subscribe buttons and the trial-end paywall.
-export const BILLING_LIVE = false
+export const BILLING_LIVE = true
 
 // Displayed solo price. Keep in sync with the server's SOLO_PRICE_CENTS env on
 // the create-subscription-checkout function (3900 = $39). Single knob for the UI.
