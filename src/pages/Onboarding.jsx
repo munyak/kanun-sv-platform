@@ -3,13 +3,30 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 
-const STEPS = [
-  { n: 1, key: 'org',      label: 'Organization' },
-  { n: 2, key: 'services', label: 'Services' },
-  { n: 3, key: 'pricing',  label: 'Pricing' },
-  { n: 4, key: 'courts',   label: 'Courts' },
-  { n: 5, key: 'invite',   label: 'Invite monitor' },
-  { n: 6, key: 'case',     label: 'First case' },
+const AGENCY_STEPS = [
+  { key: 'org',      label: 'Organization' },
+  { key: 'services', label: 'Services' },
+  { key: 'pricing',  label: 'Pricing' },
+  { key: 'courts',   label: 'Courts' },
+  { key: 'invite',   label: 'Invite monitor' },
+  { key: 'case',     label: 'First case' },
+]
+
+// Solo monitors already have their 1-person org (created by solo-signup) and
+// have no one to invite — they get practice-framed questions instead.
+const SOLO_STEPS = [
+  { key: 'org',      label: 'Your practice' },
+  { key: 'services', label: 'Services' },
+  { key: 'pricing',  label: 'Pricing' },
+  { key: 'courts',   label: 'Courts' },
+  { key: 'case',     label: 'First case' },
+]
+
+const US_STATES = [
+  'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM',
+  'NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA',
+  'WV','WI','WY',
 ]
 
 const SERVICE_OPTIONS = [
@@ -54,6 +71,7 @@ export default function Onboarding() {
   const [progress, setProgress] = useState(null)
   const [step, setStep] = useState(1)
   const [data, setData] = useState(emptyData)
+  const [isSolo, setIsSolo] = useState(false)
   const [orgId, setOrgId] = useState(null)
   // ref mirrors state so that async handlers don't read a stale closure value
   const orgIdRef = useRef(null)
@@ -91,6 +109,37 @@ export default function Onboarding() {
         }
       }
 
+      // Detect solo plans and prefill the form from the org the solo-signup
+      // function already created (name, contact info, etc.).
+      if (hasOrg && activeOrgId) {
+        const { data: org } = await supabase
+          .from('sv_organizations')
+          .select('is_solo, plan, name, address_street, address_city, address_state, address_zip, license_number, service_areas, phone, email, website')
+          .eq('id', activeOrgId)
+          .maybeSingle()
+        if (cancelled) return
+        if (org) {
+          if (org.is_solo || org.plan === 'solo') setIsSolo(true)
+          setData((d) => ({
+            ...d,
+            org: {
+              ...d.org,
+              name: org.name || d.org.name,
+              address_street: org.address_street || d.org.address_street,
+              address_city: org.address_city || d.org.address_city,
+              address_state: org.address_state || d.org.address_state,
+              address_zip: org.address_zip || d.org.address_zip,
+              license_number: org.license_number || d.org.license_number,
+              service_areas: Array.isArray(org.service_areas) && org.service_areas.length
+                ? org.service_areas.join(', ') : d.org.service_areas,
+              phone: org.phone || d.org.phone,
+              email: org.email || d.org.email,
+              website: org.website || d.org.website,
+            },
+          }))
+        }
+      }
+
       const { data: row } = await supabase
         .from('sv_onboarding_progress')
         .select('*')
@@ -99,7 +148,7 @@ export default function Onboarding() {
       if (cancelled) return
       if (row) {
         setProgress(row)
-        setStep(Math.min(Math.max(row.current_step || 1, 1), STEPS.length))
+        setStep(Math.max(row.current_step || 1, 1))
         if (row.step_data) setData((d) => ({ ...d, ...row.step_data }))
         if (row.org_id) syncOrgId(row.org_id)
       }
@@ -122,6 +171,8 @@ export default function Onboarding() {
     setData((d) => ({ ...d, [stepKey]: typeof patch === 'function' ? patch(d[stepKey]) : { ...d[stepKey], ...patch } }))
   }
 
+  const steps = isSolo ? SOLO_STEPS : AGENCY_STEPS
+
   async function persist(nextStep, completedSteps = null, extra = {}) {
     if (!user) return
     const payload = {
@@ -130,7 +181,7 @@ export default function Onboarding() {
       current_step: nextStep,
       completed_steps: completedSteps ?? progress?.completed_steps ?? [],
       step_data: data,
-      completed: nextStep > STEPS.length,
+      completed: nextStep > steps.length,
       updated_at: new Date().toISOString(),
       ...extra,
     }
@@ -146,11 +197,11 @@ export default function Onboarding() {
   async function next() {
     setErr(null); setBusy(true)
     try {
-      const s = STEPS[step - 1]
+      const s = steps[step - 1]
       const completed = Array.from(new Set([...(progress?.completed_steps || []), step]))
 
       if (s.key === 'org') {
-        if (!data.org.name.trim()) throw new Error('Organization name is required.')
+        if (!data.org.name.trim()) throw new Error(isSolo ? 'Practice name is required.' : 'Organization name is required.')
         if (!orgIdRef.current) {
           const insert = {
             name: data.org.name.trim(),
@@ -272,7 +323,7 @@ export default function Onboarding() {
 
       const nextStep = step + 1
       await persist(nextStep, completed)
-      if (nextStep > STEPS.length) {
+      if (nextStep > steps.length) {
         await refresh()
         nav('/', { replace: true })
       } else {
@@ -293,7 +344,7 @@ export default function Onboarding() {
 
   async function skip() {
     await persist(step + 1, Array.from(new Set([...(progress?.completed_steps || []), step])))
-    if (step + 1 > STEPS.length) {
+    if (step + 1 > steps.length) {
       await refresh()
       nav('/', { replace: true })
     } else {
@@ -303,7 +354,10 @@ export default function Onboarding() {
 
   if (!loaded) return <div className="loading">Loading…</div>
 
-  const current = STEPS[step - 1]
+  // Clamp in case a saved step index exceeds this flow's length (e.g. a solo
+  // user whose progress row was written under the longer agency flow).
+  const safeStep = Math.min(step, steps.length)
+  const current = steps[safeStep - 1]
 
   return (
     <div className="shell-main" style={{ background: 'var(--gray-50)', minHeight: '100vh' }}>
@@ -312,40 +366,40 @@ export default function Onboarding() {
           <div className="card-header">
             <div>
               <div className="card-title">Welcome to KaNun</div>
-              <div className="page-subtitle">Let's get your agency set up.</div>
+              <div className="page-subtitle">{isSolo ? "Let's set up your practice." : "Let's get your agency set up."}</div>
             </div>
-            <div className="page-subtitle">Step {step} of {STEPS.length}</div>
+            <div className="page-subtitle">Step {safeStep} of {steps.length}</div>
           </div>
 
           <div className="wizard-step-content">
             <div className="wizard-progress">
-              {STEPS.map((s) => (
+              {steps.map((s, i) => (
                 <div
-                  key={s.n}
-                  className={`wizard-progress-step ${s.n === step ? 'active' : ''} ${s.n < step ? 'done' : ''}`}
+                  key={s.key}
+                  className={`wizard-progress-step ${i + 1 === safeStep ? 'active' : ''} ${i + 1 < safeStep ? 'done' : ''}`}
                 />
               ))}
             </div>
 
-            <div className="wizard-step-meta">Step {step} · {current.label}</div>
-            {step === 1 && <StepOrg data={data.org} update={(p) => update('org', p)} />}
-            {step === 2 && <StepServices data={data.services} setData={(v) => setData((d) => ({ ...d, services: v }))} />}
-            {step === 3 && <StepPricing data={data.pricing} update={(p) => update('pricing', p)} />}
-            {step === 4 && <StepCourts data={data.courts} setData={(v) => setData((d) => ({ ...d, courts: v }))} />}
-            {step === 5 && <StepInvite data={data.invite} update={(p) => update('invite', p)} />}
-            {step === 6 && <StepFirstCase data={data.firstCase} update={(p) => update('firstCase', p)} />}
+            <div className="wizard-step-meta">Step {safeStep} · {current.label}</div>
+            {current.key === 'org' && <StepOrg data={data.org} update={(p) => update('org', p)} isSolo={isSolo} />}
+            {current.key === 'services' && <StepServices data={data.services} setData={(v) => setData((d) => ({ ...d, services: v }))} isSolo={isSolo} />}
+            {current.key === 'pricing' && <StepPricing data={data.pricing} update={(p) => update('pricing', p)} />}
+            {current.key === 'courts' && <StepCourts data={data.courts} setData={(v) => setData((d) => ({ ...d, courts: v }))} orgState={data.org.address_state} />}
+            {current.key === 'invite' && <StepInvite data={data.invite} update={(p) => update('invite', p)} />}
+            {current.key === 'case' && <StepFirstCase data={data.firstCase} update={(p) => update('firstCase', p)} />}
 
             {err && <div className="auth-error" style={{ marginTop: 16 }}>{err}</div>}
           </div>
 
           <div className="wizard-buttons">
-            <button className="btn btn-secondary" onClick={back} disabled={step === 1 || busy}>← Back</button>
+            <button className="btn btn-secondary" onClick={back} disabled={safeStep === 1 || busy}>← Back</button>
             <div className="btn-group">
-              {step > 1 && step < STEPS.length && (
+              {safeStep > 1 && safeStep < steps.length && (
                 <button className="btn btn-secondary" onClick={skip} disabled={busy}>Skip</button>
               )}
               <button className="btn btn-primary" onClick={next} disabled={busy}>
-                {busy ? 'Saving…' : step === STEPS.length ? 'Finish' : 'Continue →'}
+                {busy ? 'Saving…' : safeStep === steps.length ? 'Finish' : 'Continue →'}
               </button>
             </div>
           </div>
@@ -355,41 +409,53 @@ export default function Onboarding() {
   )
 }
 
-function StepOrg({ data, update }) {
+function StepOrg({ data, update, isSolo }) {
   return (
     <div>
-      <h2 className="wizard-step-title">Tell us about your agency</h2>
-      <p className="wizard-step-desc">This is the organization name your clients and courts will see.</p>
+      <h2 className="wizard-step-title">{isSolo ? 'Tell us about your practice' : 'Tell us about your agency'}</h2>
+      <p className="wizard-step-desc">
+        {isSolo
+          ? 'This is the name clients and courts will see on your reports — many solo monitors simply use their own name.'
+          : 'This is the organization name your clients and courts will see.'}
+      </p>
       <div className="form-grid">
         <div className="form-group full">
-          <label className="form-label">Agency name <span className="required">*</span></label>
-          <input className="form-input" value={data.name} onChange={(e) => update({ name: e.target.value })} placeholder="e.g. Riverside Family Connections" />
+          <label className="form-label">{isSolo ? 'Practice name' : 'Agency name'} <span className="required">*</span></label>
+          <input className="form-input" value={data.name} onChange={(e) => update({ name: e.target.value })}
+            placeholder={isSolo ? 'e.g. Jordan Rivera, Professional Monitor' : 'e.g. Riverside Family Connections'} />
         </div>
         <div className="form-group">
-          <label className="form-label">License #</label>
+          <label className="form-label">{isSolo ? 'License / certification # (optional)' : 'License #'}</label>
           <input className="form-input" value={data.license_number} onChange={(e) => update({ license_number: e.target.value })} />
         </div>
         <div className="form-group">
           <label className="form-label">Service areas</label>
-          <input className="form-input" value={data.service_areas} onChange={(e) => update({ service_areas: e.target.value })} placeholder="Los Angeles County, Orange County" />
-          <span className="form-help">Comma-separated.</span>
+          <input className="form-input" value={data.service_areas} onChange={(e) => update({ service_areas: e.target.value })}
+            placeholder={isSolo ? 'e.g. Maricopa County' : 'e.g. Los Angeles County, Orange County'} />
+          <span className="form-help">Counties or regions you cover, comma-separated.</span>
         </div>
-        <div className="form-group full">
-          <label className="form-label">Street address</label>
-          <input className="form-input" value={data.address_street} onChange={(e) => update({ address_street: e.target.value })} />
-        </div>
+        {!isSolo && (
+          <div className="form-group full">
+            <label className="form-label">Street address</label>
+            <input className="form-input" value={data.address_street} onChange={(e) => update({ address_street: e.target.value })} />
+          </div>
+        )}
         <div className="form-group">
           <label className="form-label">City</label>
           <input className="form-input" value={data.address_city} onChange={(e) => update({ address_city: e.target.value })} />
         </div>
         <div className="form-group">
           <label className="form-label">State</label>
-          <input className="form-input" value={data.address_state} onChange={(e) => update({ address_state: e.target.value })} />
+          <select className="form-select" value={data.address_state} onChange={(e) => update({ address_state: e.target.value })}>
+            {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
         </div>
-        <div className="form-group">
-          <label className="form-label">Zip</label>
-          <input className="form-input" value={data.address_zip} onChange={(e) => update({ address_zip: e.target.value })} />
-        </div>
+        {!isSolo && (
+          <div className="form-group">
+            <label className="form-label">Zip</label>
+            <input className="form-input" value={data.address_zip} onChange={(e) => update({ address_zip: e.target.value })} />
+          </div>
+        )}
         <div className="form-group">
           <label className="form-label">Phone</label>
           <input className="form-input" value={data.phone} onChange={(e) => update({ phone: e.target.value })} />
@@ -399,7 +465,7 @@ function StepOrg({ data, update }) {
           <input className="form-input" value={data.email} onChange={(e) => update({ email: e.target.value })} />
         </div>
         <div className="form-group full">
-          <label className="form-label">Website</label>
+          <label className="form-label">Website (optional)</label>
           <input className="form-input" value={data.website} onChange={(e) => update({ website: e.target.value })} />
         </div>
       </div>
@@ -466,22 +532,77 @@ function StepPricing({ data, update }) {
   )
 }
 
-function StepCourts({ data, setData }) {
+function StepCourts({ data, setData, orgState }) {
+  const [stateSel, setStateSel] = useState(US_STATES.includes(orgState) ? orgState : 'CA')
+  const [custom, setCustom] = useState('')
+
   function toggle(c) {
     setData(data.includes(c) ? data.filter((x) => x !== c) : [...data, c])
   }
+  function addCustom() {
+    const name = custom.trim()
+    if (!name) return
+    if (!data.includes(name)) setData([...data, name])
+    setCustom('')
+  }
+
+  const curated = stateSel === 'CA' ? LA_COURTS : []
+
   return (
     <div>
       <h2 className="wizard-step-title">Which courts do you serve?</h2>
       <p className="wizard-step-desc">This helps surface the right court on each new case. You can add more later.</p>
-      <div className="choice-grid">
-        {LA_COURTS.map((c) => (
-          <label key={c} className={`choice ${data.includes(c) ? 'checked' : ''}`}>
-            <input type="checkbox" checked={data.includes(c)} onChange={() => toggle(c)} />
-            <div><div className="choice-title">{c}</div></div>
-          </label>
-        ))}
+
+      <div className="form-grid" style={{ marginBottom: 16 }}>
+        <div className="form-group">
+          <label className="form-label">State</label>
+          <select className="form-select" value={stateSel} onChange={(e) => setStateSel(e.target.value)}>
+            {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
       </div>
+
+      {curated.length > 0 && (
+        <>
+          <p className="form-help" style={{ marginBottom: 10 }}>
+            Los Angeles County courthouses — more counties coming. Don't see yours? Add it below.
+          </p>
+          <div className="choice-grid">
+            {curated.map((c) => (
+              <label key={c} className={`choice ${data.includes(c) ? 'checked' : ''}`}>
+                <input type="checkbox" checked={data.includes(c)} onChange={() => toggle(c)} />
+                <div><div className="choice-title">{c}</div></div>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="form-grid" style={{ marginTop: 18 }}>
+        <div className="form-group full">
+          <label className="form-label">{curated.length > 0 ? 'Add another court' : `Add the courts you serve in ${stateSel}`}</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input className="form-input" value={custom}
+              onChange={(e) => setCustom(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom() } }}
+              placeholder={`e.g. ${stateSel === 'CA' ? 'Orange County Superior Court' : 'your county family court'}`} />
+            <button type="button" className="btn btn-secondary" onClick={addCustom}>Add</button>
+          </div>
+          <span className="form-help">Press Enter or Add after each court.</span>
+        </div>
+      </div>
+
+      {data.filter((c) => !curated.includes(c)).length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
+          {data.filter((c) => !curated.includes(c)).map((c) => (
+            <span key={c} className="badge" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 10px', border: '1px solid var(--gray-300, #d1d5db)', borderRadius: 6, fontSize: 13 }}>
+              {c}
+              <button type="button" onClick={() => toggle(c)} aria-label={`Remove ${c}`}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 14, lineHeight: 1, padding: 0 }}>×</button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

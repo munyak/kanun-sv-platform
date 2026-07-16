@@ -68,6 +68,9 @@ export default function App() {
         {/* Self-serve SOLO monitor signup — public, no pilot gate. The revenue
             unlock: a solo monitor signs up and lands in the app on a 14-day trial. */}
         <Route path="/start" element={<SoloSignup />} />
+        {/* Friendly aliases for outreach: /monitor → solo signup, /agency → pilot application. */}
+        <Route path="/monitor" element={<Navigate to="/start" replace />} />
+        <Route path="/agency" element={<Navigate to="/apply" replace />} />
         {/* Invited monitors (and other invited roles) join here. They were
             vouched for by an approved agency, so they skip the pilot gate:
             Signup → accept_pending_invitations() links them to the org. The
