@@ -87,15 +87,48 @@ const OWNER_STEPS = [
   },
 ]
 
+const SOLO_STEPS = [
+  {
+    icon: '👋',
+    title: 'Welcome to KaNun Monitoring',
+    body: 'Your practice in one place — cases, visits, court-ready reports, and billing. You run the visit; the record writes itself. Here are the first things to set up.',
+  },
+  {
+    icon: '📲',
+    title: 'Add this app to your phone',
+    body: 'On iPhone: in Safari tap Share → “Add to Home Screen”. On Android: in Chrome tap ⋮ → “Install app”. KaNun then opens full-screen like a normal app — the fastest way to check in at a visit.',
+  },
+  {
+    icon: '📁',
+    title: 'Create your first case',
+    body: 'Run a guided intake to capture the case, parties, children, and court conditions. Everything else — visits and reports — hangs off the case.',
+  },
+  {
+    icon: '📅',
+    title: 'Schedule a visit',
+    body: 'Book a visit on the Schedule tab. Parents get a portal link automatically, and the guided visit workflow is ready on your phone when you arrive.',
+  },
+  {
+    icon: '🎙️',
+    title: 'Run it hands-free',
+    body: 'Check-in and check-out capture GPS automatically. Dictate observations with Voice, use the quick incident flags, and your timestamped notes become a court-ready report under Reports.',
+  },
+  {
+    icon: '✅',
+    title: 'Your checklist is on the dashboard',
+    body: 'A “Get started” checklist on your dashboard tracks these first steps and checks them off automatically as you go. You can always pick up where you left off there.',
+  },
+]
+
 export default function IntroTour() {
-  const { user, role } = useAuth()
+  const { user, role, isSolo } = useAuth()
   const [step, setStep] = useState(0)
   const [open, setOpen] = useState(false)
 
   const storageKey = user ? `kanun_tour_seen_${user.id}` : null
   const steps = useMemo(
-    () => (role === 'monitor' ? MONITOR_STEPS : OWNER_STEPS),
-    [role]
+    () => (role === 'monitor' ? MONITOR_STEPS : isSolo ? SOLO_STEPS : OWNER_STEPS),
+    [role, isSolo]
   )
 
   useEffect(() => {

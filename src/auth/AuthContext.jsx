@@ -173,6 +173,9 @@ export function AuthProvider({ children }) {
     const effectiveViewAs = canSwitchView ? viewAsRole : null
     const role = effectiveViewAs || actualRole
     const org = activeMembership?.sv_organizations || null
+    // Solo practices (self-serve monitors) get practice-framed copy and no
+    // team-management surfaces throughout the app.
+    const isSolo = !!(org?.is_solo || org?.plan === 'solo')
     return {
       session,
       user,
@@ -180,6 +183,7 @@ export function AuthProvider({ children }) {
       activeOrgId,
       activeMembership,
       org,
+      isSolo,
       role,
       actualRole,
       viewAsRole: effectiveViewAs,

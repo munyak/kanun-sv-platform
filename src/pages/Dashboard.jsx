@@ -86,7 +86,7 @@ export default function Dashboard() {
    ============================================================ */
 
 function OwnerDashboard({ org }) {
-  const { activeOrgId } = useAuth()
+  const { activeOrgId, isSolo } = useAuth()
   const [loading, setLoading] = useState(true)
   const [priorities, setPriorities] = useState({
     pendingReports: 0,
@@ -336,37 +336,42 @@ function OwnerDashboard({ org }) {
   // one case, one visit, and one submitted report — i.e. they've completed
   // the full end-to-end loop at least once.
   const onboarding = onboardCounts.monitors !== null && (
-    onboardCounts.monitors === 0 ||
+    (!isSolo && onboardCounts.monitors === 0) ||
     onboardCounts.cases === 0 ||
     onboardCounts.visits === 0 ||
     onboardCounts.reportsWritten === 0
   )
   const onboardSteps = onboardCounts.monitors === null ? null : [
-    {
+    // Solo practices ARE the monitor — no one to invite.
+    ...(isSolo ? [] : [{
       done: onboardCounts.monitors > 0,
       title: 'Add your first monitor',
       desc: 'Invite a 1099 monitor by email. They sign in on their phone and run visits.',
       cta: 'Add monitor',
       to: '/monitors',
-    },
+    }]),
     {
       done: onboardCounts.cases > 0,
       title: 'Run your first intake',
-      desc: 'Capture the case, parties, and child in a guided 5-step intake (CA 5.20 compliant).',
+      desc: 'Capture the case, parties, and child in a guided 5-step intake.',
       cta: 'Start intake',
       to: '/intake',
     },
     {
       done: onboardCounts.visits > 0,
       title: 'Schedule the first visit',
-      desc: 'Assign a monitor and time. Parents get a portal link automatically.',
+      desc: isSolo
+        ? 'Pick a time on a case. Parents get a portal link automatically.'
+        : 'Assign a monitor and time. Parents get a portal link automatically.',
       cta: 'Open a case',
       to: '/cases',
     },
     {
       done: onboardCounts.reportsWritten > 0,
       title: 'Complete a visit',
-      desc: 'Monitor checks in, runs the 6-phase flow, writes the report — you review and ship to court.',
+      desc: isSolo
+        ? 'Check in, run the guided flow, and your timestamped notes become a court-ready report.'
+        : 'Monitor checks in, runs the 6-phase flow, writes the report — you review and ship to court.',
       cta: 'See workflow',
       to: '/visits',
     },
@@ -389,7 +394,7 @@ function OwnerDashboard({ org }) {
 
       {/* Onboarding checklist — shown until the agency has run a full visit
           cycle end-to-end at least once. */}
-      {onboarding && onboardSteps && <OnboardingChecklist steps={onboardSteps} />}
+      {onboarding && onboardSteps && <OnboardingChecklist steps={onboardSteps} isSolo={isSolo} />}
 
       {/* Priority Command Cards — clickable, action-oriented */}
       <div className="priority-grid">
@@ -417,13 +422,13 @@ function OwnerDashboard({ org }) {
           label="reports awaiting changes"
           urgent={priorities.changesRequested > 0}
         />
-        <PriorityCard
+        {!isSolo && <PriorityCard
           to="/monitors"
           tone="blue"
           icon={ICON.monitors}
           n={priorities.activeMonitors}
           label="active monitors"
-        />
+        />}
       </div>
 
       {/* Week strip */}
@@ -561,7 +566,7 @@ function greetingTime() {
   return 'evening'
 }
 
-function OnboardingChecklist({ steps }) {
+function OnboardingChecklist({ steps, isSolo }) {
   const completed = steps.filter((s) => s.done).length
   const total = steps.length
   const pct = Math.round((completed / total) * 100)
@@ -576,7 +581,7 @@ function OnboardingChecklist({ steps }) {
             {completed === total
               ? "You're set up — nice work."
               : completed === 0
-                ? "Let's get your agency running"
+                ? (isSolo ? "Let's get your practice running" : "Let's get your agency running")
                 : `${completed} of ${total} done — keep going`}
           </div>
         </div>

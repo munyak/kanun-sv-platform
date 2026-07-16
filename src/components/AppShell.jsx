@@ -181,12 +181,16 @@ function Initials({ user }) {
 export default function AppShell() {
   const {
     user, org, role, memberships, setActiveOrg, activeOrgId, signOut,
-    actualRole, viewAsRole, canSwitchView, setViewAsRole,
+    actualRole, viewAsRole, canSwitchView, setViewAsRole, isSolo,
   } = useAuth()
   const nav = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const items = NAV_BY_ROLE[role] || NAV_BY_ROLE.agency_owner
+  const baseItems = NAV_BY_ROLE[role] || NAV_BY_ROLE.agency_owner
+  // Solo practices have no roster to manage — hide team-management surfaces.
+  const items = isSolo
+    ? baseItems.filter((i) => !['/monitors', '/team'].includes(i.to))
+    : baseItems
   const isMonitor = role === 'monitor'
   const isViewingAs = !!viewAsRole
   const bill = billingState(org)
@@ -207,10 +211,10 @@ export default function AppShell() {
             <div className="brand-mark">KW</div>
             <div className="topbar-org">
               <div className="topbar-org-name">
-                {isMonitor ? 'Monitor portal' : (org?.name || 'KaNun Wellness')}
+                {isMonitor ? 'Monitor portal' : (org?.name || 'KaNun Monitoring')}
               </div>
               <div className="topbar-org-sub">
-                {isMonitor ? (org?.name || 'KaNun Wellness') : 'Supervised Visitation'}
+                {isMonitor ? (org?.name || 'KaNun Monitoring') : 'Supervised Visitation'}
               </div>
             </div>
           </div>
