@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { supabase } from '../supabase'
 import { billingState, startSoloCheckout, SOLO_PRICE, SOLO_PRICE_SUFFIX, BILLING_LIVE } from '../lib/billing'
@@ -7,9 +7,11 @@ import { billingState, startSoloCheckout, SOLO_PRICE, SOLO_PRICE_SUFFIX, BILLING
 // /subscription — plan + subscription management for solo monitors. Also the
 // success/cancel landing target from Stripe Checkout. On a successful return we
 // poll refresh() a few times so the webhook has a moment to flip the org to
-// 'active' before we render the confirmed state.
+// 'active' before we render the confirmed state. After confirmation, solo monitors
+// are redirected to /onboarding to complete their practice setup.
 export default function Subscription() {
-  const { org, refresh } = useAuth()
+  const { org, refresh, user } = useAuth()
+  const nav = useNavigate()
   const [params, setParams] = useSearchParams()
   const justPaid = params.get('status') === 'success'
   const [busy, setBusy] = useState(false)
@@ -28,6 +30,18 @@ export default function Subscription() {
     // Once the org shows active, clear the ?status flag from the URL.
     if (justPaid && s.active) setParams({}, { replace: true })
   }, [justPaid, s.active, setParams])
+
+  useEffect(() => {
+    // After successful payment and org activation, redirect solo monitors to
+    // /onboarding to complete their practice setup (services, pricing, courts, first case).
+    if (justPaid && s.active && s.isSolo && user) {
+      // Small delay to let the user see the success message
+      const timer = setTimeout(() => {
+        nav('/onboarding', { replace: true })
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [justPaid, s.active, s.isSolo, user, nav])
 
   async function subscribe() {
     setErr(null); setBusy(true)
