@@ -1,73 +1,92 @@
-# KaNun SV Platform — Claude Code Configuration
+# KaNun SV Platform — Shared Agent Operating File
 
-## Model Configuration
+Multiple AI agents work in this repo (Cowork/Claude sessions, Orca, others).
+This file is the ONE shared source of truth. Every agent reads it before
+working and updates it after shipping. Munya should never have to relay
+state between agents.
 
-This project requires **Claude Opus** for complex reasoning on:
-- Stripe integration & payment flows
-- KaNun outreach & sales automation
-- Strategic analysis & product decisions
-- Multi-phase deployments
+## ⚠️ Coordination Protocol (mandatory for every agent)
 
-**Model:** `claude-opus-4-20250805`  
-**Provider:** Anthropic  
+1. **Before any work:** `git pull` and read `git log --oneline -10`. Another
+   agent may have shipped since your last session.
+2. **Before changing shared surfaces** (billing, auth, signup flows,
+   netlify.toml, edge functions): re-read the relevant section below AND
+   `SOLO_TIER_DEPLOY.md`. Do not act on this file's claims without checking
+   the code — verify, then trust.
+3. **After shipping:** update "Current State" and "Agent Log" below in the
+   same commit (or an immediate follow-up).
+4. **Commit style:** small commits with descriptive messages — commit
+   messages are the inter-agent changelog. Push to `main` deploys to
+   production via Netlify.
+5. **Never** reintroduce founder-name attribution in marketing copy, revert
+   the Ink & Seal design, or flip billing flags without the checklist in
+   SOLO_TIER_DEPLOY.md being verifiably complete.
 
-Override: `hermes config set model anthropic claude-opus-4-20250805`
+## Facts (corrects earlier errors in this file)
 
-## Key Constraints
+- **Founder/CEO:** Munya Kanaventi (KaNun Monitoring LLC, EIN 87-4488272).
+  "Geoffrey" is the macOS user account / machine name, not a person's role.
+- **Edge functions live in `supabase/functions/*/index.ts`** (Deno), NOT
+  /netlify. There are no Netlify functions in this project.
+- **Stack:** React+Vite SPA (`src/`) → Netlify site `kanun-monitoring-archive`
+  → kanunmonitoring.com. Backend: Supabase project `yxhwcicxarfmptwivkdu`
+  (DB, auth, edge functions). PWA service worker caches aggressively.
+- **Routes:** `/` + `/apply` = agency pilot application (gated).
+  `/start` = solo self-serve signup (14-day trial). `/welcome` = marketing
+  chooser. Aliases: `/monitor` → /start, `/agency` → /apply.
 
-**DEPLOYMENT RULE:** Always test branch → staging approval → main. Incremental 1-change commits only. Netlify needs `--clear-cache` after every major change.
+## Current State (update when you change it)
 
-**Stripe Mode:** LIVE (real money). Test with Stripe test card `4242 4242 4242 4242` only when explicitly needed.
+- **Design:** entire public site + auth on the "Ink & Seal" system
+  (`src/pages/inkseal.css`, `docs/BRAND-INK-AND-SEAL.md`). Marketing copy is
+  team-attributed and jurisdiction-neutral (CA 5.20 = proof point, not scope).
+- **Onboarding:** split flows — solo (5 steps, practice-framed) vs agency
+  (6 steps). Courts step is state-aware (state dropdown + LA curated list +
+  free-entry chips). Solo in-app: Monitors/Team nav hidden, solo tour, solo
+  dashboard checklist (`isSolo` on AuthContext).
+- **Standards:** `src/lib/courtStandards.js` — verified state citations
+  (CA/FL/MN/UT) + SVN Practice Standards fallback. Add states only with
+  verified primary sources — never fabricate legal citations.
+- **BILLING — ⚠️ UNVERIFIED LIVE STATE:** `BILLING_LIVE=true` was flipped
+  (commit a51783c, 2026-07-16) and is deployed, so trial-end paywalls are
+  ENFORCED. NOT verified: (1) STRIPE_SECRET_KEY on Supabase is sk_live,
+  (2) a LIVE-mode webhook is registered with its signing secret set as
+  STRIPE_WEBHOOK_SECRET, (3) Stripe business verification for
+  acct_1Tq7o4Bryn2IZeeR is complete. Until Munya confirms all three in the
+  Stripe dashboard, the risk is: customer pays → webhook never fires → org
+  stays trialing → paying customer hits the paywall. Earliest trial
+  expiries ~2026-07-25. If in doubt, flip BILLING_LIVE=false (fail-open)
+  and redeploy.
+- **SEO:** netlify.toml still sets `X-Robots-Tag: noindex` site-wide —
+  intentional during the private pilot; remove at public launch.
 
-**Production Site:** https://kanunmonitoring.com (Netlify + Supabase backend)
+## Lanes (to avoid collisions)
 
-## Project Structure
+- **Product, site, design, onboarding, standards:** Cowork Claude.
+- **Outreach/sales automation + Stripe cutover execution:** Orca / local
+  sessions — but any billing-flag change follows the SOLO_TIER_DEPLOY.md
+  checklist and must be logged below.
+- Cross-lane work: leave an Agent Log note; prefer small, reviewable commits.
 
-```
-/src              — React/SPA frontend
-/netlify          — Supabase Edge Functions (checkout, webhooks)
-/db               — Database migrations
-/docs             — Architecture & guides
-package.json      — Dependencies (includes Stripe.js)
-```
+## Agent Log (append newest first: date · agent · what/why)
+
+- 2026-07-16 · Cowork Claude · Rewrote this file as the shared operating
+  doc; corrected factual errors (functions path, roles). Shipped: national
+  court-standards module, solo-aware app experience, solo/agency onboarding
+  split, /monitor + /agency aliases.
+- 2026-07-16 · Orca/local · Flipped BILLING_LIVE=true (a51783c) + original
+  CLAUDE.md (ce59384). Live-Stripe prerequisites not confirmed in repo —
+  see BILLING above.
+- 2026-07-11..16 · Cowork Claude · Ink & Seal redesign of /, /apply, /start,
+  /welcome, auth shell; brand skill + docs/BRAND-INK-AND-SEAL.md.
+- 2026-07-10..11 · earlier session · Solo tier built; test-mode Stripe loop
+  proven end-to-end (see SOLO_TIER_DEPLOY.md).
 
 ## Key Files
 
-- `src/lib/billing.js` — Billing state management (BILLING_LIVE flag controls checkout)
-- `netlify/functions/create-subscription-checkout.js` — Stripe checkout session creation
-- `netlify/functions/stripe-subscription-webhook.js` — Event handling
-- `SOLO_TIER_DEPLOY.md` — Deployment checklist & status
-
-## Environment Variables (Supabase Secrets)
-
-- `STRIPE_SECRET_KEY` — sk_live_… (live account acct_1Tq7o4Bryn2IZeeR)
-- `STRIPE_WEBHOOK_SECRET` — Signing secret from Stripe Dashboard
-- `SOLO_PRICE_CENTS` — Default 3900 ($39/month)
-- `APP_BASE_URL` — Default https://kanunmonitoring.com
-
-## Recent Updates
-
-- **2026-07-11:** Flipped `BILLING_LIVE=true` in `src/lib/billing.js`
-- **2026-07-10:** Deployed functions, registered test webhook, verified full flow
-- **2026-07-08:** Built solo signup (`/start`), 14-day trial, checkout integration
-
-## Next Steps
-
-1. ✅ Flip BILLING_LIVE to true
-2. 📋 Push to main & rebuild Netlify
-3. 📋 Verify production checkout at https://kanunmonitoring.com/start
-4. 📋 Monitor Stripe Dashboard for first real transactions
-
-## Communication Style
-
-- Geoffrey prefers concise, action-focused responses
-- Wants data/content presented directly for review (not wrapped in reasoning)
-- Appreciates immediate deliverables (drafts, diffs, options)
-- Fast reader: gets to the point in first 1-2 sentences
-- Solution-focused despite frustration with repeated failures
-
-## Team
-
-- **Geoffrey (User):** CEO, runs KaNun Monitoring
-- **Claude Code (Agent):** Execution, development, automation
-- **Note:** Maintain sync between Claude Code sessions and Hermes TUI
+- `src/lib/billing.js` — BILLING_LIVE flag (fail-open when false)
+- `src/lib/courtStandards.js` — state → court-standard mapping
+- `src/pages/inkseal.css` — brand system (see docs/BRAND-INK-AND-SEAL.md)
+- `supabase/functions/` — solo-signup, pilot-apply, create-subscription-
+  checkout, stripe-subscription-webhook, invite-monitor, …
+- `SOLO_TIER_DEPLOY.md` — billing cutover checklist & deploy history
