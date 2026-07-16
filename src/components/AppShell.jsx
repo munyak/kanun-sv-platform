@@ -6,6 +6,7 @@ import TesterEngagement from './TesterEngagement'
 import TrialBanner from './TrialBanner'
 import Paywall from './Paywall'
 import { billingState } from '../lib/billing'
+import { getCourtStandard } from '../lib/courtStandards'
 
 /* ----- Lucide-style icons (inline SVG, stroke-current) ----- */
 const Icon = ({ d, children, size = 20 }) => (
@@ -302,11 +303,12 @@ export default function AppShell() {
           </nav>
           <div className="sidebar-footer">
             <a
-              href="https://www.courts.ca.gov/cms/rules/index.cfm?title=five&linkid=rule5_20"
+              href={getCourtStandard(org?.address_state).url}
               target="_blank" rel="noopener noreferrer"
               className="footer-link"
+              title={getCourtStandard(org?.address_state).name}
             >
-              CA Standard 5.20 ↗
+              {getCourtStandard(org?.address_state).label} ↗
             </a>
             <div className="footer-meta">v0.3.0 · Phase 1</div>
           </div>

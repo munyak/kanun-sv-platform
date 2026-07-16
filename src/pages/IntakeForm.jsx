@@ -112,7 +112,7 @@ const initialChild = {
 
 export default function IntakeForm() {
   const navigate = useNavigate()
-  const { activeOrgId } = useAuth()
+  const { activeOrgId, org } = useAuth()
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState(null)
@@ -271,7 +271,11 @@ export default function IntakeForm() {
       <div className="page-header">
         <div>
           <h1 className="page-title">New Intake</h1>
-          <div className="page-subtitle">Per California Rule of Court — Standard 5.20</div>
+          <div className="page-subtitle">
+            {org?.address_state === 'CA'
+              ? 'Per California Rule of Court — Standard 5.20'
+              : 'Court-ready intake · aligned with SVN practice standards'}
+          </div>
         </div>
       </div>
 

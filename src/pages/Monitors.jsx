@@ -294,7 +294,7 @@ export default function Monitors() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Monitors</h1>
-          <div className="page-subtitle">Qualifications tracked per California Standard 5.20(e)</div>
+          <div className="page-subtitle">Qualifications benchmarked to California Standard 5.20(e) — the strictest statewide baseline</div>
         </div>
         <div className="btn-group">
           <button className="btn btn-secondary" onClick={() => { setInviteLink(null); setInviteEmail(null); setShowInvite(true) }}>

@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { useAuth } from '../auth/AuthContext'
 import { OWNER_ROLES } from '../auth/ProtectedRoute'
 import { logUsage } from '../lib/analytics'
+import { complianceLine } from '../lib/courtStandards'
 
 /* ============================================================
    Guided report builder + agency review
@@ -153,7 +154,7 @@ function buildInitialSections(visit, observations) {
 
 export default function VisitReport() {
   const { id } = useParams()
-  const { activeOrgId, role, user } = useAuth()
+  const { activeOrgId, role, user, org } = useAuth()
   const nav = useNavigate()
   const isOwner = OWNER_ROLES.includes(role)
 
@@ -670,7 +671,7 @@ export default function VisitReport() {
       )}
 
       {mode === 'preview' && sections && (
-        <ReportPreview visit={visit} report={report} sections={sections} status={status} />
+        <ReportPreview visit={visit} report={report} sections={sections} status={status} orgState={org?.address_state} />
       )}
 
       {toast && <div className={`toast ${toast.kind === 'error' ? 'error' : ''}`}>{toast.m}</div>}
@@ -740,7 +741,7 @@ function StatusBadge({ status }) {
   return <span className={`rb-status-badge tone-${m.tone}`}>{m.label}</span>
 }
 
-function ReportPreview({ visit, report, sections, status }) {
+function ReportPreview({ visit, report, sections, status, orgState }) {
   const c = visit.case
   return (
     <div className="rb-preview" id="report-print">
@@ -799,8 +800,9 @@ function ReportPreview({ visit, report, sections, status }) {
         {report?.submitted_at && <> · Submitted {fmtDate(report.submitted_at)}</>}
         {report?.approved_at && <> · Approved {fmtDate(report.approved_at)}</>}
         <br />
-        Provided per California Rule of Court 5.20. This document contains
-        confidential information protected by Family Code §3110.5.
+        {orgState === 'CA'
+          ? 'Provided per California Rule of Court 5.20. This document contains confidential information protected by Family Code §3110.5.'
+          : `${complianceLine(orgState)} This document contains confidential information — handle per the court order and applicable law.`}
       </div>
     </div>
   )

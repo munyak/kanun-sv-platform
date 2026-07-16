@@ -50,7 +50,7 @@ const MONITOR_STEPS = [
   {
     icon: '🎙️',
     title: 'Notes are hands-free',
-    body: 'During a visit, tap Voice to dictate observations and use the quick flags for Standard 5.20 incidents. Check-in and check-out capture GPS automatically, and every entry is timestamped for the court report.',
+    body: 'During a visit, tap Voice to dictate observations and use the quick incident flags. Check-in and check-out capture GPS automatically, and every entry is timestamped for the court report.',
   },
 ]
 
@@ -78,7 +78,7 @@ const OWNER_STEPS = [
   {
     icon: '🎓',
     title: 'Explore the Academy',
-    body: 'Built-in training toward KaNun Certified Monitor for you and your team. After each visit, the monitor’s timestamped notes become a Standard 5.20 report you review under Reports.',
+    body: 'Built-in training toward KaNun Certified Monitor for you and your team. After each visit, the monitor’s timestamped notes become a court-ready report you review under Reports.',
   },
   {
     icon: '✅',
